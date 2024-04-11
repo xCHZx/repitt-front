@@ -9,4 +9,18 @@ export default [
     to: { name: 'second-page' },
     icon: { icon: 'tabler-file' },
   },
+  {
+    title: 'Negocio',
+    icon: { icon: 'tabler-building' },
+    children: [
+      {
+        title: 'Crear',
+        to: 'business-create-business',
+      },
+      {
+        title: 'Mis negocios',
+        to: 'business',
+      }
+    ]
+  }
 ]
