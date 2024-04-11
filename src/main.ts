@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 
 import App from '@/App.vue'
 import { registerPlugins } from '@core/utils/plugins'
+import axios from './services/axios'
 
 // Styles
 import '@core/scss/template/index.scss'
@@ -14,4 +15,8 @@ const app = createApp(App)
 registerPlugins(app)
 
 // Mount vue app
+app.use(axios, {
+    baseUrl: 'http://127.0.0.1:8000/',
+})
 app.mount('#app')
+
