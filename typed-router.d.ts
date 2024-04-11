@@ -8,44 +8,42 @@
 /// <reference types="unplugin-vue-router/client" />
 
 import type {
+  NavigationGuard,
+  ParamValue,
+  RouteLocationAsPathTypedList,
+  RouteLocationAsRelativeTypedList,
+  RouteLocationAsString,
+  RouteLocationNormalizedLoadedTypedList,
+  RouteLocationNormalizedTypedList,
+  RouteLocationResolvedTypedList,
   // type safe route locations
   RouteLocationTypedList,
-  RouteLocationResolvedTypedList,
-  RouteLocationNormalizedTypedList,
-  RouteLocationNormalizedLoadedTypedList,
-  RouteLocationAsString,
-  RouteLocationAsRelativeTypedList,
-  RouteLocationAsPathTypedList,
-
   // helper types
   // route definitions
   RouteRecordInfo,
-  ParamValue,
-  ParamValueOneOrMore,
-  ParamValueZeroOrMore,
-  ParamValueZeroOrOne,
-
-  // vue-router extensions
-  _RouterTyped,
-  RouterLinkTyped,
   RouterLinkPropsTyped,
-  NavigationGuard,
+  RouterLinkTyped,
   UseLinkFnTyped,
 
   // data fetching
   _DataLoader,
   _DefineLoaderOptions,
+  // vue-router extensions
+  _RouterTyped
 } from 'unplugin-vue-router/types'
 
 declare module 'vue-router/auto/routes' {
   export interface RouteNamedMap {
     'root': RouteRecordInfo<'root', '/', Record<never, never>, Record<never, never>>,
     '$error': RouteRecordInfo<'$error', '/:error(.*)', { error: ParamValue<true> }, { error: ParamValue<false> }>,
+    'business': RouteRecordInfo<'business', '/business', Record<never, never>, Record<never, never>>,
+    'business-create-business': RouteRecordInfo<'business-create-business', '/business/create-business', Record<never, never>, Record<never, never>>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
     'login copy': RouteRecordInfo<'login copy', '/login copy', Record<never, never>, Record<never, never>>,
     'negocio-crear-negocio': RouteRecordInfo<'negocio-crear-negocio', '/negocio/crear-negocio', Record<never, never>, Record<never, never>>,
     'recompensas-tarjetas': RouteRecordInfo<'recompensas-tarjetas', '/recompensas/tarjetas', Record<never, never>, Record<never, never>>,
     'recompensas-tarjetas-id': RouteRecordInfo<'recompensas-tarjetas-id', '/recompensas/tarjetas/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'register': RouteRecordInfo<'register', '/register', Record<never, never>, Record<never, never>>,
     'second-page': RouteRecordInfo<'second-page', '/second-page', Record<never, never>, Record<never, never>>,
   }
 }
@@ -126,10 +124,8 @@ declare module 'vue-router/auto' {
   ): _DataLoader<Awaited<P>, isLazy>
 
   export {
-    _definePage as definePage,
-    _HasDataLoaderMeta as HasDataLoaderMeta,
-    _setupDataFetchingGuard as setupDataFetchingGuard,
-    _stopDataFetchingScope as stopDataFetchingScope,
+    _HasDataLoaderMeta as HasDataLoaderMeta, _definePage as definePage, _setupDataFetchingGuard as setupDataFetchingGuard,
+    _stopDataFetchingScope as stopDataFetchingScope
   } from 'unplugin-vue-router/runtime'
 }
 

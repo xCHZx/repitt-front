@@ -1,11 +1,18 @@
 import axios from 'axios'
+import type { App } from 'vue'
 
-const instance = axios.create({
-  baseURL: 'http://localhost:8000',
-  timeout: 1000,
-  headers: {
-    'Content-Type': 'application/json',
+interface AxiosOptions {
+  baseUrl?: string
+  token?: string
+}
+
+export default {
+  install: (app: App, options: AxiosOptions) => {
+    app.config.globalProperties.$axios = axios.create({
+      baseURL: options.baseUrl,
+      headers: {
+        Authorization: options.token ? `Bearer ${options.token}` : '',
+      },
+    })
   },
-})
-
-export default instance
+}

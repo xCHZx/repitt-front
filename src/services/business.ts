@@ -1,22 +1,17 @@
-import axios from 'axios'
+import { authAxios } from '@/services/auth'
 
-axios.defaults.withCredentials = true
-axios.defaults.withXSRFToken = true
+const createBusiness = async (payload: any) => {
+  try {
+    const response = await authAxios.post('http://127.0.0.1:8000/api/business', payload)
 
-const baseUrl = 'http://127.0.0.1:8000/api/business'
+    console.log('Business created successfully:', response.data)
 
-async function createBusiness(payload: object) {
-  return axios.post(`${baseUrl}`, payload)
-    .then(response => {
-      return response.data
-    })
-    .catch(error => {
-      console.error(error)
-
-      return error
-    })
+    return response.data // Devuelve los datos del negocio creado si es necesario
+  }
+  catch (error) {
+    console.error('Error creating business:', error.response.data)
+    throw error // Relanza el error para que pueda ser manejado por el componente que llama a esta función
+  }
 }
 
-export {
-  createBusiness,
-}
+export { createBusiness }
