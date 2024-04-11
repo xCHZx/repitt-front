@@ -9,4 +9,16 @@ export default [
     to: { name: 'second-page' },
     icon: { icon: 'tabler-file' },
   },
+
+  {
+    title: 'Mi Negocio',
+    icon: { icon: 'tabler-smart-home' },
+    children: [
+      {
+        title: 'Crear Negocio',
+        to: { name: 'negocio-crear-negocio' },
+        icon: { icon: 'tabler-file' },
+      },
+    ],
+  },
 ]

@@ -42,6 +42,10 @@ declare module 'vue-router/auto/routes' {
     'root': RouteRecordInfo<'root', '/', Record<never, never>, Record<never, never>>,
     '$error': RouteRecordInfo<'$error', '/:error(.*)', { error: ParamValue<true> }, { error: ParamValue<false> }>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
+    'login copy': RouteRecordInfo<'login copy', '/login copy', Record<never, never>, Record<never, never>>,
+    'negocio-crear-negocio': RouteRecordInfo<'negocio-crear-negocio', '/negocio/crear-negocio', Record<never, never>, Record<never, never>>,
+    'recompensas-tarjetas': RouteRecordInfo<'recompensas-tarjetas', '/recompensas/tarjetas', Record<never, never>, Record<never, never>>,
+    'recompensas-tarjetas-id': RouteRecordInfo<'recompensas-tarjetas-id', '/recompensas/tarjetas/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'second-page': RouteRecordInfo<'second-page', '/second-page', Record<never, never>, Record<never, never>>,
   }
 }
