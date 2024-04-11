@@ -1,6 +1,5 @@
-<script setup lang="ts">
-import { router } from '@/plugins/1.router'
-import { loginUser } from '@/services/auth'
+<script lang="ts" setup>
+  import { registerUser } from '@/services/auth';
 import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
 import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png'
@@ -11,6 +10,7 @@ import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@images/pages/misc-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
+import { VIcon } from 'vuetify/lib/components/index.mjs';
 
 definePage({
   meta: {
@@ -27,29 +27,30 @@ const authThemeImg = useGenerateImageVariant(
   true)
 
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
-
-const form = ref({
-  email: '',
-  password: '',
-})
-
-const isPasswordVisible = ref(false)
-  
+    
+    const form = ref({
+        first_name: '',
+        last_name: '',
+        phone: '',
+        email: '',
+        password: '',
+        account_status: '',
+        role: '',
+    })
+    
     const onSubmit = () => {
-      try {
         const payload = {
-
+            first_name: form.value.first_name,
+            last_name: form.value.last_name,
+            phone: form.value.phone,
             email: form.value.email,
             password: form.value.password,
+            account_status: form.value.account_status,
+            role: form.value.role,
         }
 
-        loginUser(payload)
-        console.log("Si entró  ͡° ͜ʖ ͡°")
-        router.push('/');
-      } catch (error) {
-        console.error('Login error:', error);
-
-      }
+        registerUser(payload)
+        console.log("Si funciona")
     }
 </script>
 
@@ -105,100 +106,84 @@ const isPasswordVisible = ref(false)
       >
         <VCardText>
           <h4 class="text-h4 mb-1">
-            Welcome to <span class="text-capitalize"> {{ themeConfig.app.title }} </span>! 👋🏻
+            Bienvenido a <span class="text-capitalize"> {{ themeConfig.app.title }} </span>! 👋🏻
           </h4>
           <p class="mb-0">
-            Please sign-in to your account and start the adventure
+            Registrate con nosotros y empieza a acumular recompensas!
           </p>
-        </VCardText>
-        <VCardText>
-          <VAlert
-            color="primary"
-            variant="tonal"
-          >
-            <p class="text-sm mb-2">
-              Admin Email: <strong>admin@demo.com</strong> / Pass: <strong>admin</strong>
-            </p>
-            <p class="text-sm mb-0">
-              Client Email: <strong>client@demo.com</strong> / Pass: <strong>client</strong>
-            </p>
-          </VAlert>
         </VCardText>
         <VCardText>
           <VForm @submit.prevent="onSubmit">
             <VRow>
-              <!-- email -->
               <VCol cols="12">
+                <VIcon icon="tabler-user"></VIcon>
                 <AppTextField
-                  v-model="form.email"
-                  autofocus
-                  label="Email"
-                  type="email"
-                  placeholder="johndoe@email.com"
+                  v-model="form.first_name"
+                  placeholder="Nombre"
+                  required
                 />
               </VCol>
 
-              <!-- password -->
               <VCol cols="12">
+                <VIcon icon="tabler-signature"></VIcon>
+                <AppTextField
+                  v-model="form.last_name"
+                  placeholder="Apellido"
+                  required
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <VIcon icon="tabler-phone"></VIcon>
+                <AppTextField
+                  v-model="form.phone"
+                  placeholder="1234567890"
+                  type="number"
+                />
+              </VCol>
+
+              <VCol cols="12">
+                <VIcon icon="tabler-mail"></VIcon>
+                <AppTextField
+                  v-model="form.email"
+                  type="email"
+                  placeholder="tucorreo@ejemplo.com"
+                />
+              </VCol>
+        
+              <VCol cols="12">
+                <VIcon icon="tabler-lock"></VIcon>
                 <AppTextField
                   v-model="form.password"
-                  label="Password"
+                  autocomplete="on"
+                  type="password"
                   placeholder="············"
-                  :type="isPasswordVisible ? 'text' : 'password'"
-                  :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
-                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
+              </VCol>
 
-                <div class="d-flex align-center flex-wrap justify-space-between mt-2 mb-4">
-                  <!--VCheckbox
-                    v-model="form.remember"
-                    label="Remember me"
-                  /-->
-                  <a
-                    class="text-primary ms-2 mb-1"
-                    href="#"
-                  >
-                    Forgot Password?
-                  </a>
-                </div>
+              <VCol cols="12" hidden>
+                <AppTextField
+                  v-model="form.account_status"
+                  value="1"
+                  hidden
+                />
+              </VCol>
 
+              <VCol cols="12" hidden>
+                <AppTextField
+                  v-model="form.role"
+                  value="Owner"
+                />
+              </VCol>
+        
+              <VCol cols="12">
                 <VBtn
                   block
                   type="submit"
+                  class="me-2"
                 >
-                  Login
+                  Submit
                 </VBtn>
-              </VCol>
-
-              <!-- create account -->
-              <VCol
-                cols="12"
-                class="text-center"
-              >
-                <span>New on our platform?</span>
-
-                <a
-                  class="text-primary ms-2"
-                  href="#"
-                >
-                  Create an account
-                </a>
-              </VCol>
-              <VCol
-                cols="12"
-                class="d-flex align-center"
-              >
-                <VDivider />
-                <span class="mx-4">or</span>
-                <VDivider />
-              </VCol>
-
-              <!-- auth providers -->
-              <VCol
-                cols="12"
-                class="text-center"
-              >
-                <AuthProvider />
               </VCol>
             </VRow>
           </VForm>
@@ -211,3 +196,4 @@ const isPasswordVisible = ref(false)
 <style lang="scss">
 @use "@core/scss/template/pages/page-auth.scss";
 </style>
+  
