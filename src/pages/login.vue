@@ -18,7 +18,6 @@ definePage({
   },
 })
 
-
 const authThemeImg = useGenerateImageVariant(
   authV2LoginIllustrationLight,
   authV2LoginIllustrationDark,
@@ -34,23 +33,23 @@ const form = ref({
 })
 
 const isPasswordVisible = ref(false)
-  
-    const onSubmit = () => {
-      try {
-        const payload = {
 
-            email: form.value.email,
-            password: form.value.password,
-        }
+const onSubmit = () => {
+  try {
+    const payload = {
 
-        loginUser(payload)
-        console.log("Si entró  ͡° ͜ʖ ͡°")
-        router.push('/');
-      } catch (error) {
-        console.error('Login error:', error);
-
-      }
+      email: form.value.email,
+      password: form.value.password,
     }
+
+    loginUser(payload)
+    console.log('Si entró  ͡° ͜ʖ ͡°')
+    router.push('/')
+  }
+  catch (error) {
+    console.error('Login error:', error)
+  }
+}
 </script>
 
 <template>
@@ -150,10 +149,12 @@ const isPasswordVisible = ref(false)
                 />
 
                 <div class="d-flex align-center flex-wrap justify-space-between mt-2 mb-4">
-                  <!--VCheckbox
+                  <!--
+                    VCheckbox
                     v-model="form.remember"
                     label="Remember me"
-                  /-->
+                    /
+                  -->
                   <a
                     class="text-primary ms-2 mb-1"
                     href="#"
