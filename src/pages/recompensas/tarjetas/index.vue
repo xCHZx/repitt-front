@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { getMyVisitorStampCards } from '@/services/stampCards'
+import { useRouter } from 'vue-router'
+import { getAllByCurrentVisitor } from '@/services/stampCards'
+
+const router = useRouter()
 
 const data: any = ref({})
 
 const getData = async () => {
   try {
-    data.value = await getMyVisitorStampCards()
+    data.value = await getAllByCurrentVisitor()
   }
   catch (error) {
     console.error('Error getting data:', error)
@@ -18,6 +21,8 @@ onMounted(() => {
 
 const goToCard = (id: number) => {
   console.log('goToCard', id)
+
+  router.push(`/recompensas/tarjetas/${id}`)
 }
 </script>
 
