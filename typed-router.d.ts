@@ -50,6 +50,7 @@ declare module 'vue-router/auto/routes' {
     'recompensas-tarjetas-id': RouteRecordInfo<'recompensas-tarjetas-id', '/recompensas/tarjetas/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'register': RouteRecordInfo<'register', '/register', Record<never, never>, Record<never, never>>,
     'second-page': RouteRecordInfo<'second-page', '/second-page', Record<never, never>, Record<never, never>>,
+    'visita-registrar': RouteRecordInfo<'visita-registrar', '/visita/registrar', Record<never, never>, Record<never, never>>,
   }
 }
 
