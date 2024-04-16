@@ -20,6 +20,10 @@ export default [
       {
         title: 'Mis negocios',
         to: 'business',
+      },
+      {
+        title: 'Cartilla',
+        to: 'recompensas-crear-recompensas'
       }
     ]
   }

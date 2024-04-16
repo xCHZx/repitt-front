@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import AppTextarea from '@/@core/components/app-form-elements/AppTextarea.vue';
-import { createBusiness } from '@/services/business';
+import { createStampcard } from '@/services/rewards';
 import { ref } from 'vue';
+import { VCol } from 'vuetify/lib/components/index.mjs';
 
 const name = ref('');
 const description = ref('');
@@ -20,7 +21,7 @@ const onSubmit = async () => {
     };
 
     // Envio al back
-    await createBusiness(payload);
+    await createStampcard(payload);
 
     // Limpia los campos
     name.value = '';
@@ -37,18 +38,25 @@ const onSubmit = async () => {
   }
 };
 
-const ruleName = [(v: string) => v.length <= 25 || 'Te recomendamos no exceder los 25 caracteres']
-const ruleDescription = [(v: string) => v.length <= 40 || 'Utiliza una descripción más corta']
+const ruleName = [(v: string) => v.length <= 25 || 'Te recomendamos no exceder los 25 caracteres'];
+const ruleDescription = [(v: string) => v.length <= 40 || 'Utiliza una descripción más corta'];
+
 </script>
 
 <template>
   <VCard color="pink-darken-2">
+    <VCardItem class="justify-center">
+      <VCardTitle class="font-weight-bold text-capitalize text-h5 py-1">
+              Crear Recompensa
+      </VCardTitle>
+    </VCardItem>
+
     <VCardText>
       <VForm @submit.prevent="onSubmit">
         <VRow>
           <VCol cols="12">
             <VRow no-gutters class="align-items-center">
-              <!-- 👉 Nombre negocio -->
+              <!-- 👉 Nombre de recompensa -->
               <VCol
                 cols="12"
               >
@@ -56,13 +64,24 @@ const ruleDescription = [(v: string) => v.length <= 40 || 'Utiliza una descripci
                   id="name"
                   v-model="name"
                   :rules="ruleName"
-                  placeholder="Nombre del negocio"
+                  placeholder="Recompensa"
                   prepend-icon="tabler-building-store"
                   persistent-placeholder
                 />
               </VCol>
             </VRow>
           </VCol>
+
+          <VCol
+            cols="12"
+          >
+            <VFileInput
+              label="Sube la imagen de tu recompensa"
+              prepend-icon="tabler-camera"
+              accept="image/png, image/jpeg, image/bmp"
+            />
+          </VCol>
+
 
           <VCol cols="12">
             <VRow no-gutters>
@@ -83,58 +102,6 @@ const ruleDescription = [(v: string) => v.length <= 40 || 'Utiliza una descripci
               </VCol>
             </VRow>
           </VCol>
-
-          <VCol cols="12">
-            <VRow no-gutters>
-              <!-- 👉 Dirección -->
-              <VCol
-                cols="12"
-              >
-                <AppTextField
-                  id="address"
-                  v-model="address"
-                  placeholder="Dirección del negocio"
-                  prepend-icon="tabler-gps"
-                  persistent-placeholder
-                />
-              </VCol>
-            </VRow>
-          </VCol>
-
-          <VCol cols="12">
-            <VRow no-gutters>
-              <!-- 👉 Telefono -->
-              <VCol
-                cols="12"
-              >
-                <AppTextField
-                  id="phone"
-                  v-model="phone"
-                  type="phone"
-                  placeholder="Teléfono movil"
-                  prepend-icon="tabler-phone"
-                  persistent-placeholder
-                />
-              </VCol>
-            </VRow>
-          </VCol>
-
-          <VCol cols="12">
-            <VRow no-gutters>
-              <!-- 👉 Segmento -->
-              <VCol
-                cols="12"
-              >
-                <AppTextField
-                  id="segment"
-                  v-model="segment"
-                  placeholder="Segmento"
-                  prepend-icon="tabler-calendar-time"
-                  persistent-placeholder
-                />
-              </VCol>
-            </VRow>
-          </VCol>
         
           <!-- 👉 Crear negocio -->
           <VCol
@@ -142,7 +109,7 @@ const ruleDescription = [(v: string) => v.length <= 40 || 'Utiliza una descripci
             class="d-flex gap-4"
           >
             <VBtn type="submit" block>
-              Agregar Negocio
+              Generar tarjeta de recompensa
             </VBtn>
           </VCol>
         </VRow>

@@ -1,32 +1,14 @@
 <script setup lang="ts">
-import { router } from '@/plugins/1.router'
-import { loginUser } from '@/services/auth'
-import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
-import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
-import authV2LoginIllustrationBorderedDark from '@images/pages/auth-v2-login-illustration-bordered-dark.png'
-import authV2LoginIllustrationBorderedLight from '@images/pages/auth-v2-login-illustration-bordered-light.png'
-import authV2LoginIllustrationDark from '@images/pages/auth-v2-login-illustration-dark.png'
-import authV2LoginIllustrationLight from '@images/pages/auth-v2-login-illustration-light.png'
-import authV2MaskDark from '@images/pages/misc-mask-dark.png'
-import authV2MaskLight from '@images/pages/misc-mask-light.png'
-import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
-import { themeConfig } from '@themeConfig'
+import { router } from '@/plugins/1.router';
+import { loginUser } from '@/services/auth';
+import { VNodeRenderer } from '@layouts/components/VNodeRenderer';
+import { themeConfig } from '@themeConfig';
 
 definePage({
   meta: {
     layout: 'blank',
   },
 })
-
-
-const authThemeImg = useGenerateImageVariant(
-  authV2LoginIllustrationLight,
-  authV2LoginIllustrationDark,
-  authV2LoginIllustrationBorderedLight,
-  authV2LoginIllustrationBorderedDark,
-  true)
-
-const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
 
 const form = ref({
   email: '',
@@ -44,6 +26,7 @@ const isPasswordVisible = ref(false)
         }
 
         loginUser(payload)
+        
         console.log("Si entró  ͡° ͜ʖ ͡°")
         router.push('/');
       } catch (error) {
@@ -54,75 +37,28 @@ const isPasswordVisible = ref(false)
 </script>
 
 <template>
-  <RouterLink to="/">
-    <div class="auth-logo d-flex align-center gap-x-3">
-      <VNodeRenderer :nodes="themeConfig.app.logo" />
-      <h1 class="auth-title">
-        {{ themeConfig.app.title }}
-      </h1>
-    </div>
-  </RouterLink>
-
-  <VRow
-    no-gutters
-    class="auth-wrapper bg-surface"
-  >
-    <VCol
-      md="8"
-      class="d-none d-md-flex"
-    >
-      <div class="position-relative bg-background w-100 me-0">
-        <div
-          class="d-flex align-center justify-center w-100 h-100"
-          style="padding-inline: 6.25rem;"
-        >
-          <VImg
-            max-width="613"
-            :src="authThemeImg"
-            class="auth-illustration mt-16 mb-2"
-          />
-        </div>
-
-        <img
-          class="auth-footer-mask"
-          :src="authThemeMask"
-          alt="auth-footer-mask"
-          height="280"
-          width="100"
-        >
-      </div>
-    </VCol>
-
-    <VCol
-      cols="12"
-      md="4"
-      class="auth-card-v1 d-flex align-center justify-center"
-    >
+  <div class="auth-wrapper d-flex align-center justify-center pa-4">
+      <!-- 👉 Auth Card -->
       <VCard
-        flat
-        :max-width="500"
-        class="mt-12 mt-sm-0 pa-4"
+        class="auth-card pa-4"
+        max-width="448"
       >
+        <VCardItem class="justify-center">
+          <template #prepend>
+            <div class="d-flex">
+              <VNodeRenderer :nodes="themeConfig.app.logo"/>
+            </div>
+          </template>
+
+          <VCardTitle class="font-weight-bold text-capitalize text-h5 py-1" style="color: rgb(var(--v-global-theme-primary))">
+            {{ themeConfig.app.title }}
+          </VCardTitle>
+        </VCardItem>
+
         <VCardText>
-          <h4 class="text-h4 mb-1">
-            Welcome to <span class="text-capitalize"> {{ themeConfig.app.title }} </span>! 👋🏻
+          <h4 class="text-h4 mb-1 text-center">
+            Bienvenido a <span class="text-capitalize"> {{ themeConfig.app.title }} </span>! 👋🏻
           </h4>
-          <p class="mb-0">
-            Please sign-in to your account and start the adventure
-          </p>
-        </VCardText>
-        <VCardText>
-          <VAlert
-            color="primary"
-            variant="tonal"
-          >
-            <p class="text-sm mb-2">
-              Admin Email: <strong>admin@demo.com</strong> / Pass: <strong>admin</strong>
-            </p>
-            <p class="text-sm mb-0">
-              Client Email: <strong>client@demo.com</strong> / Pass: <strong>client</strong>
-            </p>
-          </VAlert>
         </VCardText>
         <VCardText>
           <VForm @submit.prevent="onSubmit">
@@ -158,7 +94,7 @@ const isPasswordVisible = ref(false)
                     class="text-primary ms-2 mb-1"
                     href="#"
                   >
-                    Forgot Password?
+                    ¿Olvidaste la contraseña?
                   </a>
                 </div>
 
@@ -175,37 +111,18 @@ const isPasswordVisible = ref(false)
                 cols="12"
                 class="text-center"
               >
-                <span>New on our platform?</span>
-
                 <a
                   class="text-primary ms-2"
                   href="#"
                 >
-                  Create an account
+                  ¿Aún no tienes una cuenta?
                 </a>
-              </VCol>
-              <VCol
-                cols="12"
-                class="d-flex align-center"
-              >
-                <VDivider />
-                <span class="mx-4">or</span>
-                <VDivider />
-              </VCol>
-
-              <!-- auth providers -->
-              <VCol
-                cols="12"
-                class="text-center"
-              >
-                <AuthProvider />
               </VCol>
             </VRow>
           </VForm>
         </VCardText>
       </VCard>
-    </VCol>
-  </VRow>
+    </div>
 </template>
 
 <style lang="scss">
