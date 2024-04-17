@@ -9,22 +9,20 @@ export default [
     to: { name: 'second-page' },
     icon: { icon: 'tabler-file' },
   },
+
   {
-    title: 'Negocio',
-    icon: { icon: 'tabler-building' },
+    title: 'Mi Negocio',
+    icon: { icon: 'tabler-smart-home' },
     children: [
       {
-        title: 'Crear',
-        to: 'business-create-business',
-      },
-      {
-        title: 'Mis negocios',
-        to: 'business',
+        title: 'Crear Negocio',
+        to: { name: 'negocio-crear-negocio' },
+        icon: { icon: 'tabler-file' },
       },
       {
         title: 'Cartilla',
-        to: 'recompensas-crear-recompensas'
-      }
-    ]
-  }
+        to: 'recompensas-crear-recompensas',
+      },
+    ],
+  },
 ]

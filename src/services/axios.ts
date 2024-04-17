@@ -2,8 +2,8 @@ import axios from 'axios';
 import type { App } from 'vue';
 
 interface AxiosOptions {
-    baseUrl?: string
-    token?: string
+  baseUrl?: string
+  token?: string
 }
 
 // Función para realizar solicitudes autenticadas utilizando el token JWT
@@ -23,14 +23,14 @@ authAxios.interceptors.request.use(config => {
 });
 
 export default {
-    install: (app: App, options: AxiosOptions) => {
-        app.config.globalProperties.$axios = axios.create({
-            baseURL: options.baseUrl,
-            headers: {
-                Authorization: options.token ? `Bearer ${options.token}` : '',
-            }
-        })
-    }
+  install: (app: App, options: AxiosOptions) => {
+    app.config.globalProperties.$axios = axios.create({
+      baseURL: options.baseUrl,
+      headers: {
+        Authorization: options.token ? `Bearer ${options.token}` : '',
+      },
+    })
+  },
 }
 
 export { authAxios };
