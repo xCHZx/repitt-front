@@ -22,7 +22,7 @@ onMounted(() => {
 const goToCard = (id: number) => {
   console.log('goToCard', id)
 
-  router.push(`/recompensas/tarjetas/${id}`)
+  router.push(`/visitante/tarjetas/${id}`)
 }
 </script>
 

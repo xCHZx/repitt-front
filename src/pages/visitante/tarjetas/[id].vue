@@ -3,6 +3,7 @@ import { useRoute } from 'vue-router'
 import { getByIdByCurrentVisitor } from '@/services/stampCards'
 
 const route: any = useRoute()
+const router = useRouter()
 
 const data: any = ref({})
 
@@ -13,6 +14,14 @@ const getData = async () => {
   catch (error) {
     console.error('Error getting data:', error)
   }
+}
+
+const goToQr = (stampCardName: string) => {
+  router.push(`/visitante/perfil/qr?sc=${stampCardName}`)
+}
+
+const reloadPage = () => {
+  location.reload()
 }
 
 onMounted(() => {
@@ -35,6 +44,26 @@ onMounted(() => {
         :end-date="data?.end_date"
         :visits="data?.visits"
       />
+      <VCardText class="text-center">
+        <VBtn
+          block
+          @click="goToQr(data?.name)"
+        >
+          Sellar tarjeta
+        </VBtn>
+      </VCardText>
+      <VCardText class="text-center">
+        <VBtn
+          block
+          size="small"
+          color="secondary"
+          prepend-icon="tabler-reload"
+          variant="outlined"
+          @click="reloadPage"
+        >
+          Actualizar
+        </VBtn>
+      </VCardText>
     </VCol>
   </VRow>
   <!-- 👉 Fin de StampCard Details  -->

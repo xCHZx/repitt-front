@@ -1,9 +1,9 @@
 import axios from 'axios'
 
-const baseUrl = 'http://127.0.0.1:8000/api/stampcard'
+const baseUrl = 'http://127.0.0.1:8000/api/visitor/stampcard'
 
 const getAllByCurrentVisitor = async () => {
-  return await axios.get(`${baseUrl}/visitor/current`, {
+  return await axios.get(`${baseUrl}/logged-user`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`,
     },
@@ -15,7 +15,7 @@ const getAllByCurrentVisitor = async () => {
 }
 
 const getByIdByCurrentVisitor = async (id: number) => {
-  return await axios.get(`${baseUrl}/${id}/visitor/current/`, {
+  return await axios.get(`${baseUrl}/${id}`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`,
     },
@@ -26,18 +26,4 @@ const getByIdByCurrentVisitor = async (id: number) => {
     .catch(error => { return error })
 }
 
-const getAllByCurrentCompany = async () => {
-  return await axios.get(`${baseUrl}/company/current`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
-    },
-  })
-    .then(response => {
-      // console.log(response.data.data[0])
-
-      return response.data.data[0]
-    })
-    .catch(error => { return error })
-}
-
-export { getAllByCurrentCompany, getAllByCurrentVisitor, getByIdByCurrentVisitor }
+export { getAllByCurrentVisitor, getByIdByCurrentVisitor }

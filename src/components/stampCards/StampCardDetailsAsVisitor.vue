@@ -84,10 +84,5 @@ const props = defineProps<Props>()
         </VListItem>
       </VList>
     </VCardText>
-    <VCardText class="text-center">
-      <VBtn block>
-        Sellar tarjeta
-      </VBtn>
-    </VCardText>
   </VCard>
 </template>

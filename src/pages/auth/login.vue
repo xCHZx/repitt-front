@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { router } from '@/plugins/1.router'
-import { loginUser } from '@/services/auth'
+import { loginUser } from '@/services/auth/auth'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 
