@@ -4,38 +4,43 @@
     <span class="d-flex align-center text-medium-emphasis">
       &copy;
       {{ new Date().getFullYear() }}
-      Made With
-      <VIcon
-        icon="tabler-heart-filled"
-        color="error"
-        size="1.25rem"
+      |
+      <!--
+        <VAvatar
         class="mx-1"
-      />
-      By <a
-        href="https://pixinvent.com"
+        color="white"
+        size="2rem"
+        >
+        <VImg
+        src="https://repitt.com/wp-content/uploads/2024/04/Logo-Repitt-Padding.png"
+        width="24"
+        />
+        </VAvatar>
+      -->
+
+      <a
+        href="https://repitt.com"
         target="_blank"
         rel="noopener noreferrer"
         class="text-primary ms-1"
-      >Pixinvent</a>
+      >Repitt</a>
     </span>
     <!-- 👉 Footer: right content -->
+
     <span class="d-md-flex gap-x-4 text-primary d-none">
       <a
-        href="https://themeforest.net/licenses/standard"
+        href="https://repitt.com/contacto/"
         target="noopener noreferrer"
-      >License</a>
+      >Contacto</a>
       <a
-        href="https://1.envato.market/pixinvent_portfolio"
+        href="https://repitt.com/negocios/"
         target="noopener noreferrer"
-      >More Themes</a>
+      >¿Tienes un negocio?</a>
       <a
-        href="https://demos.pixinvent.com/vuexy-vuejs-admin-template/documentation/"
+        href="https://repitt.com/condiciones/"
         target="noopener noreferrer"
-      >Documentation</a>
-      <a
-        href="https://pixinvent.ticksy.com/"
-        target="noopener noreferrer"
-      >Support</a>
+      >Términos y condiciones
+      </a>
     </span>
   </div>
 </template>
