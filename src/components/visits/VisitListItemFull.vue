@@ -22,8 +22,21 @@ const formatDate = (date: string, options: any) => {
       <VCardText>
         <div class="d-flex align-center">
           <div>
+            <h5 class="text-h5">
+              <VAvatar
+                size="x-small"
+                color="primary"
+                variant="tonal"
+              >
+                <VImg
+                  :src="visit?.stamp_card?.business?.logo_path"
+                  class="text-5xl font-weight-medium"
+                />
+              </VAvatar>
+              {{ visit?.stamp_card?.business?.name }}
+            </h5>
             <h6 class="text-h6">
-              Visitaste este negocio el:
+              {{ visit?.stamp_card?.name }}
             </h6>
             <h5 class="text-h5">
               <VIcon

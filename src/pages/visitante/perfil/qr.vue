@@ -56,7 +56,7 @@ onMounted(() => {
             size="small"
             color="success"
             prepend-icon="tabler-arrow-left"
-            @click="$router.back()"
+            @click="router.back()"
           >
             Regresar
           </VBtn>

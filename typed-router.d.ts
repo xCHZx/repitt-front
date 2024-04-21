@@ -50,6 +50,7 @@ declare module 'vue-router/auto/routes' {
     'visitante-perfil-qr': RouteRecordInfo<'visitante-perfil-qr', '/visitante/perfil/qr', Record<never, never>, Record<never, never>>,
     'visitante-tarjetas': RouteRecordInfo<'visitante-tarjetas', '/visitante/tarjetas', Record<never, never>, Record<never, never>>,
     'visitante-tarjetas-id': RouteRecordInfo<'visitante-tarjetas-id', '/visitante/tarjetas/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'visitante-visitas': RouteRecordInfo<'visitante-visitas', '/visitante/visitas', Record<never, never>, Record<never, never>>,
   }
 }
 
