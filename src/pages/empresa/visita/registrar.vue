@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { QrcodeStream } from 'vue-qrcode-reader'
-import { getAllByCurrentCompany } from '@/services/stampCards'
+import { getAllByCurrentCompany } from '@/services/company/stampCards'
 
 // import { useRouter } from 'vue-router'
 

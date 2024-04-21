@@ -4,10 +4,11 @@ interface Props {
   reward: string
   requiredStamps: number
   visitsCount: number
-  image: string
+  businessImage: string
   startDate: string
   endDate: string
   visits: any[]
+  stampIcon: string
 }
 
 const props = defineProps<Props>()
@@ -24,7 +25,7 @@ const props = defineProps<Props>()
         variant="tonal"
       >
         <VImg
-          src="https://i.pinimg.com/originals/aa/92/89/aa9289de1ed2865bccd7c7457f246482.jpg"
+          :src="props.businessImage"
           class="text-5xl font-weight-medium"
         />
       </VAvatar>
@@ -52,9 +53,9 @@ const props = defineProps<Props>()
             >
               <div v-if="stamp <= props.visitsCount">
                 <VImg
-                  src="https://i.pinimg.com/originals/aa/92/89/aa9289de1ed2865bccd7c7457f246482.jpg"
+                  :src="props.stampIcon"
                   class="text-5xl font-weight-medium"
-                  style="margin-top: 5px; margin-left: 3px;"
+                  style="margin-top: 5px; margin-left: 3px; background-color: white;"
                 />
               </div>
             </VAvatar>

@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { VCol } from 'vuetify/lib/components/index.mjs'
 import AppTextarea from '@/@core/components/app-form-elements/AppTextarea.vue'
-import { createStampcard } from '@/services/rewards'
+import { createStampcard } from '@/services/company/rewards'
 
 const name = ref('')
 const description = ref('')

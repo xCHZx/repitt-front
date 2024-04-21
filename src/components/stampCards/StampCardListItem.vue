@@ -18,7 +18,7 @@ const props = defineProps<Props>()
         <div class="ma-auto pa-3">
           <VImg
             height="80"
-            src="https://i.pinimg.com/originals/aa/92/89/aa9289de1ed2865bccd7c7457f246482.jpg"
+            :src="props.image"
             class="vertical-align-middle"
           />
         </div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { getByIdByCurrentVisitor } from '@/services/stampCards'
+import { getByIdByCurrentVisitor } from '@/services/visitor/stampCards'
 
 const route: any = useRoute()
 const router = useRouter()
@@ -39,10 +39,11 @@ onMounted(() => {
         :reward="data?.reward"
         :required-stamps="data?.required_stamps"
         :visits-count="data?.visits_count"
-        :image="data?.business.image"
+        :business-image="data?.business.logo_path"
         :start-date="data?.start_date"
         :end-date="data?.end_date"
         :visits="data?.visits"
+        :stamp-icon="data?.stamp_icon_path"
       />
       <VCardText class="text-center">
         <VBtn

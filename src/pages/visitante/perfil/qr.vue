@@ -46,7 +46,7 @@ onMounted(() => {
       <VCard>
         <VCardText class="text-center pt-5">
           <h6 class="text-h6">
-            Tarjeta de recompensas:
+            Tarjeta a sellar:
           </h6>
           <h4 class="text-h4">
             {{ stampCard }}

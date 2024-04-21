@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { getAllByCurrentVisitor } from '@/services/stampCards'
+import { getAllByCurrentVisitor } from '@/services/visitor/stampCards'
 
 const router = useRouter()
 
@@ -37,11 +37,11 @@ const goToCard = (id: number) => {
         <!-- 👉 VCard Rewards -->
         <StampCardListItem
           :business-name="stampCard.business.name"
-          :segment="stampCard.business.segment"
+          :segment="stampCard.business.segment.name"
           :reward="stampCard.reward"
           :visits-count="stampCard.visits_count"
           :required-stamps="stampCard.required_stamps"
-          image="https://i.pinimg.com/originals/aa/92/89/aa9289de1ed2865bccd7c7457f246482.jpg"
+          :image="stampCard.business.logo_path"
           @click="goToCard(stampCard.id)"
         />
       </div>

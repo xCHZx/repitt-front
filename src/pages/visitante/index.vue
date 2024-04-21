@@ -4,25 +4,25 @@ const menuItems = [
     title: 'Mi Código de Usuario',
     description: 'Esta es una descripción',
     icon: 'tabler-qrcode',
-    url: '/',
+    url: '/visitante/perfil/qr',
   },
   {
     title: 'Mis Recompensas',
     description: 'Esta es una descripción',
     icon: 'tabler-star',
-    url: '/',
+    url: '/visitante/tarjetas',
   },
   {
     title: 'Historial de Visitas',
     description: 'Esta es una descripción',
     icon: 'tabler-clipboard-list',
-    url: '/',
+    url: '/visitante/visitas',
   },
   {
     title: 'Información',
     description: 'Esta es una descripción',
     icon: 'tabler-id',
-    url: '/informacion',
+    url: '/visitante/perfil',
   },
 
 ]
