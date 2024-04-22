@@ -4,7 +4,7 @@ const menuItems = [
     title: 'Información del Negocio',
     description: 'Esta es una descripción',
     icon: 'tabler-building-store',
-    url: '/empresa/perfil',
+    url: '/empresa/negocios',
   },
   {
     title: 'Métricas',
