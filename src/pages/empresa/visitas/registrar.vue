@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { QrcodeStream } from 'vue-qrcode-reader'
 import { getAllByCurrentCompany } from '@/services/company/stampCards'
+import { storeAsCompany } from '@/services/company/visits'
 
 // import { useRouter } from 'vue-router'
 
@@ -92,61 +93,85 @@ const onError = (err: any) => {
     error.value += err.message
 }
 
-const nextStep = () => {
-  console.log('nextStep')
+const formData = ref({
+  stampCardId: null,
+  repittCode: null,
+})
 
-  // router.push(`/visita/registrar/${qrCodeValue.value}`)
+const onSubmit = () => {
+  try {
+    if (!selectedStampCard.value)
+      throw new Error('Selecciona una tarjeta')
+
+    if (!formattedQrCodeValue.value)
+      throw new Error('Ingresa un código Repitt')
+
+    formData.value.repittCode = formattedQrCodeValue.value
+    formData.value.stampCardId = selectedStampCard.value
+
+    const payload = {
+      stamp_card_id: formData.value.stampCardId,
+      user_repitt_code: formData.value.repittCode,
+    }
+
+    console.log(formData.value)
+    storeAsCompany(payload)
+  }
+  catch (e) {
+    console.error('Error:', e)
+  }
 }
 </script>
 
 <template>
-  <VRow>
-    <VCol cols="12">
-      <VSelect
-        v-model="selectedStampCard"
-        :items="stampCardList"
-        label="Selecciona una tarjeta"
-        prepend-icon="tabler-star"
-      />
-    </VCol>
-    <VCol cols="12">
-      <VCard class="pa-4">
-        <QrcodeStream
-          :paused="paused"
-          @detect="onDetect"
-          @camera-on="onCameraOn"
-          @error="onError"
-        >
-          <div v-if="isCameraAvailable === false">
-            <p class="text-center">
-              Cargando cámara...
-            </p>
-          </div>
-        </QrcodeStream>
-      </VCard>
-    </VCol>
-  </VRow>
-  <VRow>
-    <VCol cols="12">
-      <div v-if="error">
-        <p>
-          Error: {{ error }}
-        </p>
-      </div>
-      <div v-if="isCameraAvailable === true">
-        <VBtn
-          block
-          size="small"
-          @click="reloadPage"
-        >
-          Reiniciar cámara
-          <VIcon
-            end
-            icon="tabler-reload"
-          />
-        </VBtn>
-      </div>
-    </VCol>
+  <VForm @submit.prevent="onSubmit">
+    <VRow>
+      <VCol cols="12">
+        <VSelect
+          v-model="selectedStampCard"
+          :items="stampCardList"
+          label="Selecciona una tarjeta"
+          prepend-icon="tabler-star"
+        />
+      </VCol>
+      <VCol cols="12">
+        <VCard class="pa-4">
+          <QrcodeStream
+            :paused="paused"
+            @detect="onDetect"
+            @camera-on="onCameraOn"
+            @error="onError"
+          >
+            <div v-if="isCameraAvailable === false">
+              <p class="text-center">
+                Cargando cámara...
+              </p>
+            </div>
+          </QrcodeStream>
+        </VCard>
+      </VCol>
+    </VRow>
+    <VRow>
+      <VCol cols="12">
+        <div v-if="error">
+          <p>
+            Error: {{ error }}
+          </p>
+        </div>
+        <div v-if="isCameraAvailable === true">
+          <VBtn
+            block
+            size="small"
+            @click="reloadPage"
+          >
+            Reiniciar cámara
+            <VIcon
+              end
+              icon="tabler-reload"
+            />
+          </VBtn>
+        </div>
+      </VCol>
     <!--
       <VCol cols="12">
       <VSelect
@@ -156,40 +181,41 @@ const nextStep = () => {
       />
       </VCol>
     -->
-  </VRow>
+    </VRow>
 
-  <VRow>
-    <VCol cols="12">
-      <h4 class="text-center">
-        O bien, ingresa el código Repitt del cliente manualmente:
-      </h4>
-      <VTextField
-        v-model="formattedQrCodeValue"
-        label="Código del Cliente"
-
-        outlined
-        class="py-4"
-      />
-    </VCol>
-  </VRow>
-
-  <VRow>
-    <VCol>
-      <div v-if="qrCodeValue">
+    <VRow>
+      <VCol cols="12">
         <h4 class="text-center">
-          Código del Cliente:
+          O bien, ingresa el código Repitt del cliente manualmente:
         </h4>
-        <h2 class="text-center">
-          {{ qrCodeValue }}
-        </h2>
-        <VBtn
-          block
-          color="success"
-          @click="nextStep"
-        >
-          Registrar visita
-        </VBtn>
-      </div>
-    </VCol>
-  </VRow>
+        <VTextField
+          v-model="formattedQrCodeValue"
+          label="Código del Cliente"
+
+          outlined
+          class="py-4"
+        />
+      </VCol>
+    </VRow>
+
+    <VRow>
+      <VCol>
+        <div v-if="qrCodeValue">
+          <h4 class="text-center">
+            Código del Cliente:
+          </h4>
+          <h2 class="text-center">
+            {{ qrCodeValue }}
+          </h2>
+          <VBtn
+            block
+            color="success"
+            type="submit"
+          >
+            Registrar visita
+          </VBtn>
+        </div>
+      </VCol>
+    </VRow>
+  </VForm>
 </template>

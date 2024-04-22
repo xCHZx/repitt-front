@@ -4,6 +4,8 @@ interface Props {
   description: string
   icon: string
   url: string
+  accentColor?: string
+  textAccentColor?: string
 }
 
 const props = defineProps<Props>()
@@ -14,11 +16,12 @@ const props = defineProps<Props>()
     <VRow no-gutters>
       <VCol
         cols="2"
-        style="background-color: #493599;"
+        :style="{ backgroundColor: props.accentColor || '#493599' }"
       >
         <div class="d-flex flex-column align-center py-8 h-200 justify-center">
           <VIcon
-            class="text-white"
+
+            :style="{ color: props.textAccentColor || '#fff' }"
             size="40"
             :icon="props.icon"
           />
