@@ -45,6 +45,7 @@ declare module 'vue-router/auto/routes' {
     'auth-register': RouteRecordInfo<'auth-register', '/auth/register', Record<never, never>, Record<never, never>>,
     'empresa': RouteRecordInfo<'empresa', '/empresa', Record<never, never>, Record<never, never>>,
     'empresa-negocios': RouteRecordInfo<'empresa-negocios', '/empresa/negocios', Record<never, never>, Record<never, never>>,
+    'empresa-negocios-id': RouteRecordInfo<'empresa-negocios-id', '/empresa/negocios/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'empresa-negocios-crear-negocio': RouteRecordInfo<'empresa-negocios-crear-negocio', '/empresa/negocios/crear-negocio', Record<never, never>, Record<never, never>>,
     'empresa-recompensas-tarjetas-crear-tarjeta': RouteRecordInfo<'empresa-recompensas-tarjetas-crear-tarjeta', '/empresa/recompensas/tarjetas/crear-tarjeta', Record<never, never>, Record<never, never>>,
     'empresa-visitas-registrar': RouteRecordInfo<'empresa-visitas-registrar', '/empresa/visitas/registrar', Record<never, never>, Record<never, never>>,

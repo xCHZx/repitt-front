@@ -16,4 +16,18 @@ const getAllByCurrentCompany = async () => {
     .catch(error => { return error })
 }
 
-export { getAllByCurrentCompany }
+const getByIdByCurrentCompany = async (id: number) => {
+  return await axios.get(`${baseUrl}/${id}/logged-user`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`,
+    },
+  })
+    .then(response => {
+      console.log(response.data.data[0])
+
+      return response.data.data[0]
+    })
+    .catch(error => { return error })
+}
+
+export { getAllByCurrentCompany, getByIdByCurrentCompany }
