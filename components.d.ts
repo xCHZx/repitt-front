@@ -77,5 +77,6 @@ declare module 'vue' {
     UserUpgradePlanDialog: typeof import('./src/components/dialogs/UserUpgradePlanDialog.vue')['default']
     VisitListItemFull: typeof import('./src/components/visits/VisitListItemFull.vue')['default']
     VisitListSimple: typeof import('./src/components/visits/VisitListSimple.vue')['default']
+    VueApexCharts: typeof import('vue3-apexcharts')['default']
   }
 }
