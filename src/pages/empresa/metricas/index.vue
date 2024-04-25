@@ -5,7 +5,6 @@ const chartColors = {
   },
 }
 
-const headingColor = 'rgba(var(--v-theme-on-background), var(--v-high-emphasis-opacity))'
 const labelColor = 'rgba(var(--v-theme-on-background), var(--v-medium-emphasis-opacity))'
 const borderColor = 'rgba(var(--v-border-color), var(--v-border-opacity))'
 
@@ -229,6 +228,55 @@ const shipmentConfig = {
             />
           </VCardText>
         </VCard>
+      </div>
+    </VCol>
+    <VCol
+      cols="12"
+      md="4"
+    >
+      <div
+        style="background-color: white; border-radius: 8px;"
+        class="pa-6"
+      >
+        <VCardText>
+          <div class="text-h4 font-weight-bold">
+            Clientes más frecuentes
+          </div>
+        </VCardText>
+        <VRow>
+          <VCol
+            cols="12"
+            md="12"
+          >
+            <div class="py-2">
+              <UserWithCountListItem
+                first-name="Nombre"
+                last-name="Apellido"
+                visits="10"
+                last-visit="24/09/2021"
+                icon="tabler-number-1"
+              />
+            </div>
+            <div class="py-2">
+              <UserWithCountListItem
+                first-name="Nombre"
+                last-name="Apellido"
+                visits="10"
+                last-visit="24/09/2021"
+                icon="tabler-number-2"
+              />
+            </div>
+            <div class="py-2">
+              <UserWithCountListItem
+                first-name="Nombre"
+                last-name="Apellido"
+                visits="10"
+                last-visit="24/09/2021"
+                icon="tabler-number-3"
+              />
+            </div>
+          </VCol>
+        </VRow>
       </div>
     </VCol>
   </VRow>

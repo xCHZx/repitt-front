@@ -75,6 +75,7 @@ declare module 'vue' {
     UserInfoEditDialog: typeof import('./src/components/dialogs/UserInfoEditDialog.vue')['default']
     UserQrCard: typeof import('./src/components/users/UserQrCard.vue')['default']
     UserUpgradePlanDialog: typeof import('./src/components/dialogs/UserUpgradePlanDialog.vue')['default']
+    UserWithCountListItem: typeof import('./src/components/general/UserWithCountListItem.vue')['default']
     VisitListItemFull: typeof import('./src/components/visits/VisitListItemFull.vue')['default']
     VisitListSimple: typeof import('./src/components/visits/VisitListSimple.vue')['default']
     VueApexCharts: typeof import('vue3-apexcharts')['default']
