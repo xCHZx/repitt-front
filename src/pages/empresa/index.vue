@@ -1,74 +1,76 @@
 <script lang="ts" setup>
-const menuItems = [
-  {
-    title: 'Información del Negocio',
-    description: 'Esta es una descripción',
-    icon: 'tabler-building-store',
-    url: '/empresa/negocios',
-  },
-  {
-    title: 'Métricas',
-    description: 'Esta es una descripción',
-    icon: 'tabler-chart-histogram',
-    url: '/empresa/metricas',
-  },
-  {
-    title: 'Mis Recompensas',
-    description: 'Esta es una descripción',
-    icon: 'tabler-cards',
-    url: '/empresa/tarjetas',
-  },
-  {
-    title: 'Registrar Visita',
-    description: 'Esta es una descripción',
-    icon: 'tabler-qrcode',
-    url: '/empresa/visitas/registrar',
-  },
-
-]
+import { getAllByCurrentCompany } from '@/services/company/businesses'
+import { getCurrentVisitorData } from '@/services/visitor/users'
 
 const router = useRouter()
 
-const goToPage = (url: string) => {
-  console.log('goToPage', url)
-  router.push(url)
+const businesses: any = ref({})
+const user: any = ref({})
+
+const getData = async () => {
+  try {
+    businesses.value = await getAllByCurrentCompany()
+    user.value = await getCurrentVisitorData()
+  }
+  catch (error) {
+    console.error('Error getting data:', error)
+  }
+}
+
+onMounted(() => {
+  getData()
+})
+
+const goToUserHome = () => {
+  console.log('goToUserHome')
+
+  router.push('/visitante')
+}
+
+const goToBusiness = (id: number) => {
+  console.log('goToBusiness', id)
+
+  router.push(`/empresa/${id}`)
 }
 </script>
 
 <template>
   <VRow>
     <VCol cols="12">
+      <VCardText>
+        <div class="text-center text-h5">
+          Perfil de Negocio
+        </div>
+      </VCardText>
       <div
-        v-for="item in menuItems"
-        :key="item.title"
+        v-for="business in businesses"
+        :key="business.name"
         class="py-3"
       >
-        <MainMenuItemList
-          :title="item.title"
-          :description="item.description"
-          :icon="item.icon"
-          :url="item.url"
-          accent-color="#E0D9FF"
-          text-accent-color="#493599"
-          @click="goToPage(item.url)"
+        <BusinessListItem
+          :image="business.logo_path"
+          :business-name="business.name"
+          :segment="business.segment.name"
+          :description="business.description"
+          @click="goToBusiness(business.id)"
         />
       </div>
-      <div class="d-flex flex-column justify-center mt-10">
-        <div class="text-center">
-          <VAvatar>
-            <VIcon>
-              <VIcon
-                icon="tabler-refresh"
-                size="40"
-                color="primary"
-              />
-            </VIcon>
-          </VAvatar>
-        </div>
-        <div class="text-center text-h5 text-primary">
-          Cambiar a Visitante
-        </div>
+      <VDivider class="my-5" />
+      <div>
+        <VCardText>
+          <div class="text-center text-h5">
+            Perfil de Visitante
+          </div>
+        </VCardText>
+        <MainMenuItemList
+          :title="user?.first_name"
+          :description="user?.repitt_code"
+          icon="tabler-user"
+          url="/visitante/"
+          @click="goToUserHome"
+        />
       </div>
+
       <div class="d-flex flex-column justify-center mt-10">
         <div class="text-center">
           <VAvatar>

@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 interface Props {
-  title: string
-  description: string
-  icon: string
-  url: string
+  title?: string
+  description?: string
+  icon?: string
+  url?: string
   accentColor?: string
   textAccentColor?: string
 }
@@ -31,12 +31,12 @@ const props = defineProps<Props>()
         <div class="align-center">
           <VCardItem class="px-3 pt-4 pb-0">
             <VCardTitle class="font-weight-bold text-h3">
-              {{ props.title }}
+              {{ props.title || '...' }}
             </VCardTitle>
           </VCardItem>
           <VCardTitle class="text-h5 px-3 pt-1">
             <span class="font-weight-medium ">
-              {{ props.description }}
+              {{ props.description || '...' }}
             </span>
           </VCardTitle>
         </div>
