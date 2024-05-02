@@ -13,7 +13,10 @@ const props = defineProps<Props>()
 
 <template>
   <VCard height="100">
-    <VRow no-gutters>
+    <VRow
+      no-gutters
+      class="mb-0 pb-0"
+    >
       <VCol cols="3">
         <div class="ma-auto pa-3">
           <VAvatar
@@ -42,20 +45,17 @@ const props = defineProps<Props>()
             {{ props.firstName }} {{ props.lastName }}
           </VCardTitle>
         </VCardItem>
-        <VCardText class="text-subtitle-2 px-3 pb-1">
+        <VCardText class="d-flex justify-space-between align-centertext-subtitle-2 px-3 pb-1">
           <span
             class="font-weight-medium text-white rounded pa-1 text-xs"
             style="background-color: #493599;"
           >
-            {{ props.visits }} visitas totales
+            {{ props.visits }} visitas
           </span>
-        </VCardText>
-
-        <VCardTitle class="text-h6 px-3 pt-1">
           <span class="font-weight-medium ">
             Última Visita: {{ props.lastVisit }}
           </span>
-        </VCardTitle>
+        </VCardText>
       </VCol>
     </VRow>
   </VCard>

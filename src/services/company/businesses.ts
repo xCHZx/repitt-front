@@ -30,4 +30,21 @@ const getByIdByCurrentCompany = async (id: number) => {
     .catch(error => { return error })
 }
 
-export { getAllByCurrentCompany, getByIdByCurrentCompany }
+const createBusinessAsCompany = async (data: any) => {
+  console.log(data)
+
+  return await axios.post(`${baseUrl}`, data, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`,
+    },
+  })
+
+    .then(response => {
+      console.log(response.data.data[0])
+
+      return response.data.data[0]
+    })
+    .catch(error => { return error })
+}
+
+export { createBusinessAsCompany, getAllByCurrentCompany, getByIdByCurrentCompany }

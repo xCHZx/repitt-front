@@ -288,7 +288,7 @@ const shipmentConfig = {
   <VRow>
     <VCol
       cols="12"
-      md="3"
+      md="4"
     >
       <ProgressMiniCard
         title="Visitas de Clientes"
@@ -296,23 +296,20 @@ const shipmentConfig = {
         change="10"
         icon="tabler-walk"
         color="primary"
+        class="mb-4"
       />
-    </VCol>
-    <VCol
-      cols="12"
-      md="3"
-    >
       <ProgressMiniCard
         title="Tarjetas Completadas"
         main-number="2,300"
         change="16"
         icon="tabler-cards"
         color="info"
+        class="mb-4"
       />
     </VCol>
     <VCol
       cols="12"
-      md="3"
+      md="4"
     >
       <ProgressMiniCard
         title="Recompensas Canjeadas"
@@ -320,47 +317,16 @@ const shipmentConfig = {
         change="8"
         icon="tabler-award"
         color="warning"
+        class="mb-4"
       />
-    </VCol>
-    <VCol
-      cols="12"
-      md="3"
-    >
       <ProgressMiniCard
         title="Usuarios activos"
         main-number="250"
         change="35"
         icon="tabler-users-group"
         color="error"
+        class="mb-4"
       />
-    </VCol>
-  </VRow>
-  <VRow>
-    <VCol
-      cols="12"
-      md="8"
-    >
-      <div
-        style="background-color: white; border-radius: 8px;"
-        class="pa-6"
-      >
-        <VCard style="background-color: #FFF2F7;">
-          <VCardItem
-            title="Serie de Datos 1"
-            subtitle="Total number of $$$$$ 28,500"
-          />
-
-          <VCardText>
-            <VueApexCharts
-              id="shipment-statistics"
-              type="bar"
-              height="320"
-              :options="shipmentConfig"
-              :series="series"
-            />
-          </VCardText>
-        </VCard>
-      </div>
     </VCol>
     <VCol
       cols="12"
@@ -368,9 +334,9 @@ const shipmentConfig = {
     >
       <div
         style="background-color: white; border-radius: 8px;"
-        class="pa-6"
+        class="pa-4"
       >
-        <VCardText>
+        <VCardText class="my-0 py-0">
           <div class="text-h4 font-weight-bold">
             Clientes más frecuentes
           </div>
@@ -411,6 +377,38 @@ const shipmentConfig = {
         </VRow>
       </div>
     </VCol>
+  </VRow>
+  <VRow>
+    <VCol
+      cols="12"
+      md="8"
+    >
+      <div
+        style="background-color: white; border-radius: 8px;"
+        class="pa-6"
+      >
+        <VCard style="background-color: #FFF2F7;">
+          <VCardItem
+            title="Serie de Datos 1"
+            subtitle="Total number of $$$$$ 28,500"
+          />
+
+          <VCardText>
+            <VueApexCharts
+              id="shipment-statistics"
+              type="bar"
+              height="320"
+              :options="shipmentConfig"
+              :series="series"
+            />
+          </VCardText>
+        </VCard>
+      </div>
+    </VCol>
+    <VCol
+      cols="12"
+      md="4"
+    />
   </VRow>
 </template>
 

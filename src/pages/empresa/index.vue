@@ -32,6 +32,12 @@ const goToBusiness = (id: number) => {
 
   router.push(`/empresa/${id}`)
 }
+
+const goToCreateBusiness = () => {
+  console.log('goToCreateBusiness')
+
+  router.push('/empresa/crear')
+}
 </script>
 
 <template>
@@ -73,18 +79,37 @@ const goToBusiness = (id: number) => {
 
       <div class="d-flex flex-column justify-center mt-10">
         <div class="text-center">
-          <VAvatar>
-            <VIcon>
-              <VIcon
-                icon="tabler-logout"
-                size="40"
-              />
-            </VIcon>
-          </VAvatar>
+          <VBtn
+            variant="text"
+            color="success"
+            @click="goToCreateBusiness"
+          >
+            <VIcon
+              start
+              size="25"
+              icon="tabler-square-plus"
+            />
+            Crear nuevo Negocio
+          </VBtn>
         </div>
-        <div class="text-center text-h5">
-          Cerrar sesión
+      </div>
+      <div class="d-flex flex-column justify-center mt-10">
+        <div class="text-center">
+          <VBtn
+            color="secondary"
+            variant="text"
+          >
+            <VIcon
+              start
+              size="25"
+              icon="tabler-logout"
+            />
+            Cerrar Sesión
+          </VBtn>
         </div>
+      </div>
+      <div class="text-center text-h5">
+        Cerrar sesión
       </div>
     </VCol>
   </VRow>
