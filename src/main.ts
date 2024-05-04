@@ -1,4 +1,5 @@
 import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { createApp } from 'vue'
 
 import axios from './services/axios'
@@ -12,6 +13,8 @@ import '@styles/styles.scss'
 // Create vue app
 const app = createApp(App)
 const pinia = createPinia()
+
+pinia.use(piniaPluginPersistedstate)
 
 // Register plugins
 registerPlugins(app)

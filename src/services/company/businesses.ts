@@ -1,15 +1,12 @@
-import axios from 'axios'
+// import axios from 'axios'
+import { authAxios } from '../axios'
 
-const baseUrl = 'http://127.0.0.1:8000/api/company/business'
+const baseUrl = '/company/business'
 
 const getAllByCurrentCompany = async () => {
-  return await axios.get(`${baseUrl}/logged-user`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
-    },
-  })
+  return await authAxios.get(`${baseUrl}/logged-user`)
     .then(response => {
-      console.log(response.data.data[0])
+      console.log('getAllByCurrentCompany', response.data.data[0])
 
       return response.data.data[0]
     })
@@ -17,13 +14,9 @@ const getAllByCurrentCompany = async () => {
 }
 
 const getByIdByCurrentCompany = async (id: number) => {
-  return await axios.get(`${baseUrl}/${id}/logged-user`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
-    },
-  })
+  return await authAxios.get(`${baseUrl}/${id}/logged-user`)
     .then(response => {
-      console.log(response.data.data[0])
+      console.log('getByIdByCurrentCompany', response.data.data[0])
 
       return response.data.data[0]
     })
@@ -33,7 +26,7 @@ const getByIdByCurrentCompany = async (id: number) => {
 const createBusinessAsCompany = async (data: any) => {
   console.log(data)
 
-  return await axios.post(`${baseUrl}`, data, {
+  return await authAxios.post(`${baseUrl}`, data, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`,
     },

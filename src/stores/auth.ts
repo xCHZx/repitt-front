@@ -1,8 +1,6 @@
 import axios from 'axios'
 import { defineStore } from 'pinia'
 
-const router = useRouter()
-
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     authUser: null,
@@ -34,8 +32,8 @@ export const useAuthStore = defineStore('auth', {
       await axios.post('http://127.0.0.1:8000/api/auth/register', payload)
         .then(response => {
           this.authToken = response.data.token
-
-          router.push('/')
+          this.authUser = response.data.data
+          this.authRole = response.data.data.role
 
           return response.data
         })
@@ -47,9 +45,8 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       this.authToken = null
       this.authUser = null
-
-      router.push('/login')
+      this.authRole = null
     },
   },
-
+  persist: true,
 })

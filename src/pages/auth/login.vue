@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthStore } from '@/@core/stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 
@@ -28,7 +28,7 @@ const onSubmit = () => {
     }
 
     authStore.loginUser(payload)
-    router.push('/')
+    router.push('/empresa')
   }
   catch (error) {
     console.error('Login error:', error)

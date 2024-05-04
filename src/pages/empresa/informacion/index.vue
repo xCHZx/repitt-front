@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
 import { getByIdByCurrentCompany } from '@/services/company/businesses'
+import { useCompanyStore } from '@/stores/company'
 
-const route: any = useRoute()
+const companyStore = useCompanyStore()
 
 const data: any = ref({})
-const businessId = ref(route.params.id)
+const businessId = companyStore.selectedCompany?.id
 
 const getData = async () => {
   try {
-    data.value = await getByIdByCurrentCompany(businessId.value)
+    data.value = await getByIdByCurrentCompany(businessId)
   }
   catch (error) {
     console.error('Error getting data:', error)

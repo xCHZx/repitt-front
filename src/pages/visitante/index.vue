@@ -1,28 +1,29 @@
 <script lang="ts" setup>
 const menuItems = [
+
+  {
+    title: 'Perfil',
+    description: 'Esta es una descripción',
+    icon: 'tabler-id',
+    url: '/visitante/perfil',
+  },
+  {
+    title: 'Historial de Visitas',
+    description: 'Esta es una descripción',
+    icon: 'tabler-walk',
+    url: '/visitante/visitas',
+  },
+  {
+    title: 'Mis Tarjetas',
+    description: 'Esta es una descripción',
+    icon: 'tabler-cards',
+    url: '/visitante/tarjetas',
+  },
   {
     title: 'Mi Código de Usuario',
     description: 'Esta es una descripción',
     icon: 'tabler-qrcode',
     url: '/visitante/perfil/qr',
-  },
-  {
-    title: 'Mis Recompensas',
-    description: 'Esta es una descripción',
-    icon: 'tabler-star',
-    url: '/visitante/tarjetas',
-  },
-  {
-    title: 'Historial de Visitas',
-    description: 'Esta es una descripción',
-    icon: 'tabler-clipboard-list',
-    url: '/visitante/visitas',
-  },
-  {
-    title: 'Información',
-    description: 'Esta es una descripción',
-    icon: 'tabler-id',
-    url: '/visitante/perfil',
   },
 
 ]
