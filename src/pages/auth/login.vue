@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { router } from '@/plugins/1.router'
-import { loginUser } from '@/services/auth/auth'
+import { useAuthStore } from '@/@core/stores/auth'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 
@@ -9,6 +8,10 @@ definePage({
     layout: 'blank',
   },
 })
+
+const authStore = useAuthStore()
+
+const router = useRouter()
 
 const form = ref({
   email: '',
@@ -20,14 +23,11 @@ const isPasswordVisible = ref(false)
 const onSubmit = () => {
   try {
     const payload = {
-
       email: form.value.email,
       password: form.value.password,
     }
 
-    loginUser(payload)
-
-    console.log('Si entró  ͡° ͜ʖ ͡°')
+    authStore.loginUser(payload)
     router.push('/')
   }
   catch (error) {

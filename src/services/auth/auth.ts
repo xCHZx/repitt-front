@@ -16,9 +16,10 @@ const registerUser = async (payload: any) => {
 const loginUser = async (credentials: any) => {
   return axios.post('http://127.0.0.1:8000/api/auth/login', credentials)
     .then(response => {
-      const token = response.data.token
+      // const token = response.data
 
-      localStorage.setItem('token', token)
+      // localStorage.setItem('token', token)
+      return response.data
     })
     .catch(error => {
       console.error('Login error:', error.response.data)

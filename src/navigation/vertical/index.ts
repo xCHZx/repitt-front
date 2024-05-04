@@ -1,23 +1,5 @@
-export default [
-  {
-    title: 'Home',
-    to: { name: 'root' },
-    icon: { icon: 'tabler-smart-home' },
-  },
+import company from './company'
+import visitor from './visitor'
+import type { VerticalNavItems } from '@/@layouts/types'
 
-  // {
-  //   title: 'Mi Negocio',
-  //   icon: { icon: 'tabler-smart-home' },
-  //   children: [
-  //     {
-  //       title: 'Crear Negocio',
-  //       to: { name: 'negocio-crear-negocio' },
-  //       icon: { icon: 'tabler-file' },
-  //     },
-  //     {
-  //       title: 'Cartilla',
-  //       to: 'recompensas-crear-recompensas',
-  //     },
-  //   ],
-  // },
-]
+export default [...company, ...visitor] as VerticalNavItems

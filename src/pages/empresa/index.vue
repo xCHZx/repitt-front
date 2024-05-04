@@ -2,6 +2,12 @@
 import { getAllByCurrentCompany } from '@/services/company/businesses'
 import { getCurrentVisitorData } from '@/services/visitor/users'
 
+definePage({
+  meta: {
+    layout: 'blank',
+  },
+})
+
 const router = useRouter()
 
 const businesses: any = ref({})

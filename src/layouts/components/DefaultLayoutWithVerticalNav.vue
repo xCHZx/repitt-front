@@ -5,7 +5,6 @@ import { themeConfig } from '@themeConfig'
 // Components
 import Footer from '@/layouts/components/Footer.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
-import UserProfile from '@/layouts/components/UserProfile.vue'
 import NavBarI18n from '@core/components/I18n.vue'
 
 // @layouts plugin
@@ -24,6 +23,16 @@ watch([isFallbackStateActive, refLoadingIndicator], () => {
     refLoadingIndicator.value.resolveHandle()
 }, { immediate: true })
 // !SECTION
+
+// GoBack Button
+const router = useRouter()
+
+const goBack = () => {
+  if (router.currentRoute.value.meta.domain === 'out-of-domain')
+    return
+
+  router.go(-1)
+}
 </script>
 
 <template>
@@ -31,6 +40,26 @@ watch([isFallbackStateActive, refLoadingIndicator], () => {
     <!-- 👉 navbar -->
     <template #navbar="{ toggleVerticalOverlayNavActive }">
       <div class="d-flex h-100 align-center">
+        <VIcon>
+          <VAvatar
+            size="36"
+
+            class="cursor-pointer"
+            @click="goBack"
+          >
+            <VIcon icon="tabler-arrow-left" />
+          </VAvatar>
+        </VIcon>
+
+        <NavbarThemeSwitcher />
+
+        <VSpacer />
+
+        <NavBarI18n
+          v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
+          :languages="themeConfig.app.i18n.langConfig"
+        />
+
         <IconBtn
           id="vertical-nav-toggle-btn"
           class="ms-n3 d-lg-none"
@@ -41,16 +70,7 @@ watch([isFallbackStateActive, refLoadingIndicator], () => {
             icon="tabler-menu-2"
           />
         </IconBtn>
-
-        <NavbarThemeSwitcher />
-
-        <VSpacer />
-
-        <NavBarI18n
-          v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
-          :languages="themeConfig.app.i18n.langConfig"
-        />
-        <UserProfile />
+        <!-- <UserProfile /> -->
       </div>
     </template>
 
