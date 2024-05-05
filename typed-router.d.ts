@@ -50,6 +50,8 @@ declare module 'vue-router/auto/routes' {
     'empresa-metricas': RouteRecordInfo<'empresa-metricas', '/empresa/metricas', Record<never, never>, Record<never, never>>,
     'empresa-seleccionar': RouteRecordInfo<'empresa-seleccionar', '/empresa/seleccionar', Record<never, never>, Record<never, never>>,
     'empresa-tarjetas': RouteRecordInfo<'empresa-tarjetas', '/empresa/tarjetas', Record<never, never>, Record<never, never>>,
+    'empresa-tarjetas-id': RouteRecordInfo<'empresa-tarjetas-id', '/empresa/tarjetas/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'empresa-tarjetas-id-visitas': RouteRecordInfo<'empresa-tarjetas-id-visitas', '/empresa/tarjetas/:id/visitas', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'empresa-tarjetas-crear': RouteRecordInfo<'empresa-tarjetas-crear', '/empresa/tarjetas/crear', Record<never, never>, Record<never, never>>,
     'empresa-tarjetas-crear-tarjeta': RouteRecordInfo<'empresa-tarjetas-crear-tarjeta', '/empresa/tarjetas/crear-tarjeta', Record<never, never>, Record<never, never>>,
     'empresa-visitas': RouteRecordInfo<'empresa-visitas', '/empresa/visitas', Record<never, never>, Record<never, never>>,

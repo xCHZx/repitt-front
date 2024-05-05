@@ -8,6 +8,8 @@ import { useCompanyStore } from '@/stores/company'
 
 // const router = useRouter()
 
+const route: any = useRoute()
+
 const companyStore = useCompanyStore()
 
 const paused = ref(false)
@@ -25,7 +27,7 @@ const stampCardList = ref(
   ],
 )
 
-const selectedStampCard = ref()
+const selectedStampCard = ref(route.query.sc)
 
 const getData = async () => {
   try {

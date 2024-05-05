@@ -2,7 +2,7 @@ import { authAxios } from '../axios'
 
 const baseUrl = '/company/visit'
 
-export const storeAsCompany = async (payload: any) => {
+const storeAsCompany = async (payload: any) => {
   return await authAxios.post(`${baseUrl}`, payload)
     .then(response => {
       console.log('visit', response.data)
@@ -11,3 +11,15 @@ export const storeAsCompany = async (payload: any) => {
     })
     .catch(error => { return error })
 }
+
+const getAllByStampCardAsCurrentCompany = async (id: number) => {
+  return await authAxios.get(`${baseUrl}/stampcard/${id}/logged-user/`)
+    .then(response => {
+      console.log('getAllByStampCardAsCurrentCompany', response.data.data[0])
+
+      return response.data.data[0]
+    })
+    .catch(error => { return error })
+}
+
+export { getAllByStampCardAsCurrentCompany, storeAsCompany }
