@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { QrcodeStream } from 'vue-qrcode-reader'
-import { getAllByCurrentCompany } from '@/services/company/stampCards'
+import { getAllByIdByCurrentCompany } from '@/services/company/stampCards'
 import { storeAsCompany } from '@/services/company/visits'
+import { useCompanyStore } from '@/stores/company'
 
 // import { useRouter } from 'vue-router'
 
 // const router = useRouter()
+
+const companyStore = useCompanyStore()
 
 const paused = ref(false)
 const qrCodeValue = ref()
@@ -26,7 +29,7 @@ const selectedStampCard = ref()
 
 const getData = async () => {
   try {
-    const response = await getAllByCurrentCompany()
+    const response = await getAllByIdByCurrentCompany(companyStore.selectedCompany.id)
 
     stampCardList.value = response.map((stampCard: any) => ({
       title: stampCard.name,
@@ -131,7 +134,7 @@ const onSubmit = () => {
           v-model="selectedStampCard"
           :items="stampCardList"
           label="Selecciona una tarjeta"
-          prepend-icon="tabler-star"
+          prepend-icon="tabler-cards"
         />
       </VCol>
       <VCol cols="12">

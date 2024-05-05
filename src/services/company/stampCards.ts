@@ -1,19 +1,15 @@
-import axios from 'axios'
+import { authAxios } from '../axios'
 
-const baseUrl = 'http://127.0.0.1:8000/api/company/stampcard'
+const baseUrl = '/company/stampcard'
 
-const getAllByCurrentCompany = async () => {
-  return await axios.get(`${baseUrl}/logged-user`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
-    },
-  })
+const getAllByIdByCurrentCompany = async (id: number) => {
+  return await authAxios.get(`${baseUrl}/${id}/logged-user/`)
     .then(response => {
-      // console.log(response.data.data[0])
+      console.log('getAllByIdByCurrentCompany', response.data.data[0])
 
       return response.data.data[0]
     })
     .catch(error => { return error })
 }
 
-export { getAllByCurrentCompany }
+export { getAllByIdByCurrentCompany }

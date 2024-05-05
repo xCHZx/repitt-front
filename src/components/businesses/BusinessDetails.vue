@@ -51,7 +51,7 @@ const props = defineProps<Props>()
           size="small"
           color="primary"
         />
-        {{ props.address }}
+        {{ props.address || 'No disponible' }}
       </h5>
       <h5 class="text-h5 mt-4">
         <VIcon
@@ -60,7 +60,7 @@ const props = defineProps<Props>()
           size="small"
           color="primary"
         />
-        {{ props.phone }}
+        {{ props.phone || 'No disponible' }}
       </h5>
       <h5 class="text-h5 mt-4">
         <VIcon

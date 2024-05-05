@@ -1,14 +1,12 @@
-import axios from 'axios'
+import { authAxios } from '../axios'
 
-const baseUrl = 'http://127.0.0.1:8000/api/company/visit'
+const baseUrl = '/company/visit'
 
 export const storeAsCompany = async (payload: any) => {
-  return await axios.post(`${baseUrl}`, payload, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
-    },
-  })
+  return await authAxios.post(`${baseUrl}`, payload)
     .then(response => {
+      console.log('visit', response.data)
+
       return response.data
     })
     .catch(error => { return error })

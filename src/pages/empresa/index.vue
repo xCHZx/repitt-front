@@ -74,6 +74,12 @@ const goToPage = (url: string) => {
   console.log('goToPage', url)
   router.push(url)
 }
+
+const goToCreateBusiness = () => {
+  console.log('goToCreateBusiness')
+
+  router.push('/empresa/crear')
+}
 </script>
 
 <template>
@@ -206,6 +212,22 @@ const goToPage = (url: string) => {
             url="/visitante/"
             @click="goToUserHome"
           />
+        </div>
+        <div class="d-flex flex-column justify-center mt-10">
+          <div class="text-center">
+            <VBtn
+              variant="text"
+              color="success"
+              @click="goToCreateBusiness"
+            >
+              <VIcon
+                start
+                size="25"
+                icon="tabler-square-plus"
+              />
+              Crear nuevo Negocio
+            </VBtn>
+          </div>
         </div>
       </div>
 

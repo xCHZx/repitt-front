@@ -1,13 +1,17 @@
 <script lang="ts" setup>
-import { createBusinessAsCompany } from '@/services/company/businesses'
+import { updateBusinessAsCurrentCompany } from '@/services/company/businesses'
 import { getAllSegments } from '@/services/company/segments'
+import { useCompanyStore } from '@/stores/company'
 
-const name = ref('')
-const description = ref('')
-const address = ref('')
-const phone = ref('')
-const openingHours = ref('')
-const segment = ref('')
+const companyStore = useCompanyStore()
+
+const name = ref(companyStore.selectedCompany.name)
+const segment = ref(companyStore.selectedCompany.segment.id)
+const description = ref(companyStore.selectedCompany.description)
+const address = ref(companyStore.selectedCompany.address)
+const phone = ref(companyStore.selectedCompany.phone)
+const openingHours = ref(companyStore.selectedCompany.opening_hours)
+
 const logo = ref<File[]>()
 
 const segmentsList = ref(
@@ -34,7 +38,7 @@ const getSegments = async () => {
 }
 
 const onSubmit = () => {
-  console.log('Creating business...')
+  console.log('Updating business...')
 
   const payload = {
     name: name.value,
@@ -48,7 +52,8 @@ const onSubmit = () => {
 
   // Call API to create business
   try {
-    createBusinessAsCompany(payload)
+    updateBusinessAsCurrentCompany(companyStore.selectedCompany.id, payload)
+    companyStore.refreshCompany(companyStore.selectedCompany.id)
 
     // router.push('/empresa/seleccionar')
   }
@@ -64,7 +69,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <h2>Crear Negocio</h2>
+    <h2>Editar Negocio - {{ companyStore.selectedCompany.name }}</h2>
   </div>
 
   <div>
@@ -131,8 +136,20 @@ onMounted(() => {
           accept="image/*"
           placeholder="..."
           prepend-icon="tabler-photo-up"
-          label="Logo"
+          label="Actualizar Logo"
         />
+        <div class="mx-8 mt-5">
+          <div>
+            Logo actual:
+          </div>
+          <VImg
+            v-if="companyStore.selectedCompany.logo_path"
+            :src="companyStore.selectedCompany.logo_path"
+            width="50"
+            height="50"
+            class="mt-3"
+          />
+        </div>
       </VCol>
       <VCol cols="12">
         <VBtn
@@ -140,7 +157,7 @@ onMounted(() => {
           color="primary"
           class="mt-3"
         >
-          Crear
+          Guardar
         </VBtn>
       </VCol>
     </VForm>
