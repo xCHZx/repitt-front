@@ -1,4 +1,10 @@
 <script lang="ts" setup>
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const chartColors = {
   line: {
     series1: '#493599',

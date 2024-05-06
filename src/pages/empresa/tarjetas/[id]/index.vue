@@ -1,6 +1,12 @@
 <script lang="ts" setup>
 import { getByIdAsCurrentCompany } from '@/services/company/stampCards'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const route: any = useRoute()
 const router = useRouter()
 

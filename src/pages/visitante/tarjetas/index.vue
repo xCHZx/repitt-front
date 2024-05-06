@@ -2,6 +2,12 @@
 import { useRouter } from 'vue-router'
 import { getAllByCurrentVisitor } from '@/services/visitor/stampCards'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const router = useRouter()
 
 const data: any = ref({})

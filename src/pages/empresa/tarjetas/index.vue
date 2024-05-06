@@ -2,6 +2,12 @@
 import { getAllByIdByCurrentCompany } from '@/services/company/stampCards'
 import { useCompanyStore } from '@/stores/company'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const router = useRouter()
 const data: any = ref({})
 const companyStore = useCompanyStore()

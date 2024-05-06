@@ -1,13 +1,17 @@
 <script lang="ts" setup>
 import { getAllByCurrentCompany } from '@/services/company/businesses'
 import { getCurrentVisitorData } from '@/services/visitor/users'
+import { useAuthStore } from '@/stores/auth'
 import { useCompanyStore } from '@/stores/company'
 
 definePage({
   meta: {
     layout: 'blank',
+    requiresAuth: true,
   },
 })
+
+const authStore = useAuthStore()
 
 const router = useRouter()
 
@@ -44,6 +48,12 @@ const goToCreateBusiness = () => {
   console.log('goToCreateBusiness')
 
   router.push('/empresa/crear')
+}
+
+const logout = () => {
+  console.log('logout')
+  authStore.logout()
+  router.push('auth/login')
 }
 
 onMounted(() => {
@@ -109,6 +119,7 @@ onMounted(() => {
           <VBtn
             color="secondary"
             variant="text"
+            @click="logout"
           >
             <VIcon
               start

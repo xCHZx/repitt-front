@@ -6,6 +6,7 @@ import { themeConfig } from '@themeConfig'
 definePage({
   meta: {
     layout: 'blank',
+    requiresAuth: false,
   },
 })
 
@@ -20,15 +21,23 @@ const form = ref({
 
 const isPasswordVisible = ref(false)
 
-const onSubmit = () => {
+const onSubmit = async () => {
   try {
     const payload = {
       email: form.value.email,
       password: form.value.password,
     }
 
-    authStore.loginUser(payload)
-    router.push('/empresa')
+    await authStore.loginUser(payload)
+
+    if (authStore.authRole === 'Visitor')
+      router.push('/visitante')
+
+    else if (authStore.authRole === 'Owner')
+      router.push('/empresa')
+
+    else
+      console.error('Invalid role:', authStore.authRole)
   }
   catch (error) {
     console.error('Login error:', error)

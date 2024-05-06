@@ -1,6 +1,12 @@
 <script lang="ts" setup>
 import { getCurrentVisitorData } from '@/services/visitor/users'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const route: any = useRoute()
 const router: any = useRouter()
 const data: any = ref({})

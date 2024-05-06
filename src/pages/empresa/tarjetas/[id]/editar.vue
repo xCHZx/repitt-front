@@ -2,6 +2,12 @@
 import { getByIdAsCurrentCompany, updateStampCardAsCompany } from '@/services/company/stampCards'
 import { useCompanyStore } from '@/stores/company'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const route: any = useRoute()
 const stampCard = ref({})
 

@@ -1,6 +1,12 @@
 <script lang="ts" setup>
 import { useAuthStore } from '@/stores/auth'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const menuItems = [
 
   {
@@ -38,6 +44,12 @@ const goToPage = (url: string) => {
   console.log('goToPage', url)
   router.push(url)
 }
+
+const logout = () => {
+  console.log('logout')
+  authStore.logout()
+  router.push('auth/login')
+}
 </script>
 
 <template>
@@ -66,17 +78,18 @@ const goToPage = (url: string) => {
       </div>
       <div class="d-flex flex-column justify-center mt-10">
         <div class="text-center">
-          <VAvatar>
-            <VIcon>
-              <VIcon
-                icon="tabler-logout"
-                size="40"
-              />
-            </VIcon>
-          </VAvatar>
-        </div>
-        <div class="text-center text-h5">
-          Cerrar sesión
+          <VBtn
+            color="secondary"
+            variant="text"
+            @click="logout"
+          >
+            <VIcon
+              start
+              size="25"
+              icon="tabler-logout"
+            />
+            Cerrar Sesión
+          </VBtn>
         </div>
       </div>
     </VCol>

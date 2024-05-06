@@ -3,6 +3,12 @@ import { updateBusinessAsCurrentCompany } from '@/services/company/businesses'
 import { getAllSegments } from '@/services/company/segments'
 import { useCompanyStore } from '@/stores/company'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const companyStore = useCompanyStore()
 
 const name = ref(companyStore.selectedCompany.name)

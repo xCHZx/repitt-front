@@ -2,6 +2,12 @@
 import { getByIdByCurrentCompany } from '@/services/company/businesses'
 import { useCompanyStore } from '@/stores/company'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const companyStore = useCompanyStore()
 const router = useRouter()
 

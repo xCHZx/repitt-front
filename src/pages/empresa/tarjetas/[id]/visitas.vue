@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { getAllByStampCardAsCurrentCompany } from '@/services/company/visits'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const route: any = useRoute()
 
 const data: any = ref({})

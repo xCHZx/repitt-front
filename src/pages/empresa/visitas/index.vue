@@ -2,6 +2,12 @@
 import { getAllByBusinessAsCurrentCompany } from '@/services/company/visits'
 import { useCompanyStore } from '@/stores/company'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const companyStore = useCompanyStore()
 
 const data: any = ref({})

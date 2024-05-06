@@ -4,6 +4,12 @@ import { getAllByIdByCurrentCompany } from '@/services/company/stampCards'
 import { storeAsCompany } from '@/services/company/visits'
 import { useCompanyStore } from '@/stores/company'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 // import { useRouter } from 'vue-router'
 
 // const router = useRouter()

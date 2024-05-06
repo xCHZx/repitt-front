@@ -1,7 +1,14 @@
 <script lang="ts" setup>
 import { getAllByCurrentCompany } from '@/services/company/businesses'
 import { getCurrentVisitorData } from '@/services/visitor/users'
+import { useAuthStore } from '@/stores/auth'
 import { useCompanyStore } from '@/stores/company'
+
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
 
 const menuItems = [
   {
@@ -41,6 +48,7 @@ const businesses: any = ref({})
 const user: any = ref({})
 
 const companyStore = useCompanyStore()
+const authStore = useAuthStore()
 
 const isDialogVisible = ref(false)
 
@@ -64,6 +72,12 @@ const goToUserHome = () => {
   console.log('goToUserHome')
 
   router.push('/visitante')
+}
+
+const logout = () => {
+  console.log('logout')
+  authStore.logout()
+  router.push('auth/login')
 }
 
 const goToBusiness = (business: any) => {
@@ -142,6 +156,7 @@ const goToCreateBusiness = () => {
           <VBtn
             color="secondary"
             variant="text"
+            @click="logout"
           >
             <VIcon
               start

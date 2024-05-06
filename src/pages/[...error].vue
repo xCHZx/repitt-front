@@ -11,6 +11,7 @@ definePage({
   meta: {
     layout: 'blank',
     public: true,
+    requiresAuth: false,
   },
 })
 </script>

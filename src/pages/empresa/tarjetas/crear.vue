@@ -2,6 +2,12 @@
 import { createStampCardAsCompany } from '@/services/company/stampCards'
 import { useCompanyStore } from '@/stores/company'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const name = ref('')
 const description = ref('')
 const requiredStamps = ref()

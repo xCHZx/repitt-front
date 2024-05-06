@@ -29,6 +29,21 @@ const router = createRouter({
   ],
 })
 
+router.beforeEach((to, from, next) => {
+  // Convert localStorage.getItem('auth') to JSON to access the authToken
+  const authData = JSON.parse(localStorage.getItem('auth') || '{}')
+  const authToken = authData.authToken
+
+  // Redirect to login page if not logged in
+  if (to.meta.requiresAuth && !authToken) {
+    console.log(to.meta.requiresAuth, authToken)
+    next({ name: 'auth-login' })
+  }
+  else {
+    next()
+  }
+})
+
 export { router }
 
 export default function (app: App) {

@@ -2,6 +2,12 @@
 import { createBusinessAsCompany } from '@/services/company/businesses'
 import { getAllSegments } from '@/services/company/segments'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+  },
+})
+
 const name = ref('')
 const description = ref('')
 const address = ref('')
