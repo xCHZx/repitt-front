@@ -41,7 +41,6 @@ onMounted(() => {
               :business-logo="data?.business?.logo_path"
               :business-name="data?.business?.name"
               :visits="data?.visits"
-              :stamp-card-name="data?.name"
             />
           </VCol>
         </VRow>

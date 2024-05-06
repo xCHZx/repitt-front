@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { useAuthStore } from '@/stores/auth'
+
 const menuItems = [
 
   {
@@ -30,6 +32,8 @@ const menuItems = [
 
 const router = useRouter()
 
+const authStore = useAuthStore()
+
 const goToPage = (url: string) => {
   console.log('goToPage', url)
   router.push(url)
@@ -39,6 +43,14 @@ const goToPage = (url: string) => {
 <template>
   <VRow>
     <VCol cols="12">
+      <VCardText>
+        <div
+          v-if="authStore.user"
+          class="text-h4 text-center"
+        >
+          Hola {{ authStore.user?.first_name || 'Usuario' }}
+        </div>
+      </VCardText>
       <div
         v-for="item in menuItems"
         :key="item.title"

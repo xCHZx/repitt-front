@@ -13,7 +13,7 @@ const logo = ref<File[]>()
 const segmentsList = ref(
   [
     {
-      title: 'Cargando segmentos...',
+      title: 'Cargando categorías...',
       value: null,
     },
   ],

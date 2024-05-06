@@ -15,8 +15,8 @@ const getData = async () => {
   }
 }
 
-const goToQr = (stampCardName: string) => {
-  router.push(`/empresa/visitas/registrar?sc=${stampCardName}`)
+const goToQr = (stampCardId: number) => {
+  router.push(`/empresa/visitas/registrar?sc=${stampCardId}`)
 }
 
 const goToVisitsOfStampCard = (stampCardId: number) => {
@@ -24,7 +24,7 @@ const goToVisitsOfStampCard = (stampCardId: number) => {
 }
 
 const goToEditStampCard = (stampCardId: number) => {
-  // router.push(`/empresa/tarjetas/${stampCardId}/editar`)
+  router.push(`/empresa/tarjetas/${stampCardId}/editar`)
 }
 
 onMounted(() => {
@@ -53,9 +53,9 @@ onMounted(() => {
         <VBtn
           block
           color="success"
-          @click="goToQr(data?.name)"
+          @click="goToQr(data?.id)"
         >
-          Registrar visita
+          Registrar una visita
           <VIcon
             end
             icon="tabler-qrcode"

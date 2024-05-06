@@ -1,5 +1,3 @@
-import { createPinia } from 'pinia'
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { createApp } from 'vue'
 
 import axios from './services/axios'
@@ -12,15 +10,16 @@ import '@styles/styles.scss'
 
 // Create vue app
 const app = createApp(App)
-const pinia = createPinia()
 
-pinia.use(piniaPluginPersistedstate)
+// const pinia = createPinia()
+
+// pinia.use(piniaPluginPersistedstate)
 
 // Register plugins
 registerPlugins(app)
 
 // Mount vue app
-app.use(pinia)
+// app.use(pinia)
 app.use(axios, {
   baseUrl: 'http://127.0.0.1:8000/',
 })

@@ -1,14 +1,12 @@
-import axios from 'axios'
+import { authAxios } from '../axios'
 
-const baseUrl = 'http://127.0.0.1:8000/api/visitor/visit'
+const baseUrl = 'visitor/visit'
 
 const getAllByCurrentVisitor = async () => {
-  return await axios.get(`${baseUrl}/logged-user`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
-    },
-  })
+  return await authAxios.get(`${baseUrl}/logged-user`)
     .then(response => {
+      console.log('getAllByCurrentVisitor', response.data.data)
+
       return response.data.data
     })
     .catch(error => { return error })

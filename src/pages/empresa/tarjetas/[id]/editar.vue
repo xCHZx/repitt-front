@@ -1,8 +1,11 @@
 <script lang="ts" setup>
-import { createStampCardAsCompany } from '@/services/company/stampCards'
+import { getByIdAsCurrentCompany, updateStampCardAsCompany } from '@/services/company/stampCards'
 import { useCompanyStore } from '@/stores/company'
 
-const name = ref('')
+const route: any = useRoute()
+const stampCard = ref({})
+
+const name = ref(stampCard.value.name)
 const description = ref('')
 const requiredStamps = ref()
 const startDate = ref('')
@@ -12,38 +15,73 @@ const reward = ref('')
 
 const companyStore = useCompanyStore()
 
-const submit = () => {
+watch(() => stampCard.value, (value: any) => {
+  name.value = value.name
+  description.value = value.description
+  requiredStamps.value = value.required_stamps
+  startDate.value = value.start_date
+  endDate.value = value.end_date
+  reward.value = value.reward
+})
+
+const submit = async () => {
   console.log('Creating StampCard...')
 
   const payload = {
     name: name.value,
     description: description.value,
-    required_stamps: requiredStamps.value,
-    start_date: startDate.value,
-    end_date: endDate.value,
-    business_id: companyStore.selectedCompany.id,
-    reward: reward.value,
+
+    // required_stamps: requiredStamps.value,
+    // start_date: startDate.value,
+    // end_date: endDate.value,
+    // business_id: companyStore.selectedCompany.id,
+    // reward: reward.value,
     stamp_icon_file: stampIcon.value && stampIcon.value.length > 0 ? stampIcon.value[0] : null,
   }
 
   // Call API to create StampCard
   try {
-    createStampCardAsCompany(payload)
+    stampCard.value = await updateStampCardAsCompany(route.params.id, payload)
   }
   catch (error) {
     console.error('Error creating StampCard:', error)
   }
 }
 
-onMounted(() => {
+const getData = async () => {
+  try {
+    stampCard.value = await getByIdAsCurrentCompany(route.params.id)
+  }
+  catch (error) {
+    console.error('Error getting data:', error)
+  }
+}
 
+onMounted(() => {
+  getData()
 })
 </script>
 
 <template>
   <div>
+    {{ stampCard.name }}
     <div class="text-h4 font-weight-bold">
-      Crear Tarjeta para <span class="text-primary">{{ companyStore.selectedCompany.name || '???' }}</span>
+      Editar Tarjeta para <span class="text-primary">{{ companyStore.selectedCompany.name || '???' }}</span>
+    </div>
+    <div class="pt-5">
+      <VAlert
+        color="primary"
+        icon="tabler-alert-triangle"
+        variant="tonal"
+        density="compact"
+        style="white-space: normal;"
+        class="pb-0 text-left"
+      >
+        <p class="text-h6">
+          Por seguridad, solo se permiten editar campos informativos.
+          Si deseas un cambio adicional por favor contáctanos a soporte@repitt.com
+        </p>
+      </VAlert>
     </div>
   </div>
 
@@ -72,6 +110,7 @@ onMounted(() => {
           v-model="requiredStamps"
           type="number"
           variant="outlined"
+          disabled
           prepend-icon="tabler-rubber-stamp"
           label="Visitas requeridas para la recompensa *"
           placeholder="..."
@@ -82,6 +121,7 @@ onMounted(() => {
         <VTextField
           v-model="reward"
           variant="outlined"
+          disabled
           prepend-icon="tabler-gift"
           label="Recompensa *"
           placeholder="..."
@@ -95,8 +135,20 @@ onMounted(() => {
           accept="image/*"
           placeholder="..."
           prepend-icon="tabler-sticker"
-          label="Icono de sello"
+          label="Actualizar Icono de sello"
         />
+        <div class="mx-8 mt-5">
+          <div>
+            Icono de sello actual:
+          </div>
+          <VImg
+            v-if="stampCard.stamp_icon_path"
+            :src="stampCard.stamp_icon_path"
+            width="40"
+            height="40"
+            class="mt-3"
+          />
+        </div>
       </VCol>
       <VRow class="mt-2 px-3 border rounded">
         <VCol
@@ -105,6 +157,7 @@ onMounted(() => {
         >
           <AppDateTimePicker
             v-model="startDate"
+            disabled
             label="Fecha de Inicio de Vigencia *"
             placeholder="Fecha de Inicio de Vigencia *"
             prepend-icon="tabler-calendar"
@@ -116,6 +169,7 @@ onMounted(() => {
         >
           <AppDateTimePicker
             v-model="endDate"
+            disabled
             label="Fecha de Fin de Vigencia"
             placeholder="Fecha de Fin de Vigencia"
             prepend-icon="tabler-calendar-off"

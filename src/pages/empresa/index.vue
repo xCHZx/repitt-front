@@ -23,6 +23,12 @@ const menuItems = [
     url: '/empresa/tarjetas',
   },
   {
+    title: 'Visitas',
+    description: 'Esta es una descripción',
+    icon: 'tabler-walk',
+    url: '/empresa/visitas',
+  },
+  {
     title: 'Registrar Visita',
     description: 'Esta es una descripción',
     icon: 'tabler-qrcode',
@@ -89,7 +95,7 @@ const goToCreateBusiness = () => {
         <div class="text-center text-h3">
           <VAvatar
             size="50"
-            color="primary"
+            color="#FFFFFF"
             class="mb-1"
           >
             <VImg

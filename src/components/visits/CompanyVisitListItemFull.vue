@@ -3,7 +3,6 @@ interface Props {
   visits: any[]
   businessLogo: string
   businessName: string
-  stampCardName: string
 }
 
 const props = defineProps<Props>()
@@ -39,7 +38,7 @@ const formatDate = (date: string, options: any) => {
               {{ props.businessName }}
             </h5>
             <h6 class="text-h6">
-              {{ props.stampCardName }}
+              {{ visit?.stamp_card?.name }}
             </h6>
             <h5 class="text-h5">
               <VIcon

@@ -1,13 +1,9 @@
-import axios from 'axios'
+import { authAxios } from '../axios'
 
 const baseUrl = 'http://127.0.0.1:8000/api/visitor/stampcard'
 
 const getAllByCurrentVisitor = async () => {
-  return await axios.get(`${baseUrl}/logged-user`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
-    },
-  })
+  return await authAxios.get(`${baseUrl}/logged-user`)
     .then(response => {
       return response.data.data[0]
     })
@@ -15,11 +11,7 @@ const getAllByCurrentVisitor = async () => {
 }
 
 const getByIdByCurrentVisitor = async (id: number) => {
-  return await axios.get(`${baseUrl}/${id}`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('token')}`,
-    },
-  })
+  return await authAxios.get(`${baseUrl}/${id}`)
     .then(response => {
       return response.data.data[0]
     })

@@ -22,4 +22,14 @@ const getAllByStampCardAsCurrentCompany = async (id: number) => {
     .catch(error => { return error })
 }
 
-export { getAllByStampCardAsCurrentCompany, storeAsCompany }
+const getAllByBusinessAsCurrentCompany = async (id: number) => {
+  return await authAxios.get(`${baseUrl}/business/${id}/logged-user/`)
+    .then(response => {
+      console.log('getAllByBusinessAsCurrentCompany', response.data.data[0])
+
+      return response.data.data[0]
+    })
+    .catch(error => { return error })
+}
+
+export { getAllByBusinessAsCurrentCompany, getAllByStampCardAsCurrentCompany, storeAsCompany }
