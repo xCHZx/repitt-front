@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { logoutUser } from '@/services/auth/auth'
 import { useAuthStore } from '@/stores/auth'
 
 definePage({
@@ -46,10 +47,9 @@ const goToPage = (url: string) => {
   router.push(url)
 }
 
-const logout = () => {
-  console.log('logout')
-  authStore.logout()
-  router.push('auth/login')
+const logout = async () => {
+  await logoutUser()
+  await router.push('auth/login')
 }
 </script>
 

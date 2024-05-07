@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import { logoutUser } from '@/services/auth/auth'
 import { getAllByCurrentCompany } from '@/services/company/businesses'
 import { getCurrentVisitorData } from '@/services/visitor/users'
-import { useAuthStore } from '@/stores/auth'
 import { useCompanyStore } from '@/stores/company'
 
 definePage({
@@ -11,8 +11,6 @@ definePage({
     requiredRole: ['Owner'],
   },
 })
-
-const authStore = useAuthStore()
 
 const router = useRouter()
 
@@ -51,10 +49,9 @@ const goToCreateBusiness = () => {
   router.push('/empresa/crear')
 }
 
-const logout = () => {
-  console.log('logout')
-  authStore.logout()
-  router.push('auth/login')
+const logout = async () => {
+  await logoutUser()
+  await router.push('auth/login')
 }
 
 onMounted(() => {

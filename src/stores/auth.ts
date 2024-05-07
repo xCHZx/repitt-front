@@ -1,9 +1,12 @@
-import axios from 'axios'
 import { defineStore } from 'pinia'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    authUser: null,
+    authUser: {
+      first_name: null,
+      last_name: null,
+      email: null,
+    },
     authToken: null,
     authRole: null,
   }),
@@ -13,38 +16,22 @@ export const useAuthStore = defineStore('auth', {
     role: state => state.authRole,
   },
   actions: {
-    async loginUser(credentials: any) {
-      await axios.post('http://127.0.0.1:8000/api/auth/login', credentials)
-        .then(response => {
-          this.authToken = response.data.token
-          this.authRole = response.data.role
-          this.authUser = response.data.data
-
-          console.log('Login successful')
-
-          return response.data
-        })
-        .catch(error => {
-          throw error
-        })
+    async populateAuthData(response: any) {
+      this.authToken = response.token
+      this.authRole = response.role
+      this.authUser = {
+        first_name: response.data.first_name,
+        last_name: response.data.last_name,
+        email: response.data.email,
+      }
     },
-    async registerUser(payload: any) {
-      await axios.post('http://127.0.0.1:8000/api/auth/register', payload)
-        .then(response => {
-          this.authToken = response.data.token
-          this.authRole = response.data.role
-          this.authUser = response.data.data
-
-          return response.data
-        })
-        .catch(error => {
-          console.error('Login error:', error.response.data)
-          throw error
-        })
-    },
-    async logout() {
+    async deleteAuthData() {
       this.authToken = null
-      this.authUser = null
+      this.authUser = {
+        first_name: null,
+        last_name: null,
+        email: null,
+      }
       this.authRole = null
     },
   },

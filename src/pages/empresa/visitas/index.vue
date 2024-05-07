@@ -15,7 +15,7 @@ const data: any = ref({})
 
 const getData = async () => {
   try {
-    data.value = await getAllByBusinessAsCurrentCompany(companyStore.company.id)
+    data.value = await getAllByBusinessAsCurrentCompany(companyStore.company.id ?? 0)
   }
   catch (error) {
     console.error('Error getting data:', error)

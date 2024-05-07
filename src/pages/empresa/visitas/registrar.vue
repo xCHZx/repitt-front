@@ -42,7 +42,7 @@ const selectedStampCard = ref()
 
 const getData = async () => {
   try {
-    const response = await getAllByIdByCurrentCompany(companyStore.selectedCompany.id)
+    const response = await getAllByIdByCurrentCompany(companyStore.selectedCompany.id ?? 0)
 
     stampCardList.value = response.map((stampCard: any) => ({
       title: stampCard.name,

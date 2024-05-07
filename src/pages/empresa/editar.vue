@@ -59,7 +59,7 @@ const onSubmit = () => {
 
   // Call API to create business
   try {
-    updateBusinessAsCurrentCompany(companyStore.selectedCompany.id, payload)
+    updateBusinessAsCurrentCompany(companyStore.selectedCompany.id as unknown as number, payload)
     companyStore.refreshCompany(companyStore.selectedCompany.id)
 
     // router.push('/empresa/seleccionar')

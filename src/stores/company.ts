@@ -3,7 +3,19 @@ import { getByIdByCurrentCompany } from '@/services/company/businesses'
 
 export const useCompanyStore = defineStore('company', {
   state: () => ({
-    selectedCompany: null,
+    selectedCompany: {
+      address: null,
+      description: null,
+      id: null,
+      logo_path: null,
+      name: null,
+      opening_hours: null,
+      phone: null,
+      segment: {
+        id: null,
+        name: null,
+      },
+    },
   }),
   getters: {
     company: state => state.selectedCompany,

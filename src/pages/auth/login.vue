@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { loginUser } from '@/services/auth/auth'
 import { useAuthStore } from '@/stores/auth'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
@@ -29,16 +30,19 @@ const onSubmit = async () => {
       password: form.value.password,
     }
 
-    await authStore.loginUser(payload)
+    await loginUser(payload)
 
-    if (authStore.authRole === 'Visitor')
-      router.push('/visitante')
-
-    else if (authStore.authRole === 'Owner')
-      router.push('/empresa')
-
-    else
-      console.error('Invalid role:', authStore.authRole)
+    if (authStore.authRole === 'Owner') {
+      await router.push('/empresa')
+      await location.reload()
+    }
+    else if (authStore.authRole === 'Visitor') {
+      await router.push('/visitante')
+      await location.reload()
+    }
+    else {
+      await router.push('/404')
+    }
   }
   catch (error) {
     console.error('Login error:', error)

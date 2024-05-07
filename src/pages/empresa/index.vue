@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import { logoutUser } from '@/services/auth/auth'
 import { getAllByCurrentCompany } from '@/services/company/businesses'
 import { getCurrentVisitorData } from '@/services/visitor/users'
-import { useAuthStore } from '@/stores/auth'
 import { useCompanyStore } from '@/stores/company'
 
 definePage({
@@ -49,7 +49,6 @@ const businesses: any = ref({})
 const user: any = ref({})
 
 const companyStore = useCompanyStore()
-const authStore = useAuthStore()
 
 const isDialogVisible = ref(false)
 
@@ -75,10 +74,9 @@ const goToUserHome = () => {
   router.push('/visitante')
 }
 
-const logout = () => {
-  console.log('logout')
-  authStore.logout()
-  router.push('auth/login')
+const logout = async () => {
+  await logoutUser()
+  await router.push('auth/login')
 }
 
 const goToBusiness = (business: any) => {
@@ -114,7 +112,7 @@ const goToCreateBusiness = () => {
             class="mb-1"
           >
             <VImg
-              :src="companyStore.selectedCompany?.logo_path"
+              :src="companyStore.selectedCompany?.logo_path || undefined"
               alt="Logo"
             />
           </VAvatar>

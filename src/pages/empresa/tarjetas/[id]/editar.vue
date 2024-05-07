@@ -10,7 +10,7 @@ definePage({
 })
 
 const route: any = useRoute()
-const stampCard = ref({})
+const stampCard = ref()
 
 const name = ref(stampCard.value.name)
 const description = ref('')

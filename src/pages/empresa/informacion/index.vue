@@ -13,11 +13,11 @@ const companyStore = useCompanyStore()
 const router = useRouter()
 
 const data: any = ref({})
-const businessId = companyStore.selectedCompany?.id
+const businessId = companyStore.selectedCompany.id
 
 const getData = async () => {
   try {
-    data.value = await getByIdByCurrentCompany(businessId)
+    data.value = await getByIdByCurrentCompany(businessId ?? 0)
   }
   catch (error) {
     console.error('Error getting data:', error)
