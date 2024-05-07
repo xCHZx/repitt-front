@@ -7,6 +7,7 @@ definePage({
   meta: {
     layout: 'blank',
     requiresAuth: false,
+    requiredRole: null,
   },
 })
 

@@ -5,6 +5,7 @@ import { getByIdByCurrentVisitor } from '@/services/visitor/stampCards'
 definePage({
   meta: {
     requiresAuth: true,
+    requiredRole: ['Visitor', 'Owner'],
   },
 })
 

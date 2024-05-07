@@ -5,6 +5,7 @@ import { useCompanyStore } from '@/stores/company'
 definePage({
   meta: {
     requiresAuth: true,
+    requiredRole: ['Owner'],
   },
 })
 

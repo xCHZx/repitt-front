@@ -4,6 +4,7 @@ import { getCurrentVisitorData } from '@/services/visitor/users'
 definePage({
   meta: {
     requiresAuth: true,
+    requiredRole: ['Visitor', 'Owner'],
   },
 })
 

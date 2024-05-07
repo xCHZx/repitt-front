@@ -5,6 +5,7 @@ import { getAllSegments } from '@/services/company/segments'
 definePage({
   meta: {
     requiresAuth: true,
+    requiredRole: ['Owner'],
   },
 })
 

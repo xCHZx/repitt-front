@@ -1,6 +1,13 @@
 <script lang="ts" setup>
 import { getAllByCurrentVisitor } from '@/services/visitor/visits'
 
+definePage({
+  meta: {
+    requiresAuth: true,
+    requiredRole: ['Visitor', 'Owner'],
+  },
+})
+
 const data: any = ref({})
 
 const getData = async () => {

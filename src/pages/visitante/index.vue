@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth'
 definePage({
   meta: {
     requiresAuth: true,
+    requiredRole: ['Visitor', 'Owner'],
   },
 })
 

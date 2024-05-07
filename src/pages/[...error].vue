@@ -12,6 +12,7 @@ definePage({
     layout: 'blank',
     public: true,
     requiresAuth: false,
+    requiredRole: null,
   },
 })
 </script>

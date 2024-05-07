@@ -8,6 +8,7 @@ definePage({
   meta: {
     layout: 'blank',
     requiresAuth: true,
+    requiredRole: ['Owner'],
   },
 })
 

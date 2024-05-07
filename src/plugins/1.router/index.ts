@@ -33,6 +33,7 @@ router.beforeEach((to, from, next) => {
   // Convert localStorage.getItem('auth') to JSON to access the authToken
   const authData = JSON.parse(localStorage.getItem('auth') || '{}')
   const authToken = authData.authToken
+  const authRole = authData.authRole
 
   // Redirect to login page if not logged in
   if (to.meta.requiresAuth && !authToken) {
@@ -40,7 +41,20 @@ router.beforeEach((to, from, next) => {
     next({ name: 'auth-login' })
   }
   else {
-    next()
+    // Check if the meta requiredRole (array) contains the user role in the store
+    if (to.meta.requiredRole && !to.meta.requiredRole.includes(authRole)) {
+      console.log(to.meta.requiredRole, authRole)
+
+      // If not, redirect to the 404 page
+
+      // next({ name: 'visitante' })
+      console.log('Role error')
+
+      next('/404')
+    }
+    else {
+      next()
+    }
   }
 })
 

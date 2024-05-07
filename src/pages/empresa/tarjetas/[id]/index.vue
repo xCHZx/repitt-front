@@ -4,6 +4,7 @@ import { getByIdAsCurrentCompany } from '@/services/company/stampCards'
 definePage({
   meta: {
     requiresAuth: true,
+    requiredRole: ['Owner'],
   },
 })
 

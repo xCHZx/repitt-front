@@ -2,6 +2,7 @@
 definePage({
   meta: {
     requiresAuth: true,
+    requiredRole: ['Owner'],
   },
 })
 
