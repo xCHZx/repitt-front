@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Swal from 'sweetalert2'
 import { useRoute } from 'vue-router'
 import { getByIdByCurrentVisitor } from '@/services/visitor/stampCards'
 
@@ -18,8 +19,13 @@ const getData = async () => {
   try {
     data.value = await getByIdByCurrentVisitor(route.params.id)
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Error getting data:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
   }
 }
 

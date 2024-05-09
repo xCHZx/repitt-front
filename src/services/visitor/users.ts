@@ -7,7 +7,9 @@ const getCurrentVisitorData = async () => {
     .then(response => {
       return response.data.data[0]
     })
-    .catch(error => { return error })
+    .catch(error => {
+      throw error.response.data.message
+    })
 }
 
 export { getCurrentVisitorData }

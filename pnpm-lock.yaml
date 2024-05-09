@@ -94,6 +94,9 @@ dependencies:
   shepherd.js:
     specifier: 11.2.0
     version: 11.2.0
+  sweetalert2:
+    specifier: ^11.10.8
+    version: 11.10.8
   swiper:
     specifier: 11.0.7
     version: 11.0.7
@@ -7090,6 +7093,10 @@ packages:
       csso: 5.0.5
       picocolors: 1.0.0
     dev: true
+
+  /sweetalert2@11.10.8:
+    resolution: {integrity: sha512-oAkYROBfXBY+4sVbQEIcN+ZxAx69lsmz5WEBwdEpyS4m59vOBNlRU5/fJpAI1MVfiDwFZiGwVzB/KBpOyfLNtg==}
+    dev: false
 
   /swiper@11.0.7:
     resolution: {integrity: sha512-cDfglW1B6uSmB6eB6pNmzDTNLmZtu5bWWa1vak0RU7fOI9qHjMzl7gVBvYSl34b0RU2N11HxxETJqQ5LeqI1cA==}

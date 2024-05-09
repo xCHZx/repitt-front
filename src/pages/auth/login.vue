@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Swal from 'sweetalert2'
 import { loginUser } from '@/services/auth/auth'
 import { useAuthStore } from '@/stores/auth'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
@@ -44,8 +45,14 @@ const onSubmit = async () => {
       await router.push('/404')
     }
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Login error:', error)
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
   }
 }
 </script>

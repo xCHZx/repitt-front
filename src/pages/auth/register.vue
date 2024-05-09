@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import Swal from 'sweetalert2'
 import { registerUser } from '@/services/auth/auth'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
@@ -32,8 +33,16 @@ const onSubmit = () => {
     role: form.value.role,
   }
 
-  registerUser(payload)
-  console.log('Si funciona')
+  try {
+    registerUser(payload)
+  }
+  catch (error: any) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
+  }
 }
 </script>
 
@@ -153,7 +162,7 @@ const onSubmit = () => {
             >
               <RouterLink
                 class="text-primary ms-2"
-                :to="{ name: 'login' }"
+                to="/auth/login"
               >
                 ¿Ya tienes una cuenta?
               </RouterLink>

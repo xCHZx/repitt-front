@@ -14,8 +14,7 @@ const loginUser = async (credentials: any) => {
       return response.data
     })
     .catch(error => {
-      console.error('Login error:', error.response.data)
-      throw error
+      throw error.response.data.message
     })
 }
 
@@ -29,8 +28,7 @@ const registerUser = async (payload: any) => {
       return response.data
     })
     .catch(error => {
-      console.error('Registration error:', error.response.data)
-      throw error
+      throw error.response.data.message
     })
 }
 
@@ -44,8 +42,7 @@ const logoutUser = async () => {
       return response.data
     })
     .catch(error => {
-      console.error('Logout error:', error.response.data)
-      throw error
+      throw error.response.data.message
     })
 }
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Swal from 'sweetalert2'
 import { useRouter } from 'vue-router'
 import { getAllByCurrentVisitor } from '@/services/visitor/stampCards'
 
@@ -17,8 +18,12 @@ const getData = async () => {
   try {
     data.value = await getAllByCurrentVisitor()
   }
-  catch (error) {
-    console.error('Error getting data:', error)
+  catch (error: any) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
   }
 }
 
@@ -35,7 +40,7 @@ const goToCard = (id: number) => {
 
 <template>
   <div>
-    <div v-if="data">
+    <div v-if="data && data.length > 0">
       <div
         v-for="stampCard in data"
         :key="stampCard"
@@ -54,9 +59,9 @@ const goToCard = (id: number) => {
       </div>
     </div>
     <div v-else>
-      <h1>
+      <div class="text-h4">
         Sin datos disponibles
-      </h1>
+      </div>
     </div>
   </div>
 </template>

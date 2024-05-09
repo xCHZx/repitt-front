@@ -7,7 +7,9 @@ const getAllByCurrentVisitor = async () => {
     .then(response => {
       return response.data.data[0]
     })
-    .catch(error => { return error })
+    .catch(error => {
+      throw error.response.data.message
+    })
 }
 
 const getByIdByCurrentVisitor = async (id: number) => {
@@ -15,7 +17,9 @@ const getByIdByCurrentVisitor = async (id: number) => {
     .then(response => {
       return response.data.data[0]
     })
-    .catch(error => { return error })
+    .catch(error => {
+      throw error.response.data.message
+    })
 }
 
 export { getAllByCurrentVisitor, getByIdByCurrentVisitor }

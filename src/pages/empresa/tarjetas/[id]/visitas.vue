@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Swal from 'sweetalert2'
 import { getAllByStampCardAsCurrentCompany } from '@/services/company/visits'
 
 definePage({
@@ -16,8 +17,13 @@ const getData = async () => {
   try {
     data.value = await getAllByStampCardAsCurrentCompany(route.params.id)
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Error getting data:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
   }
 }
 

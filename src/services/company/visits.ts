@@ -9,7 +9,9 @@ const storeAsCompany = async (payload: any) => {
 
       return response.data
     })
-    .catch(error => { return error })
+    .catch(error => {
+      throw error.response.data.message
+    })
 }
 
 const getAllByStampCardAsCurrentCompany = async (id: number) => {
@@ -19,7 +21,9 @@ const getAllByStampCardAsCurrentCompany = async (id: number) => {
 
       return response.data.data[0]
     })
-    .catch(error => { return error })
+    .catch(error => {
+      throw error.response.data.message
+    })
 }
 
 const getAllByBusinessAsCurrentCompany = async (id: number) => {
@@ -29,7 +33,9 @@ const getAllByBusinessAsCurrentCompany = async (id: number) => {
 
       return response.data.data[0]
     })
-    .catch(error => { return error })
+    .catch(error => {
+      throw error.response.data.message
+    })
 }
 
 export { getAllByBusinessAsCurrentCompany, getAllByStampCardAsCurrentCompany, storeAsCompany }

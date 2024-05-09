@@ -9,7 +9,9 @@ const getAllSegments = async () => {
 
       return response.data.data[0]
     })
-    .catch(error => { return error })
+    .catch(error => {
+      throw error.response.data.message
+    })
 }
 
 export { getAllSegments }

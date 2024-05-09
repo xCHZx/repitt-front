@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import Swal from 'sweetalert2'
 import { createStampCardAsCompany } from '@/services/company/stampCards'
 import { useCompanyStore } from '@/stores/company'
 
@@ -36,9 +37,19 @@ const submit = () => {
   // Call API to create StampCard
   try {
     createStampCardAsCompany(payload)
+    Swal.fire({
+      icon: 'success',
+      title: 'Éxito',
+      text: 'Tarjeta creada correctamente.',
+    })
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Error creating StampCard:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
   }
 }
 

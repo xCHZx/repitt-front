@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import Swal from 'sweetalert2'
 import { getByIdAsCurrentCompany, updateStampCardAsCompany } from '@/services/company/stampCards'
 import { useCompanyStore } from '@/stores/company'
 
@@ -49,9 +50,18 @@ const submit = async () => {
   // Call API to create StampCard
   try {
     stampCard.value = await updateStampCardAsCompany(route.params.id, payload)
+    Swal.fire({
+      icon: 'success',
+      title: 'Éxito',
+      text: 'Tarjeta actualizada correctamente.',
+    })
   }
-  catch (error) {
-    console.error('Error creating StampCard:', error)
+  catch (error: any) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
   }
 }
 

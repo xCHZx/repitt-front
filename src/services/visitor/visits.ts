@@ -9,7 +9,9 @@ const getAllByCurrentVisitor = async () => {
 
       return response.data.data
     })
-    .catch(error => { return error })
+    .catch(error => {
+      throw error.response.data.message
+    })
 }
 
 export { getAllByCurrentVisitor }

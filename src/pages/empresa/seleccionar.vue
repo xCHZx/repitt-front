@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import Swal from 'sweetalert2'
 import { logoutUser } from '@/services/auth/auth'
 import { getAllByCurrentCompany } from '@/services/company/businesses'
 import { getCurrentVisitorData } from '@/services/visitor/users'
@@ -24,8 +25,13 @@ const getData = async () => {
     businesses.value = await getAllByCurrentCompany()
     user.value = await getCurrentVisitorData()
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Error getting data:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
   }
 }
 

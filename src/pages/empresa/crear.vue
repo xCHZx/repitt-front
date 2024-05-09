@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import Swal from 'sweetalert2'
 import { createBusinessAsCompany } from '@/services/company/businesses'
 import { getAllSegments } from '@/services/company/segments'
 
@@ -56,11 +57,21 @@ const onSubmit = () => {
   // Call API to create business
   try {
     createBusinessAsCompany(payload)
+    Swal.fire({
+      icon: 'success',
+      title: 'Éxito',
+      text: 'Negocio creado correctamente.',
+    })
 
     // router.push('/empresa/seleccionar')
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Error creating business:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
   }
 }
 

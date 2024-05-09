@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import Swal from 'sweetalert2'
 import { updateBusinessAsCurrentCompany } from '@/services/company/businesses'
 import { getAllSegments } from '@/services/company/segments'
 import { useCompanyStore } from '@/stores/company'
@@ -61,11 +62,21 @@ const onSubmit = () => {
   try {
     updateBusinessAsCurrentCompany(companyStore.selectedCompany.id as unknown as number, payload)
     companyStore.refreshCompany(companyStore.selectedCompany.id)
+    Swal.fire({
+      icon: 'success',
+      title: 'Éxito',
+      text: 'Negocio actualizado correctamente.',
+    })
 
     // router.push('/empresa/seleccionar')
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Error creating business:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
   }
 }
 

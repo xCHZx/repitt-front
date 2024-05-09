@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Swal from 'sweetalert2'
 import { getByIdByCurrentCompany } from '@/services/company/businesses'
 import { useCompanyStore } from '@/stores/company'
 
@@ -19,8 +20,12 @@ const getData = async () => {
   try {
     data.value = await getByIdByCurrentCompany(businessId ?? 0)
   }
-  catch (error) {
-    console.error('Error getting data:', error)
+  catch (error: any) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
   }
 }
 

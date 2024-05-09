@@ -42,6 +42,7 @@
     "prismjs": "1.29.0",
     "roboto-fontface": "0.10.0",
     "shepherd.js": "11.2.0",
+    "sweetalert2": "^11.10.8",
     "swiper": "11.0.7",
     "ufo": "1.4.0",
     "unplugin-vue-define-options": "1.4.2",

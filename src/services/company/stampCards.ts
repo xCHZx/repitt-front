@@ -9,7 +9,9 @@ const getAllByIdByCurrentCompany = async (id: number) => {
 
       return response.data.data[0]
     })
-    .catch(error => { return error })
+    .catch(error => {
+      throw error.response.data.message
+    })
 }
 
 const getByIdAsCurrentCompany = async (id: number) => {
@@ -19,7 +21,9 @@ const getByIdAsCurrentCompany = async (id: number) => {
 
       return response.data.data[0]
     })
-    .catch(error => { return error })
+    .catch(error => {
+      throw error.response.data.message
+    })
 }
 
 const createStampCardAsCompany = async (data: any) => {
@@ -35,7 +39,9 @@ const createStampCardAsCompany = async (data: any) => {
 
       return response.data.data[0]
     })
-    .catch(error => { return error })
+    .catch(error => {
+      throw error.response.data.message
+    })
 }
 
 const updateStampCardAsCompany = async (id: number, data: any) => {
@@ -51,7 +57,9 @@ const updateStampCardAsCompany = async (id: number, data: any) => {
 
       return response.data.data[0]
     })
-    .catch(error => { return error })
+    .catch(error => {
+      throw error.response.data.message
+    })
 }
 
 export { createStampCardAsCompany, getAllByIdByCurrentCompany, getByIdAsCurrentCompany, updateStampCardAsCompany }

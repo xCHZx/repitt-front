@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import Swal from 'sweetalert2'
 import { getAllByCurrentVisitor } from '@/services/visitor/visits'
 
 definePage({
@@ -14,8 +15,13 @@ const getData = async () => {
   try {
     data.value = await getAllByCurrentVisitor()
   }
-  catch (error) {
+  catch (error: any) {
     console.error('Error getting data:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
   }
 }
 
@@ -43,7 +49,15 @@ onMounted(() => {
           </VCol>
         </VRow>
       </div>
-      <!-- Fin de Visitas  -->
+      <div v-else>
+        <VCardText class="text-center pt-2">
+          <h5 class="text-h5">
+            No hay visitas para mostrar
+          </h5>
+        </VCardText>
+
+        <!-- Fin de Visitas  -->
+      </div>
     </VCol>
   </VRow>
 </template>

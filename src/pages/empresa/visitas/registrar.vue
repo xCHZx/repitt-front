@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Swal from 'sweetalert2'
 import { QrcodeStream } from 'vue-qrcode-reader'
 import { getAllByIdByCurrentCompany } from '@/services/company/stampCards'
 import { storeAsCompany } from '@/services/company/visits'
@@ -53,8 +54,13 @@ const getData = async () => {
       },
     }))
   }
-  catch (e) {
+  catch (e: any) {
     console.error('Error getting data:', e)
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: e.join('\n'),
+    })
   }
 }
 
