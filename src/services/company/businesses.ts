@@ -27,7 +27,7 @@ const getByIdByCurrentCompany = async (id: number) => {
 }
 
 const createBusinessAsCompany = async (data: any) => {
-  console.log('Payload', data)
+  console.log('Business Payload', data)
 
   return await authAxios.post(`${baseUrl}`, data, {
     headers: {

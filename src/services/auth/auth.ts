@@ -1,13 +1,19 @@
 import { authAxios } from '../axios'
+import { createBusinessAsCompany } from '../company/businesses'
 import { useAuthStore } from '@/stores/auth'
+import { useCompanyStore } from '@/stores/company'
 
 const baseUrl = '/auth'
 const authStore = useAuthStore()
+const companyStore = useCompanyStore()
 
 const loginUser = async (credentials: any) => {
   return await authAxios.post(`${baseUrl}/login`, credentials)
     .then(response => {
       console.log('Login successful')
+
+      authStore.deleteAuthData()
+      companyStore.deleteCompanyData()
 
       authStore.populateAuthData(response.data)
 
@@ -18,14 +24,26 @@ const loginUser = async (credentials: any) => {
     })
 }
 
-const registerUser = async (payload: any) => {
-  return await authAxios.post(`${baseUrl}/register`, payload)
+const dualRegisterUser = async (userPayload: any, businessPayload: any) => {
+  console.log('User Payload', userPayload)
+
+  return await authAxios.post(`${baseUrl}/register`, userPayload)
     .then(response => {
       console.log('Registration successful')
 
+      authStore.deleteAuthData()
+      companyStore.deleteCompanyData()
+
       authStore.populateAuthData(response.data)
 
+      // if (businessPayload.name !== '') // Fix: Changed the comparison operator from '===' to '!=='.
+      //   createBusinessAsCompany(businessPayload)
+
       return response.data
+    })
+    .then(() => {
+      if (businessPayload.name !== '') // Fix: Changed the comparison operator from '===' to '!=='.
+        createBusinessAsCompany(businessPayload)
     })
     .catch(error => {
       throw error.response.data.message
@@ -38,6 +56,7 @@ const logoutUser = async () => {
       console.log('Logout successful')
 
       authStore.deleteAuthData()
+      companyStore.deleteCompanyData()
 
       return response.data
     })
@@ -46,7 +65,7 @@ const logoutUser = async () => {
     })
 }
 
-export { loginUser, logoutUser, registerUser }
+export { dualRegisterUser, loginUser, logoutUser }
 
 // import axios from 'axios'
 

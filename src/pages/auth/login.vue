@@ -139,7 +139,7 @@ const onSubmit = async () => {
             >
               <a
                 class="text-primary ms-2"
-                href="#"
+                href="/auth/register"
               >
                 ¿Aún no tienes una cuenta?
               </a>

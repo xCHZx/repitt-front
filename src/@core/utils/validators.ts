@@ -3,9 +3,9 @@ import { isEmpty, isEmptyArray, isNullOrUndefined } from './helpers'
 // 👉 Required Validator
 export const requiredValidator = (value: unknown) => {
   if (isNullOrUndefined(value) || isEmptyArray(value) || value === false)
-    return 'This field is required'
+    return 'Este campo es requerido'
 
-  return !!String(value).trim().length || 'This field is required'
+  return !!String(value).trim().length || 'Este campo es requerido'
 }
 
 // 👉 Email Validator
@@ -16,9 +16,9 @@ export const emailValidator = (value: unknown) => {
   const re = /^(?:[^<>()[\]\\.,;:\s@"]+(?:\.[^<>()[\]\\.,;:\s@"]+)*|".+")@(?:\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]|(?:[a-z\-\d]+\.)+[a-z]{2,})$/i
 
   if (Array.isArray(value))
-    return value.every(val => re.test(String(val))) || 'The Email field must be a valid email'
+    return value.every(val => re.test(String(val))) || 'Debes ingresar un email válido'
 
-  return re.test(String(value)) || 'The Email field must be a valid email'
+  return re.test(String(value)) || 'Debes ingresar un email válido'
 }
 
 // 👉 Password Validator
@@ -91,7 +91,7 @@ export const lengthValidator = (value: unknown, length: number) => {
   if (isEmpty(value))
     return true
 
-  return String(value).length === length || `"The length of the Characters field must be ${length} characters."`
+  return String(value).length === length || `El teléfono debe tener ${length} dígitos`
 }
 
 // 👉 Alpha-dash Validator

@@ -29,6 +29,21 @@ export const useCompanyStore = defineStore('company', {
 
       this.selectedCompany = res
     },
+    deleteCompanyData() {
+      this.selectedCompany = {
+        address: null,
+        description: null,
+        id: null,
+        logo_path: null,
+        name: null,
+        opening_hours: null,
+        phone: null,
+        segment: {
+          id: null,
+          name: null,
+        },
+      }
+    },
   },
   persist: true,
 })

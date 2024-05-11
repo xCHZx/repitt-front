@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import Swal from 'sweetalert2'
 import { createBusinessAsCompany } from '@/services/company/businesses'
-import { getAllSegments } from '@/services/company/segments'
+import { getAllSegments } from '@/services/utils/utils'
 
 definePage({
   meta: {

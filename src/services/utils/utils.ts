@@ -1,12 +1,10 @@
 import { authAxios } from '../axios'
 
-const baseUrl = '/company/segment'
+const baseUrl = 'utils'
 
 const getAllSegments = async () => {
-  return await authAxios.get(`${baseUrl}/`)
+  return await authAxios.get(`${baseUrl}/segments`)
     .then(response => {
-      console.log('getAllSegments', response.data.data[0])
-
       return response.data.data[0]
     })
     .catch(error => {
