@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import Swal from 'sweetalert2'
 import { updateBusinessAsCurrentCompany } from '@/services/company/businesses'
-import { getAllSegments } from '@/services/company/segments'
+import { getAllSegments } from '@/services/utils/utils'
 import { useCompanyStore } from '@/stores/company'
 
 definePage({
