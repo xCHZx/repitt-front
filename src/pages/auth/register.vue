@@ -2,10 +2,11 @@
 import Swal from 'sweetalert2'
 import { emailValidator, requiredValidator } from '@/@core/utils/validators'
 import { dualRegisterUser } from '@/services/auth/auth'
+import { createBusinessAsCompany } from '@/services/company/businesses'
 import { getAllSegments } from '@/services/utils/utils'
+import { useAuthStore } from '@/stores/auth'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
-import { useAuthStore } from '@/stores/auth'
 
 definePage({
   meta: {
@@ -101,25 +102,44 @@ const onFormSubmit = async () => {
   console.log(userPayload)
 
   try {
-    await dualRegisterUser(userPayload, businessPayload)
+    await dualRegisterUser(userPayload)
+      .then(() => {
+        if (selectedUserType.value === 'company')
+          return createBusinessAsCompany(businessPayload)
+      })
 
     Swal.fire({
       icon: 'success',
       title: 'Registro exitoso',
       text: '¡Bienvenido a Repitt!',
+      confirmButtonText: 'Empezar',
+    }).then(async result => {
+      if (result.isConfirmed || result.isDismissed) {
+        if (authStore.authRole === 'Owner') {
+          await router.push('/empresa')
+          location.reload()
+        }
+        else if (authStore.authRole === 'Visitor') {
+          await router.push('/visitante')
+          location.reload()
+        }
+        else {
+          await router.push('/404')
+        }
+      }
     })
 
-    if (authStore.authRole === 'Owner') {
-      await router.push('/empresa')
-      await location.reload()
-    }
-    else if (authStore.authRole === 'Visitor') {
-      await router.push('/visitante')
-      await location.reload()
-    }
-    else {
-      await router.push('/404')
-    }
+    // if (authStore.authRole === 'Owner') {
+    //   await router.push('/empresa')
+    //   await location.reload()
+    // }
+    // else if (authStore.authRole === 'Visitor') {
+    //   await router.push('/visitante')
+    //   await location.reload()
+    // }
+    // else {
+    //   await router.push('/404')
+    // }
   }
   catch (error: any) {
     console.error('Error registering user:', error)

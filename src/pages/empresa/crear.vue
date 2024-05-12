@@ -10,6 +10,8 @@ definePage({
   },
 })
 
+const router = useRouter()
+
 const name = ref('')
 const description = ref('')
 const address = ref('')
@@ -41,7 +43,7 @@ const getSegments = async () => {
   }
 }
 
-const onSubmit = () => {
+const onSubmit = async () => {
   console.log('Creating business...')
 
   const payload = {
@@ -49,18 +51,22 @@ const onSubmit = () => {
     description: description.value,
     address: address.value,
     phone: phone.value,
-    segment: segment.value,
+    segment_id: segment.value,
     opening_hours: openingHours.value,
     logo_file: logo.value && logo.value.length > 0 ? logo.value[0] : null,
   }
 
   // Call API to create business
   try {
-    createBusinessAsCompany(payload)
+    await createBusinessAsCompany(payload)
     Swal.fire({
       icon: 'success',
       title: 'Éxito',
       text: 'Negocio creado correctamente.',
+      confirmButtonText: 'Aceptar',
+    }).then(async result => {
+      if (result.isConfirmed || result.isDismissed)
+        router.push('/empresa/')
     })
 
     // router.push('/empresa/seleccionar')

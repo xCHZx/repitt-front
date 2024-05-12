@@ -10,6 +10,8 @@ definePage({
   },
 })
 
+const router = useRouter()
+
 const name = ref('')
 const description = ref('')
 const requiredStamps = ref()
@@ -20,7 +22,7 @@ const reward = ref('')
 
 const companyStore = useCompanyStore()
 
-const submit = () => {
+const submit = async () => {
   console.log('Creating StampCard...')
 
   const payload = {
@@ -36,11 +38,15 @@ const submit = () => {
 
   // Call API to create StampCard
   try {
-    createStampCardAsCompany(payload)
+    await createStampCardAsCompany(payload)
     Swal.fire({
       icon: 'success',
       title: 'Éxito',
       text: 'Tarjeta creada correctamente.',
+      confirmButtonText: 'Aceptar',
+    }).then(async result => {
+      if (result.isConfirmed || result.isDismissed)
+        router.push('/empresa/tarjetas')
     })
   }
   catch (error: any) {

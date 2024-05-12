@@ -18,12 +18,6 @@ const getData = async () => {
   try {
     if (companyStore.selectedCompany.id !== null)
       data.value = await getAllByIdByCurrentCompany(companyStore.selectedCompany.id)
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Éxito',
-      text: 'Datos obtenidos correctamente.',
-    })
   }
   catch (error: any) {
     console.error('Error getting data:', error)

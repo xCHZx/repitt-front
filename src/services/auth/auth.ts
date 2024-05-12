@@ -1,5 +1,4 @@
 import { authAxios } from '../axios'
-import { createBusinessAsCompany } from '../company/businesses'
 import { useAuthStore } from '@/stores/auth'
 import { useCompanyStore } from '@/stores/company'
 
@@ -24,7 +23,7 @@ const loginUser = async (credentials: any) => {
     })
 }
 
-const dualRegisterUser = async (userPayload: any, businessPayload: any) => {
+const dualRegisterUser = async (userPayload: any) => {
   console.log('User Payload', userPayload)
 
   return await authAxios.post(`${baseUrl}/register`, userPayload)
@@ -41,10 +40,11 @@ const dualRegisterUser = async (userPayload: any, businessPayload: any) => {
 
       return response.data
     })
-    .then(() => {
-      if (businessPayload.name !== '') // Fix: Changed the comparison operator from '===' to '!=='.
-        createBusinessAsCompany(businessPayload)
-    })
+
+    // .then(() => {
+    //   if (businessPayload.name !== '') // Fix: Changed the comparison operator from '===' to '!=='.
+    //     createBusinessAsCompany(businessPayload)
+    // })
     .catch(error => {
       throw error.response.data.message
     })

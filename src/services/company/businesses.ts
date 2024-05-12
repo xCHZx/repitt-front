@@ -1,4 +1,5 @@
 import { authAxios } from '../axios'
+import { useCompanyStore } from '@/stores/company'
 
 const baseUrl = '/company/business'
 
@@ -27,6 +28,8 @@ const getByIdByCurrentCompany = async (id: number) => {
 }
 
 const createBusinessAsCompany = async (data: any) => {
+  const companyStore = useCompanyStore()
+
   console.log('Business Payload', data)
 
   return await authAxios.post(`${baseUrl}`, data, {
@@ -36,6 +39,8 @@ const createBusinessAsCompany = async (data: any) => {
   })
     .then(response => {
       console.log('Business creation success', response.data.data[0])
+
+      companyStore.refreshCompany(response.data.data[0].id)
 
       return response.data.data[0]
     })

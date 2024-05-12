@@ -11,9 +11,10 @@ definePage({
 })
 
 const route: any = useRoute()
+const router = useRouter()
 const stampCard = ref()
 
-const name = ref(stampCard.value.name)
+const name = ref('')
 const description = ref('')
 const requiredStamps = ref()
 const startDate = ref('')
@@ -54,6 +55,9 @@ const submit = async () => {
       icon: 'success',
       title: 'Éxito',
       text: 'Tarjeta actualizada correctamente.',
+    }).then(async result => {
+      if (result.isConfirmed || result.isDismissed)
+        router.push('/empresa/tarjetas')
     })
   }
   catch (error: any) {
@@ -81,7 +85,7 @@ onMounted(() => {
 
 <template>
   <div>
-    {{ stampCard.name }}
+    {{ stampCard?.name || '...' }}
     <div class="text-h4 font-weight-bold">
       Editar Tarjeta para <span class="text-primary">{{ companyStore.selectedCompany.name || '???' }}</span>
     </div>
@@ -159,8 +163,8 @@ onMounted(() => {
             Icono de sello actual:
           </div>
           <VImg
-            v-if="stampCard.stamp_icon_path"
-            :src="stampCard.stamp_icon_path"
+            v-if="stampCard?.stamp_icon_path"
+            :src="stampCard?.stamp_icon_path"
             width="40"
             height="40"
             class="mt-3"
