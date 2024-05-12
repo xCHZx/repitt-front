@@ -11,6 +11,8 @@ definePage({
   },
 })
 
+const router = useRouter()
+
 const companyStore = useCompanyStore()
 
 const name = ref(companyStore.selectedCompany.name)
@@ -45,7 +47,7 @@ const getSegments = async () => {
   }
 }
 
-const onSubmit = () => {
+const onSubmit = async () => {
   console.log('Updating business...')
 
   const payload = {
@@ -60,15 +62,16 @@ const onSubmit = () => {
 
   // Call API to create business
   try {
-    updateBusinessAsCurrentCompany(companyStore.selectedCompany.id as unknown as number, payload)
+    await updateBusinessAsCurrentCompany(companyStore.selectedCompany.id as unknown as number, payload)
     companyStore.refreshCompany(companyStore.selectedCompany.id)
     Swal.fire({
       icon: 'success',
       title: 'Éxito',
       text: 'Negocio actualizado correctamente.',
+    }).then(async result => {
+      if (result.isConfirmed || result.isDismissed)
+        router.push('/empresa/seleccionar')
     })
-
-    // router.push('/empresa/seleccionar')
   }
   catch (error: any) {
     console.error('Error creating business:', error)
