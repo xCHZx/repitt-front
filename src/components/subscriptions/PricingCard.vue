@@ -5,8 +5,6 @@ import { getCheckoutUrl } from '@/services/subscription/subscription'
 
 const props = defineProps<Pricing>()
 
-const router = useRouter()
-
 const checkoutUrl = ref()
 
 interface Pricing {
@@ -77,12 +75,20 @@ const pricingPlans = [
 ]
 
 const getCheckout = async () => {
-  checkoutUrl.value = await getCheckoutUrl()
+  const payload = {
+    price: 'mensual',
+  }
+
+  checkoutUrl.value = await getCheckoutUrl(payload)
 }
 
 // Falta implementar un argumento para pasar al back y seleccionar el checkout dependiendo del plan
 const goToPage = async () => {
-  window.open(await getCheckoutUrl(), '_blank')
+  const payload = {
+    price: 'mensual',
+  }
+
+  window.open(await getCheckoutUrl(payload), '_blank')
 }
 
 onMounted(() => {

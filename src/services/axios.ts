@@ -9,7 +9,7 @@ interface AxiosOptions {
 
 // Función para realizar solicitudes autenticadas utilizando el token JWT
 const authAxios = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: import.meta.env.VITE_API_URL,
 })
 
 // Interceptar cada solicitud para incluir el token JWT en el encabezado
