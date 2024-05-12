@@ -70,7 +70,7 @@ const onSubmit = async () => {
       text: 'Negocio actualizado correctamente.',
     }).then(async result => {
       if (result.isConfirmed || result.isDismissed)
-        router.push('/empresa/seleccionar')
+        router.push('/empresa/informacion')
     })
   }
   catch (error: any) {
