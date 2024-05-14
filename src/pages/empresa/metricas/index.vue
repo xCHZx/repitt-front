@@ -1,10 +1,56 @@
 <script lang="ts" setup>
+import Swal from 'sweetalert2'
+import { getGlobalMetrics } from '@/services/company/metrics'
+import { useCompanyStore } from '@/stores/company'
+
 definePage({
   meta: {
     requiresAuth: true,
     requiredRole: ['Owner'],
   },
 })
+
+const metrics = ref({
+  activeUsers: 0,
+  completedStampCards: {
+    current: 0,
+    previous: 0,
+    growth: 0,
+  },
+  redeemedRewards: {
+    current: 0,
+    previous: 0,
+    growth: 0,
+  },
+  visits: {
+    current: 0,
+    previous: 0,
+    growth: 0,
+  },
+  topClients: [
+    {
+      user_id: 0,
+      visits: 0,
+      user: {
+        first_name: '',
+        last_name: '',
+        repitt_code: '',
+      },
+    },
+  ],
+  visitsByMonth: [
+    {
+      month: 'No disponible',
+      visits: 0,
+    },
+  ],
+  mostVisitedMonth: {
+    month: 'No disponible',
+    visits: 0,
+  },
+})
+
+const companyStore = useCompanyStore()
 
 const chartColors = {
   line: {
@@ -15,14 +61,20 @@ const chartColors = {
 const labelColor = 'rgba(var(--v-theme-on-background), var(--v-medium-emphasis-opacity))'
 const borderColor = 'rgba(var(--v-border-color), var(--v-border-opacity))'
 
-const series = [
+const series = computed(() => [
   {
-    name: 'SerieDeDatos',
-    data: [38, 45, 33, 38, 32, 48, 45, 40, 42, 37, 50],
+    name: 'Visitas por Mes',
+    data: metrics.value.visitsByMonth.map(item => item.visits),
   },
-]
+])
 
-const shipmentConfig = {
+const xAxisCategories = computed(() => {
+  console.log(metrics.value.visitsByMonth)
+
+  return metrics.value.visitsByMonth.map(item => item.month)
+})
+
+const shipmentConfig = computed(() => ({
   chart: {
     type: 'bar',
     stacked: false,
@@ -46,9 +98,10 @@ const shipmentConfig = {
   },
   dataLabels: {
     enabled: true,
-    formatter(val: any) {
-      return `${val}%`
-    },
+
+    // formatter(val: any) {
+    //   return `${val}%`
+    // },
     offsetY: -20,
     style: {
       fontSize: '12px',
@@ -67,7 +120,7 @@ const shipmentConfig = {
 
   xaxis: {
     tickAmount: 10,
-    categories: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Noviembre', 'Diciembre'],
+    categories: xAxisCategories.value,
     labels: {
       style: {
         colors: labelColor,
@@ -85,16 +138,17 @@ const shipmentConfig = {
   yaxis: {
     tickAmount: 4,
     min: 0,
-    max: 60,
+    max: metrics.value.mostVisitedMonth.visits + Math.round(metrics.value.mostVisitedMonth.visits * 0.2),
     labels: {
       style: {
         colors: labelColor,
         fontSize: '13px',
         fontWeight: 400,
       },
-      formatter(val: string) {
-        return `${val}%`
-      },
+
+      // formatter(val: string) {
+      //   return `${val}%`
+      // },
     },
   },
   responsive: [
@@ -156,7 +210,31 @@ const shipmentConfig = {
       },
     },
   ],
+}),
+)
+
+const getData = async () => {
+  try {
+    const payload = {
+      business_id: companyStore.company?.id,
+    }
+
+    metrics.value = await getGlobalMetrics(payload)
+
+    // console.log(metrics.value.visitsByMonth.map(item => item.month))
+  }
+  catch (error: any) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.join('\n'),
+    })
+  }
 }
+
+onMounted(() => {
+  getData()
+})
 </script>
 
 <!--
@@ -169,7 +247,7 @@ const shipmentConfig = {
   <ProgressMiniCard
   title="Visitas de Clientes"
   main-number="100"
-  change="10"
+  growth="10"
   icon="tabler-walk"
   color="primary"
   />
@@ -181,7 +259,7 @@ const shipmentConfig = {
   <ProgressMiniCard
   title="Tarjetas Completadas"
   main-number="2,300"
-  change="16"
+  growth="16"
   icon="tabler-cards"
   color="info"
   />
@@ -193,7 +271,7 @@ const shipmentConfig = {
   <ProgressMiniCard
   title="Recompensas Canjeadas"
   main-number="680"
-  change="8"
+  growth="8"
   icon="tabler-award"
   color="warning"
   />
@@ -205,7 +283,7 @@ const shipmentConfig = {
   <ProgressMiniCard
   title="Usuarios activos"
   main-number="250"
-  change="35"
+  growth="35"
   icon="tabler-users-group"
   color="error"
   />
@@ -299,16 +377,16 @@ const shipmentConfig = {
     >
       <ProgressMiniCard
         title="Visitas de Clientes"
-        main-number="100"
-        change="10"
+        :main-number="metrics.visits.current"
+        :growth="metrics.visits.growth"
         icon="tabler-walk"
         color="primary"
         class="mb-4"
       />
       <ProgressMiniCard
         title="Tarjetas Completadas"
-        main-number="2,300"
-        change="16"
+        :main-number="metrics.completedStampCards.current"
+        :growth="metrics.completedStampCards.growth"
         icon="tabler-cards"
         color="info"
         class="mb-4"
@@ -320,16 +398,15 @@ const shipmentConfig = {
     >
       <ProgressMiniCard
         title="Recompensas Canjeadas"
-        main-number="680"
-        change="8"
+        :main-number="metrics.redeemedRewards.current"
+        :growth="metrics.redeemedRewards.growth"
         icon="tabler-award"
         color="warning"
         class="mb-4"
       />
       <ProgressMiniCard
-        title="Usuarios activos"
-        main-number="250"
-        change="35"
+        title="Usuarios activos totales"
+        :main-number="metrics.activeUsers"
         icon="tabler-users-group"
         color="error"
         class="mb-4"
@@ -353,31 +430,16 @@ const shipmentConfig = {
             cols="12"
             md="12"
           >
-            <div class="py-2">
+            <div
+              v-for="client in metrics.topClients"
+              :key="client.user_id"
+              class="py-2"
+            >
               <UserWithCountListItem
-                first-name="Nombre"
-                last-name="Apellido"
-                visits="10"
-                last-visit="24/09/2021"
+                :first-name="client.user.first_name"
+                :last-name="client.user.last_name"
+                :visits="client.visits"
                 icon="tabler-number-1"
-              />
-            </div>
-            <div class="py-2">
-              <UserWithCountListItem
-                first-name="Nombre"
-                last-name="Apellido"
-                visits="10"
-                last-visit="24/09/2021"
-                icon="tabler-number-2"
-              />
-            </div>
-            <div class="py-2">
-              <UserWithCountListItem
-                first-name="Nombre"
-                last-name="Apellido"
-                visits="10"
-                last-visit="24/09/2021"
-                icon="tabler-number-3"
               />
             </div>
           </VCol>
@@ -388,7 +450,7 @@ const shipmentConfig = {
   <VRow>
     <VCol
       cols="12"
-      md="8"
+      md="12"
     >
       <div
         style="background-color: white; border-radius: 8px;"
@@ -396,8 +458,8 @@ const shipmentConfig = {
       >
         <VCard style="background-color: #FFF2F7;">
           <VCardItem
-            title="Serie de Datos 1"
-            subtitle="Total number of $$$$$ 28,500"
+            title="Visitas por mes"
+            subtitle="Gente que ha visitado tu negocio y ha sellado su tarjeta."
           />
 
           <VCardText>

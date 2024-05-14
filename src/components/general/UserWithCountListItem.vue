@@ -2,7 +2,7 @@
 interface Props {
   firstName?: string
   lastName?: string
-  visits?: string
+  visits?: number
   lastVisit?: string
   icon?: string
 
@@ -52,9 +52,11 @@ const props = defineProps<Props>()
           >
             {{ props.visits }} visitas
           </span>
-          <span class="font-weight-medium ">
+          <!--
+            <span class="font-weight-medium ">
             Última Visita: {{ props.lastVisit }}
-          </span>
+            </span>
+          -->
         </VCardText>
       </VCol>
     </VRow>

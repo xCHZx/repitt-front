@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 interface Props {
   title: string
-  mainNumber: string
-  change: string
+  mainNumber: number
+  growth?: number
   icon: string
   color: string
 }
@@ -39,11 +39,13 @@ const props = defineProps<Props>()
       </div>
     </VCardText>
     <VDivider />
-    <VCardText class="py-2">
+    <VCardText
+      v-if="props.growth !== undefined"
+      class="py-2"
+    >
       <div class="d-flex gap-x-2 align-center">
         <div class="text-h4 font-weight-bold text-success">
-          <!-- {{ (data.change > 0) ? '+' : '' }} {{ data.change }}% -->
-          {{ (props.change > 0) ? '+' : '' }} {{ props.change }}%
+          {{ (props.growth >= 0) ? '+' : '' }} {{ props.growth }}%
         </div>
         <div class="text-h5 text-disabled">
           este periodo
