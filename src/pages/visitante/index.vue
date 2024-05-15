@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { logoutUser } from '@/services/auth/auth'
+import { refreshUserData } from '@/services/utils/utils'
 import { useAuthStore } from '@/stores/auth'
 
 definePage({
@@ -49,8 +50,16 @@ const goToPage = (url: string) => {
 
 const logout = async () => {
   await logoutUser()
-  await router.push('auth/login')
+  await router.push('/auth/login')
 }
+
+const getData = async () => {
+  await refreshUserData()
+}
+
+onMounted(() => {
+  getData()
+})
 </script>
 
 <template>
@@ -77,6 +86,7 @@ const logout = async () => {
           @click="goToPage(item.url)"
         />
       </div>
+
       <div class="d-flex flex-column justify-center mt-10">
         <div class="text-center">
           <VBtn
@@ -90,6 +100,22 @@ const logout = async () => {
               icon="tabler-logout"
             />
             Cerrar Sesión
+          </VBtn>
+        </div>
+      </div>
+      <div class="d-flex flex-column justify-center mt-10">
+        <div class="text-center text-h6">
+          <VBtn
+            variant="text"
+            size="sm"
+            @click="goToPage('/visitante/planes')"
+          >
+            <VIcon
+              start
+              size="15"
+              icon="tabler-building-store"
+            />
+            ¿Tienes un negocio y quieres ser parte de Repitt?
           </VBtn>
         </div>
       </div>

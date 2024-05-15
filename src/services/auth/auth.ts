@@ -9,7 +9,7 @@ const companyStore = useCompanyStore()
 const loginUser = async (credentials: any) => {
   return await authAxios.post(`${baseUrl}/login`, credentials)
     .then(response => {
-      console.log('Login successful')
+      console.log('Login successful', response.data)
 
       authStore.deleteAuthData()
       companyStore.deleteCompanyData()

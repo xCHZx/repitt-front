@@ -19,6 +19,11 @@ export default [
     icon: { icon: 'tabler-chart-histogram' },
   },
   {
+    title: 'Planes',
+    to: { name: 'empresa-planes' },
+    icon: { icon: 'tabler-premium-rights' },
+  },
+  {
     title: 'Tarjetas de Recompensas',
     to: { name: 'empresa-tarjetas' },
     icon: { icon: 'tabler-cards' },

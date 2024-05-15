@@ -65,7 +65,7 @@ const getData = async () => {
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: error.join('\n'),
+      text: 'Por ahora no tienes negocios registrados.',
     })
   }
 }
@@ -105,6 +105,11 @@ const goToCreateBusiness = () => {
 
   router.push('/empresa/crear')
 }
+
+onBeforeMount(async () => {
+  if (!companyStore.selectedCompany.name)
+    await router.push('/empresa/seleccionar')
+})
 </script>
 
 <template>

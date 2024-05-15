@@ -22,15 +22,15 @@ const companyStore = useCompanyStore()
 
 const getData = async () => {
   try {
-    businesses.value = await getAllByCurrentCompany()
     user.value = await getCurrentVisitorData()
+    businesses.value = await getAllByCurrentCompany()
   }
   catch (error: any) {
     console.error('Error getting data:', error)
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: error.join('\n'),
+      text: 'Por ahora no tienes negocios registrados.',
     })
   }
 }
@@ -57,7 +57,7 @@ const goToCreateBusiness = () => {
 
 const logout = async () => {
   await logoutUser()
-  await router.push('auth/login')
+  await router.push('/auth/login')
 }
 
 onMounted(() => {
@@ -133,9 +133,6 @@ onMounted(() => {
             Cerrar Sesión
           </VBtn>
         </div>
-      </div>
-      <div class="text-center text-h5">
-        Cerrar sesión
       </div>
     </VCol>
   </VRow>

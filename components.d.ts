@@ -54,7 +54,6 @@ declare module 'vue' {
     Notifications: typeof import('./src/@core/components/Notifications.vue')['default']
     PaymentProvidersDialog: typeof import('./src/components/dialogs/PaymentProvidersDialog.vue')['default']
     PricingCard: typeof import('./src/components/subscriptions/PricingCard.vue')['default']
-    'PricingCard copy': typeof import('./src/components/subscriptions/PricingCard copy.vue')['default']
     PricingPlanDialog: typeof import('./src/components/dialogs/PricingPlanDialog.vue')['default']
     ProductDescriptionEditor: typeof import('./src/@core/components/ProductDescriptionEditor.vue')['default']
     ProfileDetails: typeof import('./src/components/users/ProfileDetails.vue')['default']

@@ -7,8 +7,9 @@ definePage({
   },
 })
 
-onBeforeMount(() => {
-  router.push('/visitante/')
+onBeforeMount(async () => {
+  await router.push('/visitante/')
+  location.reload()
 })
 </script>
 
