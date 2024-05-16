@@ -50,6 +50,8 @@ const businessForm = ref({
 
 })
 
+const isPasswordVisible = ref(false)
+
 const getSegments = async () => {
   try {
     const response = await getAllSegments()
@@ -281,11 +283,13 @@ onMounted(() => {
                 autocomplete="on"
                 variant="outlined"
                 label="Contraseña *"
-                type="password"
                 placeholder="············"
                 prepend-icon="tabler-lock"
                 :rules="[requiredValidator]"
+                :type="isPasswordVisible ? 'text' : 'password'"
+                :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                 required
+                @click:append-inner="isPasswordVisible = !isPasswordVisible"
               />
             </VCol>
           </VRow>
