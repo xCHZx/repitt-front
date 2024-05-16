@@ -33,7 +33,7 @@ export const passwordValidator = (password: string) => {
 // 👉 Confirm Password Validator
 export const confirmedValidator = (value: string, target: string) =>
 
-  value === target || 'The Confirm Password field confirmation does not match'
+  value === target || 'La confirmación de la contraseña no coincide'
 
 // 👉 Between Validator
 export const betweenValidator = (value: unknown, min: number, max: number) => {

@@ -65,35 +65,28 @@ const logoutUser = async () => {
     })
 }
 
-export { dualRegisterUser, loginUser, logoutUser }
+const sendRecoveryEmail = async (email: any) => {
+  return await authAxios.post(`${baseUrl}/sendpasswordrecoverymail`, { email })
+    .then(response => {
+      console.log('Email sent successfully', response.data)
 
-// import axios from 'axios'
+      return response.data
+    })
+    .catch(error => {
+      throw error.response.data.message
+    })
+}
 
-// const registerUser = async (payload: any) => {
-//   return axios.post ('http://127.0.0.1:8000/api/auth/register', payload)
-//     .then (response => {
-//       return response.data
-//     })
-//     .catch (e => {
-//       console.log(e)
+const recoverPassword = async (payload: any) => {
+  return await authAxios.post(`${baseUrl}/password-recover`, payload)
+    .then(response => {
+      console.log('Password recovered successfully', response.data)
 
-//       return e
-//     })
-// }
+      return response.data
+    })
+    .catch(error => {
+      throw error.response.data.message
+    })
+}
 
-// // Función para iniciar sesión y obtener el token JWT
-// const loginUser = async (credentials: any) => {
-//   return axios.post('http://127.0.0.1:8000/api/auth/login', credentials)
-//     .then(response => {
-//       // const token = response.data
-
-//       // localStorage.setItem('token', token)
-//       return response.data
-//     })
-//     .catch(error => {
-//       console.error('Login error:', error.response.data)
-//       throw error
-//     })
-// }
-
-// export { loginUser, registerUser }
+export { dualRegisterUser, loginUser, logoutUser, recoverPassword, sendRecoveryEmail }

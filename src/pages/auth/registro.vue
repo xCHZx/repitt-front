@@ -389,3 +389,7 @@ onMounted(() => {
     </vcard>
   </div>
 </template>
+
+<style lang="scss">
+@use "@core/scss/template/pages/page-auth.scss";
+</style>

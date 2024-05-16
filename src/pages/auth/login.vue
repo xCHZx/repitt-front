@@ -118,7 +118,7 @@ const onSubmit = async () => {
                 -->
                 <a
                   class="text-primary ms-2 mb-1"
-                  href="#"
+                  href="/auth/recuperar-contrasena"
                 >
                   ¿Olvidaste la contraseña?
                 </a>
@@ -139,7 +139,7 @@ const onSubmit = async () => {
             >
               <a
                 class="text-primary ms-2"
-                href="/auth/register"
+                href="/auth/registro"
               >
                 ¿Aún no tienes una cuenta?
               </a>

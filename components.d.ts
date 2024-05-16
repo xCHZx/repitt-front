@@ -35,7 +35,6 @@ declare module 'vue' {
     CardStatisticsVerticalSimple: typeof import('./src/@core/components/CardStatisticsVerticalSimple.vue')['default']
     CompanyVisitListItemFull: typeof import('./src/components/visits/CompanyVisitListItemFull.vue')['default']
     ConfirmDialog: typeof import('./src/components/dialogs/ConfirmDialog.vue')['default']
-    copy: typeof import('./src/components/subscriptions/PricingCard copy.vue')['default']
     CreateAppDialog: typeof import('./src/components/dialogs/CreateAppDialog.vue')['default']
     CustomCheckboxes: typeof import('./src/@core/components/app-form-elements/CustomCheckboxes.vue')['default']
     CustomCheckboxesWithIcon: typeof import('./src/@core/components/app-form-elements/CustomCheckboxesWithIcon.vue')['default']
@@ -78,6 +77,5 @@ declare module 'vue' {
     UserWithCountListItem: typeof import('./src/components/general/UserWithCountListItem.vue')['default']
     VisitListItemFull: typeof import('./src/components/visits/VisitListItemFull.vue')['default']
     VisitListSimple: typeof import('./src/components/visits/VisitListSimple.vue')['default']
-    VueApexCharts: typeof import('vue3-apexcharts')['default']
   }
 }
