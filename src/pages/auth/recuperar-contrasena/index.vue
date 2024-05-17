@@ -107,6 +107,11 @@ const submitForm = async () => {
           </VCol>
         </VRow>
       </VForm>
+      <VCardText>
+        <p class="text-center">
+          Una vez generado el enlace tendrás 30 minutos para restablecer tu contraseña.
+        </p>
+      </VCardText>
     </VCard>
   </div>
 </template>

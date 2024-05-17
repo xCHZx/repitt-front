@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Swal from 'sweetalert2'
 import { getAllByIdByCurrentCompany } from '@/services/company/stampCards'
 import { useCompanyStore } from '@/stores/company'
 
@@ -16,16 +15,16 @@ const companyStore = useCompanyStore()
 
 const getData = async () => {
   try {
-    if (companyStore.selectedCompany.id !== null)
-      data.value = await getAllByIdByCurrentCompany(companyStore.selectedCompany.id)
+    data.value = await getAllByIdByCurrentCompany(companyStore.selectedCompany.id)
   }
   catch (error: any) {
     console.error('Error getting data:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: error.join('\n'),
-    })
+
+    // Swal.fire({
+    //   icon: 'error',
+    //   title: 'Error',
+    //   text: error.join('\n'),
+    // })
   }
 }
 
@@ -48,7 +47,7 @@ const goToCreateCard = () => {
 
 <template>
   <div>
-    <div v-if="data">
+    <div v-if="data && data.length > 0">
       <div
         v-for="stampCard in data"
         :key="stampCard"
@@ -66,9 +65,9 @@ const goToCreateCard = () => {
       </div>
     </div>
     <div v-else>
-      <h1>
-        Sin datos disponibles
-      </h1>
+      <h3>
+        No se encontraron tarjetas de recompensas
+      </h3>
     </div>
     <div class="mt-4">
       <VBtn

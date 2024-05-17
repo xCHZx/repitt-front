@@ -53,11 +53,13 @@ const submitForm = async () => {
       })
     }
   }
-  Swal.fire({
-    icon: 'error',
-    title: 'Error',
-    text: 'Las contraseñas no coinciden',
-  })
+  else {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Las contraseñas no coinciden',
+    })
+  }
 }
 </script>
 

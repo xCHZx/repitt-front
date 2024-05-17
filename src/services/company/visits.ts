@@ -15,7 +15,7 @@ const storeAsCompany = async (payload: any) => {
 }
 
 const getAllByStampCardAsCurrentCompany = async (id: number) => {
-  return await authAxios.get(`${baseUrl}/stampcard/${id}/logged-user/`)
+  return await authAxios.get(`${baseUrl}/stampcard/${id}/logged-user`)
     .then(response => {
       console.log('getAllByStampCardAsCurrentCompany', response.data.data[0])
 
@@ -27,7 +27,7 @@ const getAllByStampCardAsCurrentCompany = async (id: number) => {
 }
 
 const getAllByBusinessAsCurrentCompany = async (id: number) => {
-  return await authAxios.get(`${baseUrl}/business/${id}/logged-user/`)
+  return await authAxios.get(`${baseUrl}/business/${id}/logged-user`)
     .then(response => {
       console.log('getAllByBusinessAsCurrentCompany', response.data.data[0])
 
