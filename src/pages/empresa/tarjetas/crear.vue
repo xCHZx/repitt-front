@@ -78,7 +78,7 @@ onMounted(() => {
           v-model="name"
           variant="outlined"
           prepend-icon="tabler-building-store"
-          label="Nombre del Negocio *"
+          label="Nombre de la tarjeta *"
           placeholder="..."
         />
       </VCol>

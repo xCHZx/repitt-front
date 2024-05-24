@@ -66,7 +66,7 @@ const logoutUser = async () => {
 }
 
 const sendRecoveryEmail = async (email: any) => {
-  return await authAxios.post(`${baseUrl}/sendpasswordrecoverymail`, { email })
+  return await authAxios.post(`${baseUrl}/send-password-recovery-mail`, { email })
     .then(response => {
       console.log('Email sent successfully', response.data)
 

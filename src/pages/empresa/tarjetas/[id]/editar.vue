@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import Swal from 'sweetalert2'
-import { getByIdAsCurrentCompany, updateStampCardAsCompany } from '@/services/company/stampCards'
+import { getStampCardByIdAsCurrentCompany, updateStampCardAsCompany } from '@/services/company/stampCards'
 import { useCompanyStore } from '@/stores/company'
 
 definePage({
@@ -71,7 +71,7 @@ const submit = async () => {
 
 const getData = async () => {
   try {
-    stampCard.value = await getByIdAsCurrentCompany(route.params.id)
+    stampCard.value = await getStampCardByIdAsCurrentCompany(route.params.id)
   }
   catch (error) {
     console.error('Error getting data:', error)
@@ -113,7 +113,7 @@ onMounted(() => {
           v-model="name"
           variant="outlined"
           prepend-icon="tabler-building-store"
-          label="Nombre del Negocio *"
+          label="Nombre de la tarjeta *"
           placeholder="..."
         />
       </VCol>

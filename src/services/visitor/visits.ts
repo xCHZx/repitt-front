@@ -2,10 +2,10 @@ import { authAxios } from '../axios'
 
 const baseUrl = 'visitor/visit'
 
-const getAllByCurrentVisitor = async () => {
+const getAllVisitsAsCurrentVisitor = async () => {
   return await authAxios.get(`${baseUrl}/logged-user`)
     .then(response => {
-      console.log('getAllByCurrentVisitor', response.data.data)
+      console.log('getAllVisitsAsCurrentVisitor', response.data.data)
 
       return response.data.data
     })
@@ -14,4 +14,4 @@ const getAllByCurrentVisitor = async () => {
     })
 }
 
-export { getAllByCurrentVisitor }
+export { getAllVisitsAsCurrentVisitor }

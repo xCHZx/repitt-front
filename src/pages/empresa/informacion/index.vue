@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Swal from 'sweetalert2'
-import { getByIdByCurrentCompany } from '@/services/company/businesses'
+import { getBusinessByIdAsCurrentCompany } from '@/services/company/businesses'
 import { useCompanyStore } from '@/stores/company'
 
 definePage({
@@ -18,7 +18,7 @@ const businessId = companyStore.selectedCompany.id
 
 const getData = async () => {
   try {
-    data.value = await getByIdByCurrentCompany(businessId ?? 0)
+    data.value = await getBusinessByIdAsCurrentCompany(businessId ?? 0)
   }
   catch (error: any) {
     Swal.fire({

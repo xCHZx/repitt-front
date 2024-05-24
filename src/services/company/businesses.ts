@@ -3,7 +3,7 @@ import { useCompanyStore } from '@/stores/company'
 
 const baseUrl = '/company/business'
 
-const getAllByCurrentCompany = async () => {
+const getAllBusinessAsCurrentCompany = async () => {
   return await authAxios.get(`${baseUrl}/logged-user`)
     .then(response => {
       console.log('getAllByCurrentCompany', response.data.data[0])
@@ -15,7 +15,7 @@ const getAllByCurrentCompany = async () => {
     })
 }
 
-const getByIdByCurrentCompany = async (id: number) => {
+const getBusinessByIdAsCurrentCompany = async (id: number) => {
   return await authAxios.get(`${baseUrl}/${id}/logged-user`)
     .then(response => {
       console.log('getByIdByCurrentCompany', response.data.data[0])
@@ -67,4 +67,4 @@ const updateBusinessAsCurrentCompany = async (id: number, data: any) => {
     })
 }
 
-export { createBusinessAsCompany, getAllByCurrentCompany, getByIdByCurrentCompany, updateBusinessAsCurrentCompany }
+export { createBusinessAsCompany, getAllBusinessAsCurrentCompany, getBusinessByIdAsCurrentCompany, updateBusinessAsCurrentCompany }

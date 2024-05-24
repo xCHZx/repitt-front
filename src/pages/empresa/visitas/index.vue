@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Swal from 'sweetalert2'
-import { getAllByBusinessAsCurrentCompany } from '@/services/company/visits'
+import { getAllVisitsByBusinessIdAsCurrentCompany } from '@/services/company/visits'
 import { useCompanyStore } from '@/stores/company'
 
 definePage({
@@ -16,7 +16,7 @@ const data: any = ref({})
 
 const getData = async () => {
   try {
-    data.value = await getAllByBusinessAsCurrentCompany(companyStore.company.id ?? 0)
+    data.value = await getAllVisitsByBusinessIdAsCurrentCompany(companyStore.company.id ?? 0)
   }
   catch (error: any) {
     console.error('Error getting data:', error)

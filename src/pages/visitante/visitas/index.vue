@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import Swal from 'sweetalert2'
-import { getAllByCurrentVisitor } from '@/services/visitor/visits'
+import { getAllVisitsAsCurrentVisitor } from '@/services/visitor/visits'
 
 definePage({
   meta: {
@@ -13,7 +13,7 @@ const data: any = ref({})
 
 const getData = async () => {
   try {
-    data.value = await getAllByCurrentVisitor()
+    data.value = await getAllVisitsAsCurrentVisitor()
   }
   catch (error: any) {
     console.error('Error getting data:', error)

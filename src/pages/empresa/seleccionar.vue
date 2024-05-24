@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import Swal from 'sweetalert2'
 import { logoutUser } from '@/services/auth/auth'
-import { getAllByCurrentCompany } from '@/services/company/businesses'
+import { getAllBusinessAsCurrentCompany } from '@/services/company/businesses'
 import { getCurrentVisitorData } from '@/services/visitor/users'
 import { useCompanyStore } from '@/stores/company'
 
@@ -23,7 +23,7 @@ const companyStore = useCompanyStore()
 const getData = async () => {
   try {
     user.value = await getCurrentVisitorData()
-    businesses.value = await getAllByCurrentCompany()
+    businesses.value = await getAllBusinessAsCurrentCompany()
   }
   catch (error: any) {
     console.error('Error getting data:', error)

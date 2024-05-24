@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Swal from 'sweetalert2'
 import { useRouter } from 'vue-router'
-import { getAllByCurrentVisitor } from '@/services/visitor/stampCards'
+import { getAllStampCardsByCurrentVisitor } from '@/services/visitor/stampCards'
 
 definePage({
   meta: {
@@ -16,7 +16,7 @@ const data: any = ref({})
 
 const getData = async () => {
   try {
-    data.value = await getAllByCurrentVisitor()
+    data.value = await getAllStampCardsByCurrentVisitor()
   }
   catch (error: any) {
     Swal.fire({

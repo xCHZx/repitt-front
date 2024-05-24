@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Swal from 'sweetalert2'
 import { useRoute } from 'vue-router'
-import { getByIdByCurrentVisitor } from '@/services/visitor/stampCards'
+import { getStampCardByIdAsVisitor } from '@/services/visitor/stampCards'
 
 definePage({
   meta: {
@@ -17,7 +17,7 @@ const data: any = ref({})
 
 const getData = async () => {
   try {
-    data.value = await getByIdByCurrentVisitor(route.params.id)
+    data.value = await getStampCardByIdAsVisitor(route.params.id)
   }
   catch (error: any) {
     console.error('Error getting data:', error)

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getByIdByCurrentCompany } from '@/services/company/businesses'
+import { getBusinessByIdAsCurrentCompany } from '@/services/company/businesses'
 
 export const useCompanyStore = defineStore('company', {
   state: () => ({
@@ -25,7 +25,7 @@ export const useCompanyStore = defineStore('company', {
       this.selectedCompany = companyId
     },
     async refreshCompany(businessId: any) {
-      const res = await getByIdByCurrentCompany(businessId)
+      const res = await getBusinessByIdAsCurrentCompany(businessId)
 
       this.selectedCompany = res
     },

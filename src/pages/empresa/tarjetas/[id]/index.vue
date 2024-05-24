@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import Swal from 'sweetalert2'
-import { getByIdAsCurrentCompany } from '@/services/company/stampCards'
+import { getStampCardByIdAsCurrentCompany } from '@/services/company/stampCards'
 
 definePage({
   meta: {
@@ -16,7 +16,7 @@ const data: any = ref({})
 
 const getData = async () => {
   try {
-    data.value = await getByIdAsCurrentCompany(route.params.id)
+    data.value = await getStampCardByIdAsCurrentCompany(route.params.id)
   }
   catch (error: any) {
     Swal.fire({

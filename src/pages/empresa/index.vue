@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import Swal from 'sweetalert2'
 import { logoutUser } from '@/services/auth/auth'
-import { getAllByCurrentCompany } from '@/services/company/businesses'
+import { getAllBusinessAsCurrentCompany } from '@/services/company/businesses'
 import { getCurrentVisitorData } from '@/services/visitor/users'
 import { useCompanyStore } from '@/stores/company'
 
@@ -57,7 +57,7 @@ const router = useRouter()
 
 const getData = async () => {
   try {
-    businesses.value = await getAllByCurrentCompany()
+    businesses.value = await getAllBusinessAsCurrentCompany()
     user.value = await getCurrentVisitorData()
   }
   catch (error: any) {

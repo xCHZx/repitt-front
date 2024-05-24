@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getAllByIdByCurrentCompany } from '@/services/company/stampCards'
+import { getAllStampCardsByBusinessIdAsCurrentCompany } from '@/services/company/stampCards'
 import { useCompanyStore } from '@/stores/company'
 
 definePage({
@@ -15,7 +15,7 @@ const companyStore = useCompanyStore()
 
 const getData = async () => {
   try {
-    data.value = await getAllByIdByCurrentCompany(companyStore.selectedCompany.id)
+    data.value = await getAllStampCardsByBusinessIdAsCurrentCompany(companyStore.selectedCompany.id)
   }
   catch (error: any) {
     console.error('Error getting data:', error)

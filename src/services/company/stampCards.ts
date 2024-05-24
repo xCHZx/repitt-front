@@ -2,7 +2,7 @@ import { authAxios } from '../axios'
 
 const baseUrl = '/company/stampcard'
 
-const getAllByIdByCurrentCompany = async (id: any) => {
+const getAllStampCardsByBusinessIdAsCurrentCompany = async (id: any) => {
   return await authAxios.get(`${baseUrl}/business/${id}/logged-user`)
     .then(response => {
       console.log('getAllByIdByCurrentCompany', response.data.data[0])
@@ -14,10 +14,10 @@ const getAllByIdByCurrentCompany = async (id: any) => {
     })
 }
 
-const getByIdAsCurrentCompany = async (id: number) => {
+const getStampCardByIdAsCurrentCompany = async (id: number) => {
   return await authAxios.get(`${baseUrl}/${id}/logged-user`)
     .then(response => {
-      console.log('getByIdAsCurrentCompany', response.data.data[0])
+      console.log('getStampCardByIdAsCurrentCompany', response.data.data[0])
 
       return response.data.data[0]
     })
@@ -62,4 +62,4 @@ const updateStampCardAsCompany = async (id: number, data: any) => {
     })
 }
 
-export { createStampCardAsCompany, getAllByIdByCurrentCompany, getByIdAsCurrentCompany, updateStampCardAsCompany }
+export { createStampCardAsCompany, getAllStampCardsByBusinessIdAsCurrentCompany, getStampCardByIdAsCurrentCompany, updateStampCardAsCompany }

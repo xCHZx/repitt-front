@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Swal from 'sweetalert2'
 import { QrcodeStream } from 'vue-qrcode-reader'
-import { getAllByIdByCurrentCompany } from '@/services/company/stampCards'
-import { storeAsCompany } from '@/services/company/visits'
+import { getAllStampCardsByBusinessIdAsCurrentCompany } from '@/services/company/stampCards'
+import { registerVisitAsCompany } from '@/services/company/visits'
 import { useCompanyStore } from '@/stores/company'
 
 definePage({
@@ -19,6 +19,8 @@ definePage({
 // const route: any = useRoute()
 
 const companyStore = useCompanyStore()
+
+const router = useRouter()
 
 const paused = ref(false)
 const qrCodeValue = ref()
@@ -43,7 +45,7 @@ const selectedStampCard = ref()
 
 const getData = async () => {
   try {
-    const response = await getAllByIdByCurrentCompany(companyStore.selectedCompany.id ?? 0)
+    const response = await getAllStampCardsByBusinessIdAsCurrentCompany(companyStore.selectedCompany.id ?? 0)
 
     stampCardList.value = response.map((stampCard: any) => ({
       title: stampCard.name,
@@ -137,10 +139,25 @@ const onSubmit = () => {
     }
 
     console.log(formData.value)
-    storeAsCompany(payload)
+    registerVisitAsCompany(payload)
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Éxito',
+      text: 'Visita registrada correctamente.',
+      confirmButtonText: 'Aceptar',
+    }).then(async result => {
+      if (result.isConfirmed || result.isDismissed)
+        router.push('/empresa/')
+    })
   }
-  catch (e) {
-    console.error('Error:', e)
+  catch (e: any) {
+    console.error('Error creating Visit:', e)
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: e.join('\n'),
+    })
   }
 }
 </script>

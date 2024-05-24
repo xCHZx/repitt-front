@@ -2,7 +2,7 @@ import { authAxios } from '../axios'
 
 const baseUrl = 'http://127.0.0.1:8000/api/visitor/stampcard'
 
-const getAllByCurrentVisitor = async () => {
+const getAllStampCardsByCurrentVisitor = async () => {
   return await authAxios.get(`${baseUrl}/logged-user`)
     .then(response => {
       return response.data.data[0]
@@ -12,7 +12,7 @@ const getAllByCurrentVisitor = async () => {
     })
 }
 
-const getByIdByCurrentVisitor = async (id: number) => {
+const getStampCardByIdAsVisitor = async (id: number) => {
   return await authAxios.get(`${baseUrl}/${id}`)
     .then(response => {
       return response.data.data[0]
@@ -22,4 +22,4 @@ const getByIdByCurrentVisitor = async (id: number) => {
     })
 }
 
-export { getAllByCurrentVisitor, getByIdByCurrentVisitor }
+export { getAllStampCardsByCurrentVisitor, getStampCardByIdAsVisitor }
