@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Swal from 'sweetalert2'
 import { QrcodeStream } from 'vue-qrcode-reader'
-import { getAllStampCardsByBusinessIdAsCurrentCompany } from '@/services/company/stampCards'
+import { getAllActiveStampCardsByBusinessIdAsCurrentCompany } from '@/services/company/stampCards'
 import { registerVisitAsCompany } from '@/services/company/visits'
 import { useCompanyStore } from '@/stores/company'
 
@@ -30,7 +30,7 @@ const error = ref()
 const stampCardList = ref(
   [
     {
-      title: 'Cargando tarjetas...',
+      title: 'Sin tarjetas disponibles',
       value: null,
       props: { subtitle: '...' },
     },
@@ -45,7 +45,7 @@ const selectedStampCard = ref()
 
 const getData = async () => {
   try {
-    const response = await getAllStampCardsByBusinessIdAsCurrentCompany(companyStore.selectedCompany.id ?? 0)
+    const response = await getAllActiveStampCardsByBusinessIdAsCurrentCompany(companyStore.selectedCompany.id ?? 0)
 
     stampCardList.value = response.map((stampCard: any) => ({
       title: stampCard.name,
@@ -122,13 +122,16 @@ const formData = ref({
   repittCode: null,
 })
 
-const onSubmit = () => {
+const onSubmit = async () => {
   try {
-    if (!selectedStampCard.value)
+    if (!selectedStampCard.value || selectedStampCard.value === null)
       throw new Error('Selecciona una tarjeta')
 
     if (!formattedQrCodeValue.value)
       throw new Error('Ingresa un código Repitt')
+
+    if (formattedQrCodeValue.value.length !== 11)
+      throw new Error('El código Repitt no es válido')
 
     formData.value.repittCode = formattedQrCodeValue.value
     formData.value.stampCardId = selectedStampCard.value
@@ -139,7 +142,7 @@ const onSubmit = () => {
     }
 
     console.log(formData.value)
-    registerVisitAsCompany(payload)
+    await registerVisitAsCompany(payload)
 
     Swal.fire({
       icon: 'success',
@@ -156,7 +159,7 @@ const onSubmit = () => {
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: e.join('\n'),
+      text: Array.isArray(e) ? e.join('\n') : e,
     })
   }
 }

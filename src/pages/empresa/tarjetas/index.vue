@@ -19,12 +19,6 @@ const getData = async () => {
   }
   catch (error: any) {
     console.error('Error getting data:', error)
-
-    // Swal.fire({
-    //   icon: 'error',
-    //   title: 'Error',
-    //   text: error.join('\n'),
-    // })
   }
 }
 
@@ -54,12 +48,13 @@ const goToCreateCard = () => {
         class="mb-6"
       >
         <!-- 👉 VCard Rewards -->
-        <MainMenuItemList
+        <StampCardListItemAsBusiness
           :title="stampCard.name"
           :description="stampCard.reward"
           icon="tabler-cards"
           accent-color="#E0D9FF"
           text-accent-color="#493599"
+          :is-active="stampCard.is_active"
           @click="goToCard(stampCard.id)"
         />
       </div>

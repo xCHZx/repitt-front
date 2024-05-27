@@ -24,8 +24,6 @@ const loginUser = async (credentials: any) => {
 }
 
 const dualRegisterUser = async (userPayload: any) => {
-  console.log('User Payload', userPayload)
-
   return await authAxios.post(`${baseUrl}/register`, userPayload)
     .then(response => {
       console.log('Registration successful')
@@ -68,7 +66,7 @@ const logoutUser = async () => {
 const sendRecoveryEmail = async (email: any) => {
   return await authAxios.post(`${baseUrl}/send-password-recovery-mail`, { email })
     .then(response => {
-      console.log('Email sent successfully', response.data)
+      console.log('Recovery Email sent successfully', response.data)
 
       return response.data
     })

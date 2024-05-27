@@ -2,7 +2,7 @@
 import Swal from 'sweetalert2'
 import { logoutUser } from '@/services/auth/auth'
 import { getAllBusinessAsCurrentCompany } from '@/services/company/businesses'
-import { getCurrentVisitorData } from '@/services/visitor/users'
+import { refreshUserData } from '@/services/utils/utils'
 import { useCompanyStore } from '@/stores/company'
 
 definePage({
@@ -12,44 +12,56 @@ definePage({
   },
 })
 
+const companyStore = useCompanyStore()
+
 const menuItems = [
   {
     title: 'Información del Negocio',
     description: 'Esta es una descripción',
     icon: 'tabler-building-store',
     url: '/empresa/informacion',
+    isDisabled: false,
+  },
+  {
+    title: 'Planes',
+    description: 'Esta es una descripción',
+    icon: 'tabler-premium-rights',
+    url: '/empresa/planes',
+    isDisabled: false,
   },
   {
     title: 'Métricas',
     description: 'Esta es una descripción',
     icon: 'tabler-chart-histogram',
     url: '/empresa/metricas',
+    isDisabled: false,
   },
   {
     title: 'Mis Recompensas',
     description: 'Esta es una descripción',
     icon: 'tabler-cards',
     url: '/empresa/tarjetas',
+    isDisabled: false,
   },
   {
     title: 'Visitas',
     description: 'Esta es una descripción',
     icon: 'tabler-walk',
     url: '/empresa/visitas',
+    isDisabled: false,
   },
   {
     title: 'Registrar Visita',
     description: 'Esta es una descripción',
     icon: 'tabler-qrcode',
     url: '/empresa/visitas/registrar',
+    isDisabled: !companyStore.selectedCompany.is_active,
   },
 
 ]
 
 const businesses: any = ref({})
 const user: any = ref({})
-
-const companyStore = useCompanyStore()
 
 const isDialogVisible = ref(false)
 
@@ -58,7 +70,7 @@ const router = useRouter()
 const getData = async () => {
   try {
     businesses.value = await getAllBusinessAsCurrentCompany()
-    user.value = await getCurrentVisitorData()
+    user.value = await refreshUserData()
   }
   catch (error: any) {
     console.error('Error getting data:', error)
@@ -75,8 +87,6 @@ onMounted(() => {
 })
 
 const goToUserHome = () => {
-  console.log('goToUserHome')
-
   router.push('/visitante')
 }
 
@@ -88,27 +98,24 @@ const logout = async () => {
 const goToBusiness = (business: any) => {
   companyStore.selectCompany(business)
 
-  console.log('goToBusiness', business)
-
   router.push('/empresa/')
 
   isDialogVisible.value = false
 }
 
 const goToPage = (url: string) => {
-  console.log('goToPage', url)
   router.push(url)
 }
 
 const goToCreateBusiness = () => {
-  console.log('goToCreateBusiness')
-
   router.push('/empresa/crear')
 }
 
 onBeforeMount(async () => {
   if (!companyStore.selectedCompany.name)
     await router.push('/empresa/seleccionar')
+  else
+    await companyStore.refreshCompany(companyStore.selectedCompany.id)
 })
 </script>
 
@@ -129,11 +136,39 @@ onBeforeMount(async () => {
           </VAvatar>
           {{ companyStore.selectedCompany?.name || 'Bienvenido...' }}
         </div>
+        <div v-if="companyStore.selectedCompany.is_active">
+          <VAlert
+            color="success"
+            icon="tabler-eye"
+            variant="tonal"
+            density="compact"
+            style="white-space: normal;"
+            class="pb-2 text-left mb-6 mt-2"
+          >
+            <p class="mb-0">
+              Tu negocio está <strong>ACTIVO.</strong>
+            </p>
+          </VAlert>
+        </div>
+        <div v-else>
+          <VAlert
+            color="error"
+            icon="tabler-alert-triangle"
+            variant="tonal"
+            density="compact"
+            style="white-space: normal;"
+            class="pb-2 text-left mb-6 mt-2"
+          >
+            <p class="mb-0">
+              Tu negocio está <strong>INACTIVO.</strong>
+            </p>
+          </VAlert>
+        </div>
       </VCardText>
       <div
         v-for="item in menuItems"
         :key="item.title"
-        class="py-3"
+        class="py-2"
       >
         <MainMenuItemList
           :title="item.title"
@@ -142,6 +177,7 @@ onBeforeMount(async () => {
           :url="item.url"
           accent-color="#E0D9FF"
           text-accent-color="#493599"
+          :disabled="item.isDisabled"
           @click="goToPage(item.url)"
         />
       </div>
@@ -226,6 +262,7 @@ onBeforeMount(async () => {
             :business-name="business.name"
             :segment="business.segment.name"
             :description="business.description"
+            :is-active="business.is_active"
             @click="goToBusiness(business)"
           />
         </div>

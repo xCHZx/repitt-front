@@ -11,6 +11,7 @@ export const useCompanyStore = defineStore('company', {
       name: null,
       opening_hours: null,
       phone: null,
+      is_active: null,
       segment: {
         id: null,
         name: null,
@@ -38,6 +39,7 @@ export const useCompanyStore = defineStore('company', {
         name: null,
         opening_hours: null,
         phone: null,
+        is_active: null,
         segment: {
           id: null,
           name: null,

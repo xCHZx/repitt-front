@@ -4,6 +4,7 @@ interface Props {
   segment?: string
   description?: string
   image?: string
+  isActive?: number
 }
 
 const props = defineProps<Props>()
@@ -34,13 +35,29 @@ const props = defineProps<Props>()
           >
             {{ props.segment }}
           </span>
+          <div
+            v-if="props.isActive"
+            class="mt-1"
+          >
+            <span
+              class="font-weight-medium text-white rounded pa-1 text-xs"
+              style="background: rgb(var(--v-theme-success)) !important;"
+            >
+              ACTIVO
+            </span>
+          </div>
+          <div
+            v-else
+            class="mt-1"
+          >
+            <span
+              class="font-weight-medium text-white rounded pa-1 text-xs"
+              style="background: rgb(var(--v-theme-error)) !important;"
+            >
+              INACTIVO
+            </span>
+          </div>
         </VCardText>
-
-        <VCardTitle class="text-h6 px-3 pt-1">
-          <span class="font-weight-medium ">
-            {{ props.description }}
-          </span>
-        </VCardTitle>
       </VCol>
     </VRow>
   </VCard>

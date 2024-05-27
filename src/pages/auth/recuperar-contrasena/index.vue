@@ -42,7 +42,7 @@ const submitForm = async () => {
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: error.join('\n'),
+      text: Array.isArray(error) ? error.join('\n') : error,
     })
   }
 }

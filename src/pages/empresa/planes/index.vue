@@ -1,6 +1,65 @@
+<script setup lang="ts">
+import { getBillingPortalUrl } from '@/services/subscription/subscription'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+
+// const billingPortalUrl = ref()
+
+// const getBillingPortalLink = async () => {
+//   billingPortalUrl.value = await getBillingPortalUrl()
+// }
+
+const goToBillingPortal = async () => {
+  window.open(await getBillingPortalUrl(), '_blank')
+}
+
+definePage({
+  meta: {
+    requiresAuth: true,
+    requiredRole: ['Visitor', 'Owner'],
+  },
+})
+</script>
+
 <template>
-  <PricingCard
-    title="Planes de Suscripción"
-    md="4"
-  />
+  <div v-if="authStore.subscriptionStatus === 'active'">
+    <VCardText>
+      <div class="text-center text-h1 font-weight-bold">
+        ¡Ya tienes una suscripción activa!
+      </div>
+    </VCardText>
+    <VCardText>
+      <div class="text-center text-h3 font-weight-bold">
+        Accede a tu portal de administración de suscripciones aquí
+      </div>
+      <div class="text-center mt-4">
+        <VBtn
+          block
+          color="primary"
+          @click="goToBillingPortal"
+        >
+          Panel de administración de suscripciones
+          <VIcon
+            end
+            icon="tabler-credit-card"
+          />
+        </VBtn>
+      </div>
+      <div class="text-center text-h5 mt-6">
+        Si necesitas ayuda, por favor contáctanos al correo
+        <VIcon
+          class="mx-2"
+          icon="tabler-mail"
+        />
+        <span class="text-primary">soporte@repitt.com</span>
+      </div>
+    </VCardText>
+  </div>
+  <div v-else>
+    <PricingCard
+      title="Planes de Suscripción"
+      md="4"
+    />
+  </div>
 </template>

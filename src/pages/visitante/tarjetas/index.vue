@@ -22,7 +22,7 @@ const getData = async () => {
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: error.join('\n'),
+      text: Array.isArray(error) ? error.join('\n') : error,
     })
   }
 }
@@ -32,8 +32,6 @@ onMounted(() => {
 })
 
 const goToCard = (id: number) => {
-  console.log('goToCard', id)
-
   router.push(`/visitante/tarjetas/${id}`)
 }
 </script>
@@ -54,6 +52,7 @@ const goToCard = (id: number) => {
           :visits-count="stampCard.visits_count"
           :required-stamps="stampCard.required_stamps"
           :image="stampCard.business.logo_path"
+          :disabled="!stampCard.is_active"
           @click="goToCard(stampCard.id)"
         />
       </div>

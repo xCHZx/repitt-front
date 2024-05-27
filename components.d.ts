@@ -66,6 +66,7 @@ declare module 'vue' {
     StampCardDetailsAsCompany: typeof import('./src/components/stampCards/StampCardDetailsAsCompany.vue')['default']
     StampCardDetailsAsVisitor: typeof import('./src/components/stampCards/StampCardDetailsAsVisitor.vue')['default']
     StampCardListItem: typeof import('./src/components/stampCards/StampCardListItem.vue')['default']
+    StampCardListItemAsBusiness: typeof import('./src/components/stampCards/StampCardListItemAsBusiness.vue')['default']
     TablePagination: typeof import('./src/@core/components/TablePagination.vue')['default']
     TheCustomizer: typeof import('./src/@core/components/TheCustomizer.vue')['default']
     ThemeSwitcher: typeof import('./src/@core/components/ThemeSwitcher.vue')['default']

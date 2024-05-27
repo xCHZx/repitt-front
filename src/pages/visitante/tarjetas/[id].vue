@@ -24,7 +24,7 @@ const getData = async () => {
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: error.join('\n'),
+      text: Array.isArray(error) ? error.join('\n') : error,
     })
   }
 }
@@ -46,6 +46,22 @@ onMounted(() => {
   <VRow>
     <!-- 👉 StampCard Details  -->
     <VCol cols="12">
+      <div v-if="!data?.is_active">
+        <VCardText class="text-center ma-0 px-0 py-4">
+          <VAlert
+            color="error"
+            icon="tabler-alert-triangle"
+            variant="tonal"
+            density="compact"
+            style="white-space: normal;"
+          >
+            <p class="mb-0">
+              Esta tarjeta se ha <strong>desactivado</strong> por el negocio 😓
+            </p>
+          </VAlert>
+        </VCardText>
+      </div>
+
       <StampCardDetailsAsVisitor
         v-if="data?.business"
         :business-name="data?.business.name"
@@ -58,26 +74,28 @@ onMounted(() => {
         :visits="data?.visits"
         :stamp-icon="data?.stamp_icon_path"
       />
-      <VCardText class="text-center">
-        <VBtn
-          block
-          @click="goToQr(data?.name)"
-        >
-          Sellar tarjeta
-        </VBtn>
-      </VCardText>
-      <VCardText class="text-center">
-        <VBtn
-          block
-          size="small"
-          color="secondary"
-          prepend-icon="tabler-reload"
-          variant="outlined"
-          @click="reloadPage"
-        >
-          Actualizar
-        </VBtn>
-      </VCardText>
+      <div v-if="data?.is_active">
+        <VCardText class="text-center">
+          <VBtn
+            block
+            @click="goToQr(data?.name)"
+          >
+            Sellar tarjeta
+          </VBtn>
+        </VCardText>
+        <VCardText class="text-center">
+          <VBtn
+            block
+            size="small"
+            color="secondary"
+            prepend-icon="tabler-reload"
+            variant="outlined"
+            @click="reloadPage"
+          >
+            Actualizar
+          </VBtn>
+        </VCardText>
+      </div>
     </VCol>
   </VRow>
   <!-- 👉 Fin de StampCard Details  -->
