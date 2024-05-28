@@ -108,7 +108,7 @@ onMounted(() => {
           <VBtn
             variant="text"
             size="sm"
-            @click="goToPage('/visitante/planes')"
+            @click="goToPage('/empresa/planes')"
           >
             <VIcon
               start

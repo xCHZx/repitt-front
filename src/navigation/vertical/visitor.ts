@@ -12,7 +12,7 @@ export default [
   },
   {
     title: 'Planes',
-    to: { name: 'visitante-planes' },
+    to: { name: 'empresa-planes' },
     icon: { icon: 'tabler-premium-rights' },
   },
   {

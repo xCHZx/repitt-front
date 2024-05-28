@@ -23,7 +23,7 @@ definePage({
 </script>
 
 <template>
-  <div v-if="authStore.subscriptionStatus === 'active'">
+  <div v-if="authStore.subscriptionStatus === 'active' || authStore.subscriptionStatus === 'trialing'">
     <VCardText>
       <div class="text-center text-h1 font-weight-bold">
         ¡Ya tienes una suscripción activa!
