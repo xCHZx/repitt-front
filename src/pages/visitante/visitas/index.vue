@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import Swal from 'sweetalert2'
 import { getAllVisitsAsCurrentVisitor } from '@/services/visitor/visits'
 
 definePage({
@@ -17,11 +16,12 @@ const getData = async () => {
   }
   catch (error: any) {
     console.error('Error getting data:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    })
+
+    // Swal.fire({
+    //   icon: 'error',
+    //   title: 'Error',
+    //   text: Array.isArray(error) ? error.join('\n') : error,
+    // })
   }
 }
 

@@ -130,18 +130,6 @@ const onFormSubmit = async () => {
         }
       }
     })
-
-    // if (authStore.authRole === 'Owner') {
-    //   await router.push('/empresa')
-    //   await location.reload()
-    // }
-    // else if (authStore.authRole === 'Visitor') {
-    //   await router.push('/visitante')
-    //   await location.reload()
-    // }
-    // else {
-    //   await router.push('/404')
-    // }
   }
   catch (error: any) {
     console.error('Error registering user:', error)

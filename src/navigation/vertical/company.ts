@@ -24,7 +24,7 @@ export default [
     icon: { icon: 'tabler-premium-rights' },
   },
   {
-    title: 'Tarjetas de Recompensas',
+    title: 'Tarjetas de Lealtad',
     to: { name: 'empresa-tarjetas' },
     icon: { icon: 'tabler-cards' },
   },

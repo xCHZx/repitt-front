@@ -61,7 +61,7 @@ const goToCreateCard = () => {
     </div>
     <div v-else>
       <h3>
-        No se encontraron tarjetas de recompensas
+        No se encontraron tarjetas de lealtad
       </h3>
     </div>
     <div class="mt-4">

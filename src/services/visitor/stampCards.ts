@@ -1,6 +1,6 @@
 import { authAxios } from '../axios'
 
-const baseUrl = 'http://127.0.0.1:8000/api/visitor/stampcard'
+const baseUrl = 'visitor/stampcard'
 
 const getAllStampCardsByCurrentVisitor = async () => {
   return await authAxios.get(`${baseUrl}/logged-user`)

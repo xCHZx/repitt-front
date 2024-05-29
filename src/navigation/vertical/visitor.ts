@@ -11,11 +11,6 @@ export default [
     icon: { icon: 'tabler-id' },
   },
   {
-    title: 'Planes',
-    to: { name: 'empresa-planes' },
-    icon: { icon: 'tabler-premium-rights' },
-  },
-  {
     title: 'Historial de Visitas',
     to: { name: 'visitante-visitas' },
     icon: { icon: 'tabler-walk' },

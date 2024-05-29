@@ -21,6 +21,6 @@ registerPlugins(app)
 // Mount vue app
 // app.use(pinia)
 app.use(axios, {
-  baseUrl: 'http://127.0.0.1:8000/',
+  baseUrl: import.meta.env.VITE_APP_API_URL,
 })
 app.mount('#app')

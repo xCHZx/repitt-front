@@ -14,25 +14,25 @@ const menuItems = [
 
   {
     title: 'Perfil',
-    description: 'Esta es una descripción',
+    description: 'Administra tu información.',
     icon: 'tabler-id',
     url: '/visitante/perfil',
   },
   {
     title: 'Historial de Visitas',
-    description: 'Esta es una descripción',
+    description: 'Visualiza todas las visitas que has realizado.',
     icon: 'tabler-walk',
     url: '/visitante/visitas',
   },
   {
-    title: 'Mis Tarjetas',
-    description: 'Esta es una descripción',
+    title: 'Mis Tarjetas de Lealtad',
+    description: 'Consulta tu progreso hacia tus recompensas.',
     icon: 'tabler-cards',
     url: '/visitante/tarjetas',
   },
   {
     title: 'Mi Código de Usuario',
-    description: 'Esta es una descripción',
+    description: 'Tú código Repitt para registrar visitas.',
     icon: 'tabler-qrcode',
     url: '/visitante/perfil/qr',
   },
