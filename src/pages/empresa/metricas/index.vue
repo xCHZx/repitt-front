@@ -370,115 +370,131 @@ onMounted(() => {
 -->
 
 <template>
-  <VRow>
-    <VCol
-      cols="12"
-      md="4"
-    >
-      <ProgressMiniCard
-        title="Visitas de Clientes"
-        :main-number="metrics.visits.current"
-        :growth="metrics.visits.growth"
-        icon="tabler-walk"
-        color="primary"
-        class="mb-4"
-      />
-      <ProgressMiniCard
-        title="Tarjetas Completadas"
-        :main-number="metrics.completedStampCards.current"
-        :growth="metrics.completedStampCards.growth"
-        icon="tabler-cards"
-        color="info"
-        class="mb-4"
-      />
-    </VCol>
-    <VCol
-      cols="12"
-      md="4"
-    >
-      <ProgressMiniCard
-        title="Recompensas Canjeadas"
-        :main-number="metrics.redeemedRewards.current"
-        :growth="metrics.redeemedRewards.growth"
-        icon="tabler-award"
-        color="warning"
-        class="mb-4"
-      />
-      <ProgressMiniCard
-        title="Usuarios activos totales"
-        :main-number="metrics.activeUsers"
-        icon="tabler-users-group"
-        color="error"
-        class="mb-4"
-      />
-    </VCol>
-    <VCol
-      cols="12"
-      md="4"
-    >
-      <div
-        style="background-color: white; border-radius: 8px;"
-        class="pa-4"
+  <div v-if="companyStore.company.is_active">
+    <VRow>
+      <VCol
+        cols="12"
+        md="4"
       >
-        <VCardText class="my-0 py-0">
-          <div class="text-h4 font-weight-bold">
-            Clientes más frecuentes
-          </div>
-        </VCardText>
-        <VRow>
-          <VCol
-            cols="12"
-            md="12"
-          >
-            <div
-              v-for="client in metrics.topClients"
-              :key="client.user_id"
-              class="py-2"
-            >
-              <UserWithCountListItem
-                :first-name="client.user.first_name"
-                :last-name="client.user.last_name"
-                :visits="client.visits"
-                icon="tabler-number-1"
-              />
+        <ProgressMiniCard
+          title="Visitas de Clientes"
+          :main-number="metrics.visits.current"
+          :growth="metrics.visits.growth"
+          icon="tabler-walk"
+          color="primary"
+          class="mb-4"
+        />
+        <ProgressMiniCard
+          title="Tarjetas Completadas"
+          :main-number="metrics.completedStampCards.current"
+          :growth="metrics.completedStampCards.growth"
+          icon="tabler-cards"
+          color="info"
+          class="mb-4"
+        />
+      </VCol>
+      <VCol
+        cols="12"
+        md="4"
+      >
+        <ProgressMiniCard
+          title="Recompensas Canjeadas"
+          :main-number="metrics.redeemedRewards.current"
+          :growth="metrics.redeemedRewards.growth"
+          icon="tabler-award"
+          color="warning"
+          class="mb-4"
+        />
+        <ProgressMiniCard
+          title="Usuarios activos totales"
+          :main-number="metrics.activeUsers"
+          icon="tabler-users-group"
+          color="error"
+          class="mb-4"
+        />
+      </VCol>
+      <VCol
+        cols="12"
+        md="4"
+      >
+        <div
+          style="background-color: white; border-radius: 8px;"
+          class="pa-4"
+        >
+          <VCardText class="my-0 py-0">
+            <div class="text-h4 font-weight-bold">
+              Clientes más frecuentes
             </div>
-          </VCol>
-        </VRow>
-      </div>
-    </VCol>
-  </VRow>
-  <VRow>
-    <VCol
-      cols="12"
-      md="12"
-    >
-      <div
-        style="background-color: white; border-radius: 8px;"
-        class="pa-6"
-      >
-        <VCard style="background-color: #FFF2F7;">
-          <VCardItem
-            title="Visitas por mes"
-            subtitle="Gente que ha visitado tu negocio y ha sellado su tarjeta."
-          />
-
-          <VCardText>
-            <VueApexCharts
-              id="shipment-statistics"
-              type="bar"
-              height="320"
-              :options="shipmentConfig"
-              :series="series"
-            />
           </VCardText>
-        </VCard>
-      </div>
-    </VCol>
-    <VCol
-      cols="12"
-      md="4"
-    />
-  </VRow>
+          <VRow>
+            <VCol
+              cols="12"
+              md="12"
+            >
+              <div
+                v-for="client in metrics.topClients"
+                :key="client.user_id"
+                class="py-2"
+              >
+                <UserWithCountListItem
+                  :first-name="client.user.first_name"
+                  :last-name="client.user.last_name"
+                  :visits="client.visits"
+                  icon="tabler-number-1"
+                />
+              </div>
+            </VCol>
+          </VRow>
+        </div>
+      </VCol>
+    </VRow>
+    <VRow>
+      <VCol
+        cols="12"
+        md="12"
+      >
+        <div
+          style="background-color: white; border-radius: 8px;"
+          class="pa-6"
+        >
+          <VCard style="background-color: #FFF2F7;">
+            <VCardItem
+              title="Visitas por mes"
+              subtitle="Gente que ha visitado tu negocio y ha sellado su tarjeta."
+            />
+
+            <VCardText>
+              <VueApexCharts
+                id="shipment-statistics"
+                type="bar"
+                height="320"
+                :options="shipmentConfig"
+                :series="series"
+              />
+            </VCardText>
+          </VCard>
+        </div>
+      </VCol>
+      <VCol
+        cols="12"
+        md="4"
+      />
+    </VRow>
+  </div>
+  <div v-else>
+    <VAlert
+      color="error"
+      icon="tabler-alert-triangle"
+      variant="tonal"
+      density="compact"
+      style="white-space: normal;"
+      class="pb-2 text-left mb-6 mt-2"
+    >
+      <p class="mb-0">
+        No puedes acceder a tus métricas cuando tu negocio está <strong>INACTIVO.</strong>
+      </p>
+    </VAlert>
+  </div>
 </template>
 
 <style lang="scss">

@@ -274,8 +274,8 @@ onBeforeMount(async () => {
             </div>
           </VCardText>
           <MainMenuItemList
-            :title="user?.first_name"
-            :description="user?.repitt_code"
+            :title="user?.data.first_name"
+            :description="user?.data.repitt_code"
             icon="tabler-user"
             url="/visitante/"
             @click="goToUserHome"

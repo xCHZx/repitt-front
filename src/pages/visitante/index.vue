@@ -43,6 +43,8 @@ const router = useRouter()
 
 const authStore = useAuthStore()
 
+const data = ref()
+
 const goToPage = (url: string) => {
   console.log('goToPage', url)
   router.push(url)
@@ -54,7 +56,7 @@ const logout = async () => {
 }
 
 const getData = async () => {
-  await refreshUserData()
+  data.value = await refreshUserData()
 }
 
 onMounted(() => {
@@ -103,7 +105,10 @@ onMounted(() => {
           </VBtn>
         </div>
       </div>
-      <div class="d-flex flex-column justify-center mt-10">
+      <div
+        v-if="authStore.authRole === 'Visitor'"
+        class="d-flex flex-column justify-center mt-10"
+      >
         <div class="text-center text-h6">
           <VBtn
             variant="text"
@@ -116,6 +121,25 @@ onMounted(() => {
               icon="tabler-building-store"
             />
             ¿Tienes un negocio y quieres ser parte de Repitt?
+          </VBtn>
+        </div>
+      </div>
+      <div
+        v-else
+        class="d-flex flex-column justify-center mt-10"
+      >
+        <div class="text-center text-h6">
+          <VBtn
+            variant="text"
+            size="sm"
+            @click="goToPage('/empresa')"
+          >
+            <VIcon
+              start
+              size="15"
+              icon="tabler-building-store"
+            />
+            Ir a tu perfil de empresa
           </VBtn>
         </div>
       </div>

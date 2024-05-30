@@ -198,14 +198,14 @@ onMounted(() => {
           <!-- 👉 Plan price  -->
 
           <div class="position-relative">
-            <div class="d-flex justify-center pt-5 pb-10">
-              <div class="text-body-1 align-self-start font-weight-medium">
+            <div class="d-flex justify-center pt-5 pb-5">
+              <div class="text-body-1 align-self-center font-weight-medium px-1">
                 $
               </div>
               <h1 class="text-h1 font-weight-medium text-primary">
                 {{ annualMonthlyPlanPriceToggler ? Math.floor(Number(plan.yearlyPrice) / 12) : plan.monthlyPrice }}
               </h1>
-              <div class="text-body-1 font-weight-medium align-self-end">
+              <div class="text-body-2 font-weight-medium align-self-center mt-3">
                 /al mes
               </div>
             </div>
@@ -221,7 +221,7 @@ onMounted(() => {
 
           <!-- 👉 Plan features -->
 
-          <VList class="card-list mb-4">
+          <VList class="card-list mb-4 mt-5">
             <VListItem
               v-for="feature in plan.features"
               :key="feature"

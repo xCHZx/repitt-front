@@ -83,6 +83,7 @@ onMounted(() => {
           :business-name="business.name"
           :segment="business.segment.name"
           :description="business.description"
+          :is-active="business.is_active"
           @click="goToBusiness(business)"
         />
       </div>
