@@ -97,4 +97,11 @@ const unpublishBusiness = async (id: any) => {
     })
 }
 
-export { createBusinessAsCompany, getAllBusinessAsCurrentCompany, getBusinessByIdAsCurrentCompany, publishBusiness, unpublishBusiness, updateBusinessAsCurrentCompany }
+export {
+  createBusinessAsCompany,
+  getAllBusinessAsCurrentCompany,
+  getBusinessByIdAsCurrentCompany,
+  publishBusiness,
+  unpublishBusiness,
+  updateBusinessAsCurrentCompany,
+}

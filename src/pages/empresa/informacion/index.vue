@@ -86,6 +86,15 @@ const goToUnpublishBusiness = async (id: number) => {
   }
 }
 
+const goToDownloadFlyer = async () => {
+  console.log('goToDownloadFlyer')
+  if (data.value?.flyer_path) {
+    const url = data.value.flyer_path
+
+    window.open(url, '_blank')
+  }
+}
+
 onMounted(() => {
   getData()
 })
@@ -176,6 +185,26 @@ onMounted(() => {
           <VIcon
             end
             icon="tabler-circle-check"
+          />
+        </VBtn>
+      </div>
+      <div class="mt-4">
+        <VBtn
+          block
+          size="small"
+          color="warning"
+          @click="goToDownloadFlyer"
+        >
+          Descargar flyer promocional
+          <!--
+            <VIcon
+            end
+            icon="tabler-photo-star"
+            />
+          -->
+          <VIcon
+            end
+            icon="tabler-download"
           />
         </VBtn>
       </div>
