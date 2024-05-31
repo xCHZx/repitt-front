@@ -15,7 +15,7 @@ const router = useRouter()
 const name = ref('')
 const description = ref('')
 const requiredStamps = ref()
-const startDate = ref('')
+const startDate = ref(new Date(new Date().getTime() - 24 * 60 * 60 * 1000).toISOString())
 const endDate = ref('')
 const stampIcon = ref<File[]>()
 const reward = ref('')
@@ -144,6 +144,7 @@ onMounted(() => {
         >
           <AppDateTimePicker
             v-model="startDate"
+            :config="{ disable: [{ from: '2000-01-01', to: startDate }] }"
             label="Fecha de Inicio de Vigencia *"
             placeholder="Fecha de Inicio de Vigencia *"
             prepend-icon="tabler-calendar"
@@ -155,6 +156,7 @@ onMounted(() => {
         >
           <AppDateTimePicker
             v-model="endDate"
+            :config="{ disable: [{ from: '2000-01-01', to: startDate }] }"
             label="Fecha de Fin de Vigencia"
             placeholder="Fecha de Fin de Vigencia"
             prepend-icon="tabler-calendar-off"
