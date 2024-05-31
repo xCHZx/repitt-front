@@ -69,7 +69,7 @@ const series = computed(() => [
 ])
 
 const xAxisCategories = computed(() => {
-  console.log(metrics.value.visitsByMonth)
+  // console.log(metrics.value.visitsByMonth)
 
   return metrics.value.visitsByMonth.map(item => item.month)
 })
@@ -221,7 +221,7 @@ const getData = async () => {
 
     metrics.value = await getGlobalMetrics(payload)
 
-    // console.log(metrics.value.visitsByMonth.map(item => item.month))
+    // // console.log(metrics.value.visitsByMonth.map(item => item.month))
   }
   catch (error: any) {
     Swal.fire({

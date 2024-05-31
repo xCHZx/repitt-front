@@ -48,7 +48,7 @@ const getSegments = async () => {
 }
 
 const onSubmit = async () => {
-  console.log('Updating business...')
+  // console.log('Updating business...')
 
   const payload = {
     name: name.value,

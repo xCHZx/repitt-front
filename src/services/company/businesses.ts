@@ -6,7 +6,7 @@ const baseUrl = '/company/business'
 const getAllBusinessAsCurrentCompany = async () => {
   return await authAxios.get(`${baseUrl}/logged-user`)
     .then(response => {
-      console.log('get All Business As Current Company', response.data.data[0])
+      // console.log('get All Business As Current Company', response.data.data[0])
 
       return response.data.data[0]
     })
@@ -18,7 +18,7 @@ const getAllBusinessAsCurrentCompany = async () => {
 const getBusinessByIdAsCurrentCompany = async (id: number) => {
   return await authAxios.get(`${baseUrl}/${id}/logged-user`)
     .then(response => {
-      console.log('get Business By Id As Current Company', response.data.data[0])
+      // console.log('get Business By Id As Current Company', response.data.data[0])
 
       return response.data.data[0]
     })
@@ -36,7 +36,7 @@ const createBusinessAsCompany = async (data: any) => {
     },
   })
     .then(response => {
-      console.log('Business creation successful', response.data.data[0])
+      // console.log('Business creation successful', response.data.data[0])
 
       companyStore.refreshCompany(response.data.data[0].id)
 
@@ -48,7 +48,7 @@ const createBusinessAsCompany = async (data: any) => {
 }
 
 const updateBusinessAsCurrentCompany = async (id: number, data: any) => {
-  console.log('Payload', data)
+  // console.log('Payload', data)
 
   return await authAxios.post(`${baseUrl}/${id}/logged-user`, data, {
     headers: {
@@ -56,7 +56,7 @@ const updateBusinessAsCurrentCompany = async (id: number, data: any) => {
     },
   })
     .then(response => {
-      console.log('Business update successful', response.data)
+      // console.log('Business update successful', response.data)
 
       return response.data.data[0]
     })
@@ -70,7 +70,7 @@ const publishBusiness = async (id: any) => {
 
   return await authAxios.post(`${baseUrl}/${id}/publish`)
     .then(response => {
-      console.log('Business publish success', response.data.data)
+      // console.log('Business publish success', response.data.data)
 
       companyStore.refreshCompany(response.data.data.id)
 
@@ -86,7 +86,7 @@ const unpublishBusiness = async (id: any) => {
 
   return await authAxios.post(`${baseUrl}/${id}/unpublish`)
     .then(response => {
-      console.log('Business unpublish success', response.data.data)
+      // console.log('Business unpublish success', response.data.data)
 
       companyStore.refreshCompany(response.data.data.id)
 

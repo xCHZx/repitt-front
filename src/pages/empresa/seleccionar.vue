@@ -36,7 +36,7 @@ const getData = async () => {
 }
 
 const goToVisitorHome = () => {
-  console.log('goToVisitorHome')
+  // console.log('goToVisitorHome')
 
   router.push('/visitante')
 }
@@ -44,13 +44,13 @@ const goToVisitorHome = () => {
 const goToBusiness = (business: any) => {
   companyStore.selectCompany(business)
 
-  console.log('goToBusiness', business)
+  // console.log('goToBusiness', business)
 
   router.push('/empresa/')
 }
 
 const goToCreateBusiness = () => {
-  console.log('goToCreateBusiness')
+  // console.log('goToCreateBusiness')
 
   router.push('/empresa/crear')
 }

@@ -37,18 +37,18 @@ router.beforeEach((to, from, next) => {
 
   // Redirect to login page if not logged in
   if (to.meta.requiresAuth && !authToken) {
-    console.log(to.meta.requiresAuth, authToken)
+    // console.log(to.meta.requiresAuth, authToken)
     next({ name: 'auth-login' })
   }
   else {
     // Check if the meta requiredRole (array) contains the user role in the store
     if (to.meta.requiredRole && !to.meta.requiredRole.includes(authRole)) {
-      console.log(to.meta.requiredRole, authRole)
+      // console.log(to.meta.requiredRole, authRole)
 
       // If not, redirect to the 404 page
 
       // next({ name: 'visitante' })
-      console.log('Role error')
+      // console.log('Role error')
 
       next('/404')
     }

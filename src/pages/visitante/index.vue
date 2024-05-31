@@ -46,7 +46,7 @@ const authStore = useAuthStore()
 const data = ref()
 
 const goToPage = (url: string) => {
-  console.log('goToPage', url)
+  // console.log('goToPage', url)
   router.push(url)
 }
 

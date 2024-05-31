@@ -24,7 +24,7 @@ const reward = ref('')
 const companyStore = useCompanyStore()
 
 const submit = async () => {
-  console.log('Creating StampCard...')
+  // console.log('Creating StampCard...')
 
   const payload = {
     name: name.value,

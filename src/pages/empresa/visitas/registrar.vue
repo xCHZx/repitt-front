@@ -39,7 +39,7 @@ const stampCardList = ref(
 
 // const stampCardIdFromUrl = ref(route.query.sc)
 
-// console.log('stampCardIdFromUrl', stampCardIdFromUrl.value)
+// // console.log('stampCardIdFromUrl', stampCardIdFromUrl.value)
 
 const selectedStampCard = ref()
 
@@ -86,10 +86,11 @@ const reloadPage = () => {
 }
 
 const onDetect = (result: any[]) => {
-  console.log('onDetect', result)
+  // console.log('onDetect', result)
   paused.value = true
   qrCodeValue.value = result[0].rawValue
-  console.log(qrCodeValue.value)
+
+  // console.log(qrCodeValue.value)
 }
 
 const onCameraOn = () => {
@@ -141,7 +142,7 @@ const onSubmit = async () => {
       user_repitt_code: formData.value.repittCode,
     }
 
-    console.log(formData.value)
+    // console.log(formData.value)
     await registerVisitAsCompany(payload)
 
     Swal.fire({

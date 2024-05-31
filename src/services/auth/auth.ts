@@ -9,7 +9,7 @@ const companyStore = useCompanyStore()
 const loginUser = async (credentials: any) => {
   return await authAxios.post(`${baseUrl}/login`, credentials)
     .then(response => {
-      console.log('Login successful', response.data)
+      // console.log('Login successful', response.data)
 
       authStore.deleteAuthData()
       companyStore.deleteCompanyData()
@@ -26,7 +26,7 @@ const loginUser = async (credentials: any) => {
 const dualRegisterUser = async (userPayload: any) => {
   return await authAxios.post(`${baseUrl}/register`, userPayload)
     .then(response => {
-      console.log('Registration successful')
+      // console.log('Registration successful')
 
       authStore.deleteAuthData()
       companyStore.deleteCompanyData()
@@ -51,7 +51,7 @@ const dualRegisterUser = async (userPayload: any) => {
 const logoutUser = async () => {
   return await authAxios.post(`${baseUrl}/logout`)
     .then(response => {
-      console.log('Logout successful')
+      // console.log('Logout successful')
 
       authStore.deleteAuthData()
       companyStore.deleteCompanyData()
@@ -66,7 +66,7 @@ const logoutUser = async () => {
 const sendRecoveryEmail = async (email: any) => {
   return await authAxios.post(`${baseUrl}/send-password-recovery-mail`, { email })
     .then(response => {
-      console.log('Recovery Email sent successfully', response.data)
+      // console.log('Recovery Email sent successfully', response.data)
 
       return response.data
     })
@@ -78,7 +78,7 @@ const sendRecoveryEmail = async (email: any) => {
 const recoverPassword = async (payload: any) => {
   return await authAxios.post(`${baseUrl}/password-recover`, payload)
     .then(response => {
-      console.log('Password recovered successfully', response.data)
+      // console.log('Password recovered successfully', response.data)
 
       return response.data
     })

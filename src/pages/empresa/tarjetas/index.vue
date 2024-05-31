@@ -27,13 +27,13 @@ onMounted(() => {
 })
 
 const goToCard = (id: number) => {
-  console.log('goToCard', id)
+  // console.log('goToCard', id)
 
   router.push(`/empresa/tarjetas/${id}`)
 }
 
 const goToCreateCard = () => {
-  console.log('goToCreateCard')
+  // console.log('goToCreateCard')
 
   router.push('/empresa/tarjetas/crear')
 }

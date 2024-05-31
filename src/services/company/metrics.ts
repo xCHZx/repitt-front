@@ -5,7 +5,7 @@ const baseUrl = '/company/metric'
 const getGlobalMetrics = async (payload: any) => {
   return await authAxios.post(`${baseUrl}/global`, payload)
     .then(response => {
-      console.log('get Global Metrics', response.data.data)
+      // console.log('get Global Metrics', response.data.data)
 
       return response.data.data
     })

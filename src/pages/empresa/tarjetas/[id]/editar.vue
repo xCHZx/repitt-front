@@ -36,7 +36,7 @@ watch(() => stampCard.value, (value: any) => {
 })
 
 const submit = async () => {
-  console.log('Creating StampCard...')
+  // console.log('Creating StampCard...')
 
   const payload = {
     name: name.value,

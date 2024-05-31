@@ -30,13 +30,13 @@ const getData = async () => {
 }
 
 const goToEditBusiness = () => {
-  console.log('goToEditBusiness')
+  // console.log('goToEditBusiness')
 
   router.push('/empresa/editar')
 }
 
 const goToPublishBusiness = async (id: number) => {
-  console.log('goToPublishBusiness')
+  // console.log('goToPublishBusiness')
 
   try {
     await publishBusiness(id)
@@ -62,7 +62,7 @@ const goToPublishBusiness = async (id: number) => {
 }
 
 const goToUnpublishBusiness = async (id: number) => {
-  console.log('goToUnpublishBusiness')
+  // console.log('goToUnpublishBusiness')
   try {
     await unpublishBusiness(id)
 
@@ -87,7 +87,7 @@ const goToUnpublishBusiness = async (id: number) => {
 }
 
 const goToDownloadFlyer = async () => {
-  console.log('goToDownloadFlyer')
+  // console.log('goToDownloadFlyer')
   if (data.value?.flyer_path) {
     const url = data.value.flyer_path
 
