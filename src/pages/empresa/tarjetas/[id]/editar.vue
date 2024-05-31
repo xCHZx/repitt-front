@@ -16,6 +16,7 @@ const stampCard = ref()
 
 const name = ref('')
 const description = ref('')
+const requiredHours = ref()
 const requiredStamps = ref()
 const startDate = ref('')
 const endDate = ref('')
@@ -31,6 +32,7 @@ watch(() => stampCard.value, (value: any) => {
   startDate.value = value.start_date
   endDate.value = value.end_date
   reward.value = value.reward
+  requiredHours.value = value.required_hours
 })
 
 const submit = async () => {
@@ -41,6 +43,7 @@ const submit = async () => {
     description: description.value,
 
     // required_stamps: requiredStamps.value,
+    // required_hours: requiredHours.value,
     // start_date: startDate.value,
     // end_date: endDate.value,
     // business_id: companyStore.selectedCompany.id,
@@ -144,6 +147,18 @@ onMounted(() => {
           disabled
           prepend-icon="tabler-rubber-stamp"
           label="Visitas requeridas para la recompensa *"
+          placeholder="..."
+        />
+      </VCol>
+
+      <VCol cols="12">
+        <VTextField
+          v-model="requiredHours"
+          type="number"
+          variant="outlined"
+          disabled
+          prepend-icon="tabler-clock"
+          label="Horas requeridas entre visitas *"
           placeholder="..."
         />
       </VCol>
