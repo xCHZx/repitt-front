@@ -93,7 +93,10 @@ onMounted(() => {
             size="1.5rem"
             class="mb-2"
           />
-          <span class="text-h4">
+          <span
+            v-if="data?.stamp_cards?.length > 0"
+            class="text-h4"
+          >
             Recompensas de este negocio
           </span>
         </VCardText>
@@ -101,11 +104,11 @@ onMounted(() => {
         <div
           v-for="stampCard in data?.stamp_cards"
           :key="stampCard.id"
-          class="mt-0"
+          class="mt-4"
         >
           <StampCardListItemAsBusiness
             :title="stampCard.reward"
-            :description="stampCard.name"
+            :description="`${stampCard.required_stamps} visitas para esta recompensa`"
             icon="tabler-gift"
             accent-color="#E0D9FF"
             text-accent-color="#493599"
@@ -115,7 +118,7 @@ onMounted(() => {
 
         <div
           v-if="data?.is_active"
-          class="mt-4"
+          class="mt-5"
         >
           <VBtn
             block
@@ -143,7 +146,5 @@ onMounted(() => {
 
     background: rgb(224,217,255);
     background: linear-gradient(135deg, rgba(224,217,255,1) 0%, rgba(248,247,250,1) 100%);
-
-    height: 100vh;
   }
 </style>
