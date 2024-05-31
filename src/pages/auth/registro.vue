@@ -372,7 +372,7 @@ onMounted(() => {
                 type="submit"
                 class="me-3"
               >
-                submit
+                Enviar
               </VBtn>
             </VCol>
           </VRow>

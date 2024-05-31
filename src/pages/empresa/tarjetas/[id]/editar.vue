@@ -110,6 +110,16 @@ onMounted(() => {
     <VForm @submit.prevent="submit">
       <VCol cols="12">
         <VTextField
+          v-model="reward"
+          variant="outlined"
+          disabled
+          prepend-icon="tabler-gift"
+          label="Recompensa *"
+          placeholder="..."
+        />
+      </VCol>
+      <VCol cols="12">
+        <VTextField
           v-model="name"
           variant="outlined"
           prepend-icon="tabler-building-store"
@@ -138,16 +148,6 @@ onMounted(() => {
         />
       </VCol>
 
-      <VCol cols="12">
-        <VTextField
-          v-model="reward"
-          variant="outlined"
-          disabled
-          prepend-icon="tabler-gift"
-          label="Recompensa *"
-          placeholder="..."
-        />
-      </VCol>
       <VCol cols="12">
         <VFileInput
           v-model="stampIcon"
@@ -203,7 +203,7 @@ onMounted(() => {
           color="primary"
           class="mt-3"
         >
-          Crear
+          Guardar
         </VBtn>
       </VCol>
     </VForm>

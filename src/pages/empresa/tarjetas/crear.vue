@@ -75,6 +75,15 @@ onMounted(() => {
     <VForm @submit.prevent="submit">
       <VCol cols="12">
         <VTextField
+          v-model="reward"
+          variant="outlined"
+          prepend-icon="tabler-gift"
+          label="Recompensa *"
+          placeholder="..."
+        />
+      </VCol>
+      <VCol cols="12">
+        <VTextField
           v-model="name"
           variant="outlined"
           prepend-icon="tabler-building-store"
@@ -91,25 +100,31 @@ onMounted(() => {
           placeholder="..."
         />
       </VCol>
-      <VCol cols="12">
-        <VTextField
+      <VCol
+        cols="12"
+        class="text-center"
+      >
+        <span class="text-h5 font-weight-bold">Visitas requeridas para la recompensa*</span>
+        <VSlider
           v-model="requiredStamps"
-          type="number"
-          variant="outlined"
-          prepend-icon="tabler-rubber-stamp"
-          label="Visitas requeridas para la recompensa *"
-          placeholder="..."
+          min="3"
+          max="20"
+          step="1"
+          thumb-label
+          thumb-size="24"
+          class="mt-2"
+          prepend-icon="tabler-number-3-small"
+          append-icon="tabler-number-20-small"
         />
-      </VCol>
-
-      <VCol cols="12">
-        <VTextField
-          v-model="reward"
-          variant="outlined"
-          prepend-icon="tabler-gift"
-          label="Recompensa *"
-          placeholder="..."
-        />
+        <VChip class="mx-auto">
+          <VIcon
+            start
+            variant="tonal"
+            color="primary"
+            icon="tabler-rubber-stamp"
+          />
+          Visitas requeridas:  <strong> {{ requiredStamps }}</strong>
+        </VChip>
       </VCol>
       <VCol cols="12">
         <VFileInput

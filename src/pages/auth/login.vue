@@ -128,7 +128,7 @@ const onSubmit = async () => {
                 block
                 type="submit"
               >
-                Login
+                Entrar
               </VBtn>
             </VCol>
 
