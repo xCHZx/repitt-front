@@ -15,6 +15,7 @@ const router = useRouter()
 const name = ref('')
 const description = ref('')
 const requiredStamps = ref()
+const requiredHours = ref()
 const startDate = ref(new Date(new Date().getTime() - 24 * 60 * 60 * 1000).toISOString())
 const endDate = ref('')
 const stampIcon = ref<File[]>()
@@ -29,6 +30,7 @@ const submit = async () => {
     name: name.value,
     description: description.value,
     required_stamps: requiredStamps.value,
+    required_hours: requiredHours.value,
     start_date: startDate.value,
     end_date: endDate.value,
     business_id: companyStore.selectedCompany.id,
@@ -96,7 +98,7 @@ onMounted(() => {
           v-model="description"
           variant="outlined"
           prepend-icon="tabler-text-plus"
-          label="Descripción"
+          label="Descripción *"
           placeholder="..."
         />
       </VCol>
@@ -115,15 +117,49 @@ onMounted(() => {
           class="mt-2"
           prepend-icon="tabler-number-3-small"
           append-icon="tabler-number-20-small"
+          show-ticks
         />
-        <VChip class="mx-auto">
+        <VChip
+          class="mx-auto"
+          color="primary"
+        >
           <VIcon
             start
             variant="tonal"
-            color="primary"
             icon="tabler-rubber-stamp"
           />
           Visitas requeridas:  <strong> {{ requiredStamps }}</strong>
+        </VChip>
+      </VCol>
+      <VCol
+        cols="12"
+        class="text-center"
+      >
+        <span class="text-h5 font-weight-bold">¿Cuantas horas deben pasar entre visitas?*</span>
+        <VSlider
+          v-model="requiredHours"
+          color="info"
+          min="
+          1"
+          max="12"
+          step="1"
+          thumb-label
+          thumb-size="24"
+          class="mt-2"
+          prepend-icon="tabler-number-1-small"
+          append-icon="tabler-number-12-small"
+          show-ticks
+        />
+        <VChip
+          class="mx-auto"
+          color="info"
+        >
+          <VIcon
+            start
+            variant="tonal"
+            icon="tabler-clock-check"
+          />
+          Horas entre visitas:  <strong> {{ requiredHours }}</strong>
         </VChip>
       </VCol>
       <VCol cols="12">
