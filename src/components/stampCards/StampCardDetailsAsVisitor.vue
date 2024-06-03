@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { VIcon } from 'vuetify/lib/components/index.mjs'
+
 interface Props {
   businessName: string
   reward: string
+  description: string
   requiredStamps: number
   visitsCount: number
   businessImage: string
@@ -34,9 +37,17 @@ const props = defineProps<Props>()
       <h5 class="text-h4 mt-3 text-weight font-weight-bold">
         {{ props.businessName || '...' }}
       </h5>
-      <h5 class="text-h5 mt-4">
+      <h5 class="text-h4 mt-4">
+        <VIcon
+          icon="tabler-gift"
+          size="1.5rem"
+          class="mb-2"
+        />
         {{ props.reward || '...' }}
       </h5>
+      <div class="text-h5">
+        {{ props.description || '' }}
+      </div>
 
       <div class="d-flex flex-wrap justify-center gap-x-5 mt-5 align">
         <div

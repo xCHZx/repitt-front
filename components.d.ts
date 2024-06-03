@@ -78,6 +78,5 @@ declare module 'vue' {
     UserWithCountListItem: typeof import('./src/components/general/UserWithCountListItem.vue')['default']
     VisitListItemFull: typeof import('./src/components/visits/VisitListItemFull.vue')['default']
     VisitListSimple: typeof import('./src/components/visits/VisitListSimple.vue')['default']
-    VueApexCharts: typeof import('vue3-apexcharts')['default']
   }
 }

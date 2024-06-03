@@ -66,6 +66,7 @@ onMounted(() => {
         v-if="data?.business"
         :business-name="data?.business.name"
         :reward="data?.reward"
+        :description="data?.description"
         :required-stamps="data?.required_stamps"
         :visits-count="data?.visits_count"
         :business-image="data?.business.logo_path"
