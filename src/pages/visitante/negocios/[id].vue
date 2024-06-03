@@ -128,6 +128,7 @@ onMounted(() => {
             <VIcon
               end
               icon="tabler-award-filled"
+              @click="router.push('/auth/registro')"
             />
           </VBtn>
         </div>

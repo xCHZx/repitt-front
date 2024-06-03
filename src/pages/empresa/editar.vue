@@ -55,7 +55,7 @@ const onSubmit = async () => {
     description: description.value,
     address: address.value,
     phone: phone.value,
-    segment: segment.value,
+    segment_id: segment.value,
     opening_hours: openingHours.value,
     logo_file: logo.value && logo.value.length > 0 ? logo.value[0] : null,
   }
