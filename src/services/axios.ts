@@ -27,6 +27,20 @@ authAxios.interceptors.request.use(config => {
   return config
 })
 
+authAxios.interceptors.response.use(
+  response => {
+    return response
+  }, error => {
+    if (error.response.status === 401) {
+      // Redirigir a la página de inicio de sesión si el token es inválido
+      window.location.href = '/auth/login'
+    }
+
+    // Otherwise, throw the error to be handled by the catch block
+    return Promise.reject(error)
+  },
+)
+
 export default {
   install: (app: App, options: AxiosOptions) => {
     app.config.globalProperties.$axios = axios.create({
