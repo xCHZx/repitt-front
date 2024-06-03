@@ -2,7 +2,11 @@ import { authAxios } from '../axios'
 
 const baseUrl = '/subscription'
 
-const getCheckoutUrl = async (payload: any) => {
+const getCheckoutUrl = async (periodTag: any) => {
+  const payload = {
+    price: periodTag,
+  }
+
   return await authAxios.post(`${baseUrl}/checkout`, payload)
     .then(response => {
       // console.log('Checkout Session successful', response.data.url)

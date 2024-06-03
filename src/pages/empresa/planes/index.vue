@@ -2,23 +2,28 @@
 import { getBillingPortalUrl } from '@/services/subscription/subscription'
 import { useAuthStore } from '@/stores/auth'
 
-const authStore = useAuthStore()
-
-// const billingPortalUrl = ref()
-
-// const getBillingPortalLink = async () => {
-//   billingPortalUrl.value = await getBillingPortalUrl()
-// }
-
-const goToBillingPortal = async () => {
-  window.open(await getBillingPortalUrl(), '_blank')
-}
-
 definePage({
   meta: {
     requiresAuth: true,
     requiredRole: ['Visitor', 'Owner'],
   },
+})
+
+const authStore = useAuthStore()
+
+const billingPortalUrl = ref()
+
+const getBillingPortalLink = async () => {
+  billingPortalUrl.value = await getBillingPortalUrl()
+}
+
+const goToBillingPortal = async () => {
+  // window.open(await getBillingPortalUrl(), '_blank')
+  window.open(billingPortalUrl.value, '_blank')
+}
+
+onMounted(() => {
+  getBillingPortalLink()
 })
 </script>
 

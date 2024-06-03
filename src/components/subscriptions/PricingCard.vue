@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { VCardText } from 'vuetify/lib/components/index.mjs'
 import safeBoxWithGoldenCoin from '@images/misc/3d-safe-box-with-golden-dollar-coins.png'
 
 import { getCheckoutUrl } from '@/services/subscription/subscription'
 
 const props = defineProps<Pricing>()
 
-const checkoutUrl = ref()
+const monthlyCheckoutUrl = ref()
+const yearlyCheckoutUrl = ref()
 
 interface Pricing {
   title?: string
@@ -40,13 +42,14 @@ const pricingPlans = [
     name: 'Básico',
     tagLine: 'Para pequeños negocios con necesidades limitadas',
     logo: safeBoxWithGoldenCoin,
-    monthlyPrice: 299,
-    yearlyPrice: 2990,
+    monthlyPrice: 249,
+    yearlyPrice: 2490,
     isPopular: true,
     current: false,
-    url: checkoutUrl.value,
+
+    // url: monthlyCheckoutUrl.value,
     features: [
-      '1 tarjeta de recompensas personalizable',
+      '2 tarjetas de recompensas personalizable',
       '1 negocio registrado',
       '1 usuario administrador',
       'Visitas ilimitadas',
@@ -74,25 +77,21 @@ const pricingPlans = [
   // },
 ]
 
-const getCheckout = async () => {
-  const payload = {
-    price: 'mensual',
-  }
-
-  checkoutUrl.value = await getCheckoutUrl(payload)
+const getUrls = async () => {
+  monthlyCheckoutUrl.value = await getCheckoutUrl('mensual')
+  yearlyCheckoutUrl.value = await getCheckoutUrl('anual')
 }
 
 // Falta implementar un argumento para pasar al back y seleccionar el checkout dependiendo del plan
-const goToPage = async () => {
-  const payload = {
-    price: 'mensual',
-  }
-
-  window.open(await getCheckoutUrl(payload), '_blank')
+const goToPage = async (periodTag: string) => {
+  if (periodTag === 'anual')
+    window.open(yearlyCheckoutUrl.value, '_blank')
+  else
+    window.open(monthlyCheckoutUrl.value, '_blank')
 }
 
 onMounted(() => {
-  getCheckout()
+  getUrls()
 })
 </script>
 
@@ -241,14 +240,15 @@ onMounted(() => {
           </VList>
 
           <!-- 👉 Plan actions -->
+
           <VBtn
             block
             :color="plan.current ? 'success' : 'primary'"
             :variant="plan.isPopular ? 'elevated' : 'tonal'"
             :active="false"
-            @click="goToPage"
+            @click="goToPage(annualMonthlyPlanPriceToggler ? 'anual' : 'mensual')"
           >
-            {{ plan.yearlyPrice === 0 ? 'Your Current Plan' : 'Adquirir' }}
+            Adquirir plan {{ annualMonthlyPlanPriceToggler ? 'Anual' : 'Mensual' }}
           </VBtn>
         </VCardText>
       </VCard>
