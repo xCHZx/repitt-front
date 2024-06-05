@@ -10,7 +10,6 @@ interface Props {
   businessImage: string
   startDate: string
   endDate: string
-  visits: any[]
   stampIcon: string
 }
 

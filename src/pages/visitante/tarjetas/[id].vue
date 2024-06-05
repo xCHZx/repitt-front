@@ -63,19 +63,19 @@ onMounted(() => {
       </div>
 
       <StampCardDetailsAsVisitor
-        v-if="data?.business"
-        :business-name="data?.business.name"
-        :reward="data?.reward"
-        :description="data?.description"
-        :required-stamps="data?.required_stamps"
+        v-if="data?.stamp_card"
+        :business-name="data?.stamp_card?.business.name"
+        :reward="data?.stamp_card?.reward"
+        :description="data?.stamp_card?.description"
+        :required-stamps="data?.stamp_card?.required_stamps"
         :visits-count="data?.visits_count"
-        :business-image="data?.business.logo_path"
-        :start-date="data?.start_date"
-        :end-date="data?.end_date"
-        :visits="data?.visits"
-        :stamp-icon="data?.stamp_icon_path"
+        :business-image="data?.stamp_card.business.logo_path"
+        :start-date="data?.stamp_card?.start_date"
+        :end-date="data?.stamp_card?.end_date"
+        :stamp-icon="data?.stamp_card?.stamp_icon_path"
+        :visits="data?.stamp_card?.visits"
       />
-      <div v-if="data?.is_active">
+      <div v-if="data?.stamp_card?.is_active">
         <VCardText class="text-center">
           <VBtn
             block
@@ -110,7 +110,7 @@ onMounted(() => {
             Visitas
           </h5>
         </VCardText>
-        <VisitListSimple :visits="data?.visits" />
+        <VisitListSimple :visits="data?.stamp_card?.visits" />
       </VCol>
     </VRow>
   </div>

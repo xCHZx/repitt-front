@@ -47,13 +47,13 @@ const goToCard = (id: number) => {
       >
         <!-- 👉 VCard Rewards -->
         <StampCardListItem
-          :business-name="stampCard.business.name"
-          :segment="stampCard.business.segment.name"
-          :reward="stampCard.reward"
+          :business-name="stampCard.stamp_card.business.name"
+          :segment="stampCard.stamp_card.business.segment.name"
+          :reward="stampCard.stamp_card.reward"
           :visits-count="stampCard.visits_count"
-          :required-stamps="stampCard.required_stamps"
-          :image="stampCard.business.logo_path"
-          :disabled="!stampCard.is_active"
+          :required-stamps="stampCard.stamp_card.required_stamps"
+          :image="stampCard.stamp_card.business.logo_path"
+          :disabled="!stampCard.stamp_card.is_active"
           @click="goToCard(stampCard.id)"
         />
       </div>
