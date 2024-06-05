@@ -79,7 +79,7 @@ onMounted(() => {
         <VCardText class="text-center">
           <VBtn
             block
-            @click="goToQr(data?.name)"
+            @click="goToQr(data?.stamp_card?.name)"
           >
             Sellar tarjeta
           </VBtn>
