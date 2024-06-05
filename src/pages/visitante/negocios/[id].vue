@@ -30,9 +30,13 @@ const getData = async () => {
       text: Array.isArray(error) ? error.join('\n') : error,
     }).then(async result => {
       if (result.isConfirmed || result.isDismissed)
-        router.push('/')
+        router.push('/auth/login')
     })
   }
+}
+
+const goToRegister = () => {
+  router.push('/auth/registro')
 }
 
 onMounted(() => {
@@ -123,12 +127,12 @@ onMounted(() => {
           <VBtn
             block
             color="success"
+            @click="goToRegister"
           >
             ¡Quiero ser parte de las recompensas!
             <VIcon
               end
               icon="tabler-award-filled"
-              @click="router.push('/auth/registro')"
             />
           </VBtn>
         </div>

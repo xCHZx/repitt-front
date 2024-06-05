@@ -377,6 +377,12 @@ onMounted(() => {
             </VCol>
           </VRow>
         </VForm>
+        <a
+          class="text-primary ms-2 d-block text-center mt-4"
+          href="/auth/login"
+        >
+          ¿Ya tienes una cuenta?
+        </a>
       </vcardtext>
     </vcard>
   </div>
