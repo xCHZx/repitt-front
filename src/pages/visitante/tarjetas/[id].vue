@@ -62,6 +62,22 @@ onMounted(() => {
         </VCardText>
       </div>
 
+      <div v-if="data?.is_completed && !data?.is_reward_redeemed">
+        <VCardText class="text-center ma-0 px-0 py-4">
+          <VAlert
+            color="success"
+            icon="tabler-gift"
+            variant="tonal"
+            density="compact"
+            style="white-space: normal;"
+          >
+            <div class="mb-0 text-h4">
+              ¡Felicidades! Has completado esta tarjeta. ¡Puedes canjear tu recompensa! 🎉
+            </div>
+          </VAlert>
+        </VCardText>
+      </div>
+
       <StampCardDetailsAsVisitor
         v-if="data?.stamp_card"
         :business-name="data?.stamp_card?.business.name"

@@ -53,7 +53,9 @@ const goToCard = (id: number) => {
           :visits-count="stampCard.visits_count"
           :required-stamps="stampCard.stamp_card.required_stamps"
           :image="stampCard.stamp_card.business.logo_path"
-          :disabled="!stampCard.stamp_card.is_active"
+          :disabled="!stampCard.stamp_card.is_active || !stampCard.is_active"
+          :is-completed="stampCard.is_completed"
+          :is-redeemed="stampCard.is_reward_redeemed"
           @click="goToCard(stampCard.id)"
         />
       </div>

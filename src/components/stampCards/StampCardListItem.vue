@@ -6,13 +6,18 @@ interface Props {
   visitsCount: number
   requiredStamps: number
   image: string
+  isCompleted?: number
+  isRedeemed?: number
 }
 
 const props = defineProps<Props>()
 </script>
 
 <template>
-  <VCard height="100">
+  <VCard
+    height="100"
+    :class="{ glow: props.isCompleted === 1 && props.isRedeemed === 0 }"
+  >
     <VRow no-gutters>
       <VCol cols="3">
         <div class="ma-auto pa-3">
@@ -59,3 +64,11 @@ const props = defineProps<Props>()
     </VRow>
   </VCard>
 </template>
+
+<style scoped>
+.glow {
+  /* -webkit-box-shadow:0px 0px 105px 45px rgba(45, 255, 150, 0.5);
+-moz-box-shadow: 0px 0px 105px 45px rgba(45, 255, 150, 0.5); */
+box-shadow: 0px 0px 20px 10px rgba(45, 255, 150, 0.5);
+}
+</style>
