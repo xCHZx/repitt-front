@@ -20,6 +20,7 @@ const startDate = ref(new Date(new Date().getTime() - 24 * 60 * 60 * 1000).toISO
 const endDate = ref('')
 const stampIcon = ref<File[]>()
 const reward = ref('')
+const allowedRepeats = ref(1)
 
 const companyStore = useCompanyStore()
 
@@ -35,6 +36,7 @@ const submit = async () => {
     end_date: endDate.value,
     business_id: companyStore.selectedCompany.id,
     reward: reward.value,
+    allowed_repeats: allowedRepeats.value,
     stamp_icon_file: stampIcon.value && stampIcon.value.length > 0 ? stampIcon.value[0] : null,
   }
 
@@ -160,6 +162,36 @@ onMounted(() => {
             icon="tabler-clock-check"
           />
           Horas entre visitas:  <strong> {{ requiredHours }}</strong>
+        </VChip>
+      </VCol>
+      <VCol
+        cols="12"
+        class="text-center"
+      >
+        <span class="text-h5 font-weight-bold">¿Cuantas veces puede canjear la tarjeta tu cliente?*</span>
+        <VSlider
+          v-model="allowedRepeats"
+          color="success"
+          min="1"
+          max="10"
+          step="1"
+          thumb-label
+          thumb-size="24"
+          class="mt-2"
+          prepend-icon="tabler-number-1-small"
+          append-icon="tabler-number-10-small"
+          show-ticks
+        />
+        <VChip
+          class="mx-auto"
+          color="success"
+        >
+          <VIcon
+            start
+            variant="tonal"
+            icon="tabler-repeat"
+          />
+          Canjes por cliente:  <strong> {{ allowedRepeats }}</strong>
         </VChip>
       </VCol>
       <VCol cols="12">

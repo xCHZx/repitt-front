@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { getAllStampCardsByCurrentVisitor } from '@/services/visitor/stampCards'
+import { getAllUserStampCardsByCurrentVisitor } from '@/services/visitor/userStampCards'
 
 definePage({
   meta: {
@@ -15,7 +15,7 @@ const data: any = ref({})
 
 const getData = async () => {
   try {
-    data.value = await getAllStampCardsByCurrentVisitor()
+    data.value = await getAllUserStampCardsByCurrentVisitor()
   }
   catch (error: any) {
     console.error('Error getting data:', error)

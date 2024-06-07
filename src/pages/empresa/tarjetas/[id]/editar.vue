@@ -22,6 +22,7 @@ const startDate = ref('')
 const endDate = ref('')
 const stampIcon = ref<File[]>()
 const reward = ref('')
+const allowedRepeats = ref('')
 
 const companyStore = useCompanyStore()
 
@@ -33,6 +34,7 @@ watch(() => stampCard.value, (value: any) => {
   endDate.value = value.end_date
   reward.value = value.reward
   requiredHours.value = value.required_hours
+  allowedRepeats.value = value.allowed_repeats
 })
 
 const submit = async () => {
@@ -159,6 +161,18 @@ onMounted(() => {
           disabled
           prepend-icon="tabler-clock"
           label="Horas requeridas entre visitas *"
+          placeholder="..."
+        />
+      </VCol>
+
+      <VCol cols="12">
+        <VTextField
+          v-model="allowedRepeats"
+          type="number"
+          variant="outlined"
+          disabled
+          prepend-icon="tabler-repeat"
+          label="Canjes de tarjeta por usuario*"
           placeholder="..."
         />
       </VCol>

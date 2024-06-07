@@ -4,11 +4,16 @@ interface Props {
   businessLogo: string
   businessName: string
 }
-
 const props = defineProps<Props>()
+const router = useRouter()
 
 const formatDate = (date: string, options: any) => {
   return new Date(date).toLocaleDateString('es-ES', options)
+}
+
+const goToUserStampCard = (stampCardId: string, userStampCardId: string) => {
+  // console.log('goToUserStampCard', stampCardId, userStampCardId)
+  router.push(`/empresa/tarjetas/${stampCardId}/tarjetas-de-usuario/${userStampCardId}`)
 }
 </script>
 
@@ -20,6 +25,7 @@ const formatDate = (date: string, options: any) => {
     <VCard
       flat
       class="mt-3"
+      @click="goToUserStampCard(visit?.visitable_id, visit?.user_stamp_card_id)"
     >
       <VCardText>
         <div class="d-flex align-center">

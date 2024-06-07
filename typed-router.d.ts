@@ -56,6 +56,7 @@ declare module 'vue-router/auto/routes' {
     'empresa-tarjetas': RouteRecordInfo<'empresa-tarjetas', '/empresa/tarjetas', Record<never, never>, Record<never, never>>,
     'empresa-tarjetas-id': RouteRecordInfo<'empresa-tarjetas-id', '/empresa/tarjetas/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'empresa-tarjetas-id-editar': RouteRecordInfo<'empresa-tarjetas-id-editar', '/empresa/tarjetas/:id/editar', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'empresa-tarjetas-id-tarjetas-de-usuario-user-stamp-card-id': RouteRecordInfo<'empresa-tarjetas-id-tarjetas-de-usuario-user-stamp-card-id', '/empresa/tarjetas/:id/tarjetas-de-usuario/:userStampCardId', { id: ParamValue<true>, userStampCardId: ParamValue<true> }, { id: ParamValue<false>, userStampCardId: ParamValue<false> }>,
     'empresa-tarjetas-id-visitas': RouteRecordInfo<'empresa-tarjetas-id-visitas', '/empresa/tarjetas/:id/visitas', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'empresa-tarjetas-crear': RouteRecordInfo<'empresa-tarjetas-crear', '/empresa/tarjetas/crear', Record<never, never>, Record<never, never>>,
     'empresa-visitas': RouteRecordInfo<'empresa-visitas', '/empresa/visitas', Record<never, never>, Record<never, never>>,

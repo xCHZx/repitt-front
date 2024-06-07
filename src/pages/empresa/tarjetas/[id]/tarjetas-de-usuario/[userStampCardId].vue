@@ -1,23 +1,25 @@
 <script setup lang="ts">
 import Swal from 'sweetalert2'
 import { useRoute } from 'vue-router'
-import { getUserStampCardByIdAsVisitor } from '@/services/visitor/userStampCards'
+import { getUserStampCardByIdAsCurrentCompany, redeemRewardAsCompany } from '@/services/company/userStampCards'
 
 definePage({
   meta: {
     requiresAuth: true,
-    requiredRole: ['Visitor', 'Owner'],
+    requiredRole: ['Owner'],
   },
 })
 
 const route: any = useRoute()
 const router = useRouter()
 
+// const router = useRouter()
+
 const data: any = ref({})
 
 const getData = async () => {
   try {
-    data.value = await getUserStampCardByIdAsVisitor(route.params.id)
+    data.value = await getUserStampCardByIdAsCurrentCompany(route.params.userStampCardId)
   }
   catch (error: any) {
     console.error('Error getting data:', error)
@@ -29,12 +31,31 @@ const getData = async () => {
   }
 }
 
-const goToQr = (stampCardName: string) => {
-  router.push(`/visitante/perfil/qr?sc=${stampCardName}`)
-}
+const redeemReward = async () => {
+  try {
+    const payload = {
+      user_stamp_card_id: route.params.userStampCardId,
+    }
 
-const reloadPage = () => {
-  location.reload()
+    await redeemRewardAsCompany(payload)
+
+    Swal.fire({
+      icon: 'success',
+      title: '¡Listo!',
+      text: 'Recompensa redimida con éxito',
+    }).then(async result => {
+      if (result.isConfirmed || result.isDismissed)
+        router.push('/empresa/')
+    })
+  }
+  catch (error: any) {
+    console.error('Error redeeming reward:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: Array.isArray(error) ? error.join('\n') : error,
+    })
+  }
 }
 
 onMounted(() => {
@@ -46,37 +67,25 @@ onMounted(() => {
   <VRow>
     <!-- 👉 StampCard Details  -->
     <VCol cols="12">
-      <div v-if="!data?.is_active">
+      <div>
         <VCardText class="text-center ma-0 px-0 py-4">
           <VAlert
-            color="error"
+            color="warning"
             icon="tabler-alert-triangle"
             variant="tonal"
             density="compact"
             style="white-space: normal;"
           >
             <p class="mb-0">
-              Esta tarjeta se ha <strong>desactivado</strong> por el negocio 😓
+              Viendo esta tarjeta cómo <strong>negocio</strong>
             </p>
           </VAlert>
         </VCardText>
       </div>
 
-      <div v-if="data?.is_completed && !data?.is_reward_redeemed">
-        <VCardText class="text-center ma-0 px-0 py-4">
-          <VAlert
-            color="success"
-            icon="tabler-gift"
-            variant="tonal"
-            density="compact"
-            style="white-space: normal;"
-          >
-            <div class="mb-0 text-h4">
-              ¡Felicidades! Has completado esta tarjeta. ¡Puedes canjear tu recompensa! 🎉
-            </div>
-          </VAlert>
-        </VCardText>
-      </div>
+      <VCardText class="text-center text-h4 font-weight-bold">
+        {{ data?.user?.first_name }} {{ data?.user?.last_name }}
+      </VCardText>
 
       <StampCardDetailsAsVisitor
         v-if="data?.stamp_card"
@@ -85,31 +94,21 @@ onMounted(() => {
         :description="data?.stamp_card?.description"
         :required-stamps="data?.stamp_card?.required_stamps"
         :visits-count="data?.visits_count"
-        :business-image="data?.stamp_card.business.logo_path"
+        :business-image="data?.stamp_card?.business?.logo_path"
         :start-date="data?.stamp_card?.start_date"
         :end-date="data?.stamp_card?.end_date"
         :stamp-icon="data?.stamp_card?.stamp_icon_path"
-        :visits="data?.stamp_card?.visits"
+        :visits="data?.visits"
       />
-      <div v-if="data?.stamp_card?.is_active">
+      <div v-if="!data?.is_reward_redeemed && data?.is_completed">
         <VCardText class="text-center">
           <VBtn
+            prepend-icon="tabler-gift"
+            color="warning"
             block
-            @click="goToQr(data?.stamp_card?.name)"
+            @click="redeemReward"
           >
-            Sellar tarjeta
-          </VBtn>
-        </VCardText>
-        <VCardText class="text-center">
-          <VBtn
-            block
-            size="small"
-            color="secondary"
-            prepend-icon="tabler-reload"
-            variant="outlined"
-            @click="reloadPage"
-          >
-            Actualizar
+            Redimir recompensa
           </VBtn>
         </VCardText>
       </div>
@@ -118,7 +117,7 @@ onMounted(() => {
   <!-- 👉 Fin de StampCard Details  -->
 
   <!-- 👉 Visitas  -->
-  <div v-if="data?.visits_count >= 1">
+  <div v-if="data?.visits">
     <VRow>
       <VCol cols="12">
         <VCardText class="text-center pt-5">

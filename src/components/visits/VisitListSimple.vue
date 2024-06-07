@@ -23,7 +23,7 @@ const formatDate = (date: string, options: any) => {
         <div class="d-flex align-center">
           <div>
             <h6 class="text-h6">
-              Visitaste este negocio el:
+              Se registró una visita el:
             </h6>
             <h5 class="text-h5">
               <VIcon
