@@ -57,6 +57,13 @@ const menuItems = [
     url: '/empresa/visitas/registrar',
     isDisabled: !companyStore.selectedCompany.is_active,
   },
+  {
+    title: 'Canjear Recompensas',
+    description: 'Canjea las recompensas de tus clientes.',
+    icon: 'tabler-gift',
+    url: '/empresa/recompensas',
+    isDisabled: false,
+  },
 
 ]
 

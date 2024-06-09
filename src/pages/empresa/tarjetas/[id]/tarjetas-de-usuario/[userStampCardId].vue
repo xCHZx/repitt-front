@@ -83,9 +83,21 @@ onMounted(() => {
         </VCardText>
       </div>
 
-      <VCardText class="text-center text-h4 font-weight-bold">
+      <VCardText class="text-center text-h4 font-weight-bold ma-0 pa-0">
         {{ data?.user?.first_name }} {{ data?.user?.last_name }}
       </VCardText>
+      <div v-if="!data?.is_reward_redeemed && data?.is_completed">
+        <VCardText class="text-center">
+          <VBtn
+            prepend-icon="tabler-gift"
+            color="warning"
+            block
+            @click="redeemReward"
+          >
+            Redimir recompensa
+          </VBtn>
+        </VCardText>
+      </div>
 
       <StampCardDetailsAsVisitor
         v-if="data?.stamp_card"
@@ -100,18 +112,6 @@ onMounted(() => {
         :stamp-icon="data?.stamp_card?.stamp_icon_path"
         :visits="data?.visits"
       />
-      <div v-if="!data?.is_reward_redeemed && data?.is_completed">
-        <VCardText class="text-center">
-          <VBtn
-            prepend-icon="tabler-gift"
-            color="warning"
-            block
-            @click="redeemReward"
-          >
-            Redimir recompensa
-          </VBtn>
-        </VCardText>
-      </div>
     </VCol>
   </VRow>
   <!-- 👉 Fin de StampCard Details  -->
