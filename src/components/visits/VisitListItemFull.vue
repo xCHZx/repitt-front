@@ -20,7 +20,7 @@ const formatDate = (date: string, options: any) => {
       class="mt-3"
     >
       <VCardText>
-        <div class="d-flex align-center">
+        <div class="d-flex align-center ma-n3">
           <div>
             <h5 class="text-h5">
               <VAvatar
@@ -43,6 +43,7 @@ const formatDate = (date: string, options: any) => {
                 size="small"
                 icon="tabler-calendar"
                 color="primary"
+                class="mb-1"
               />
               {{ formatDate(visit?.created_at) }}
             </h5>

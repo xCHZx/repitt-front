@@ -28,7 +28,7 @@ const goToUserStampCard = (stampCardId: string, userStampCardId: string) => {
       @click="goToUserStampCard(visit?.visitable_id, visit?.user_stamp_card_id)"
     >
       <VCardText>
-        <div class="d-flex align-center">
+        <div class="d-flex align-center ma-n3">
           <div>
             <h5 class="text-h5">
               <VAvatar
@@ -51,12 +51,14 @@ const goToUserStampCard = (stampCardId: string, userStampCardId: string) => {
                 size="small"
                 icon="tabler-calendar"
                 color="primary"
+                class="mb-1"
               />
               {{ formatDate(visit?.created_at) }}
               <VIcon
                 size="small"
                 icon="tabler-user"
                 color="primary"
+                class="mb-1"
               />
               {{ visit?.user?.first_name }} {{ visit?.user?.last_name }}
             </h5>

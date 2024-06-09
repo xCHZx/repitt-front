@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Swal from 'sweetalert2'
 import { QrcodeStream } from 'vue-qrcode-reader'
+import { VCardText } from 'vuetify/lib/components/index.mjs'
 import { getAllActiveStampCardsByBusinessIdAsCurrentCompany } from '@/services/company/stampCards'
 import { registerVisitAsCompany } from '@/services/company/visits'
 import { useCompanyStore } from '@/stores/company'
@@ -170,12 +171,17 @@ const onSubmit = async () => {
   <VForm @submit.prevent="onSubmit">
     <VRow>
       <VCol cols="12">
-        <VSelect
-          v-model="selectedStampCard"
-          :items="stampCardList"
-          label="Selecciona una tarjeta"
-          prepend-icon="tabler-cards"
-        />
+        <VCard class="pa-4">
+          <VCardText class="text-center text-h5 font-weight-bold mt-0 pt-0">
+            ¿Para cual tarjeta deseas registrar la visita?
+          </VCardText>
+          <VSelect
+            v-model="selectedStampCard"
+            :items="stampCardList"
+            label="Selecciona una tarjeta"
+            prepend-icon="tabler-cards"
+          />
+        </VCard>
       </VCol>
       <VCol cols="12">
         <VCard class="pa-4">
@@ -191,6 +197,31 @@ const onSubmit = async () => {
               </p>
             </div>
           </QrcodeStream>
+          <div v-if="isCameraAvailable === true">
+            <VBtn
+              block
+              variant="plain"
+              size="x-small"
+              @click="reloadPage"
+            >
+              Reiniciar cámara
+              <VIcon
+                end
+                icon="tabler-reload"
+              />
+            </VBtn>
+          </div>
+          <div class="mt-2">
+            <h4 class="text-center">
+              O bien, ingresa el código Repitt del cliente manualmente:
+            </h4>
+            <VTextField
+              v-model="formattedQrCodeValue"
+              label="Código del Cliente"
+              outlined
+              class="py-4 pb-0"
+            />
+          </div>
         </VCard>
       </VCol>
     </VRow>
@@ -201,47 +232,9 @@ const onSubmit = async () => {
             Error: {{ error }}
           </p>
         </div>
-        <div v-if="isCameraAvailable === true">
-          <VBtn
-            block
-            size="small"
-            @click="reloadPage"
-          >
-            Reiniciar cámara
-            <VIcon
-              end
-              icon="tabler-reload"
-            />
-          </VBtn>
-        </div>
-      </VCol>
-    <!--
-      <VCol cols="12">
-      <VSelect
-      v-model="selectedStampCard"
-      :items="stampCardList"
-      label="Selecciona una tarjeta"
-      />
-      </VCol>
-    -->
-    </VRow>
-
-    <VRow>
-      <VCol cols="12">
-        <h4 class="text-center">
-          O bien, ingresa el código Repitt del cliente manualmente:
-        </h4>
-        <VTextField
-          v-model="formattedQrCodeValue"
-          label="Código del Cliente"
-
-          outlined
-          class="py-4"
-        />
       </VCol>
     </VRow>
-
-    <VRow>
+    <VRow class="pt-0 mt-n6">
       <VCol>
         <div v-if="qrCodeValue">
           <h4 class="text-center">

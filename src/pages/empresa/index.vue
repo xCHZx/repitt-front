@@ -143,7 +143,7 @@ onBeforeMount(async () => {
             variant="tonal"
             density="compact"
             style="white-space: normal;"
-            class="pb-2 text-left mb-6 mt-2"
+            class="pb-2 text-left mb-0 mt-1"
           >
             <p class="mb-0">
               Tu negocio está <strong>ACTIVO.</strong>
@@ -157,7 +157,7 @@ onBeforeMount(async () => {
             variant="tonal"
             density="compact"
             style="white-space: normal;"
-            class="pb-2 text-left mb-6 mt-2"
+            class="pb-2 text-left mb-0 mt-1"
           >
             <p class="mb-0">
               Tu negocio está <strong>INACTIVO.</strong>
@@ -168,7 +168,7 @@ onBeforeMount(async () => {
       <div
         v-for="item in menuItems"
         :key="item.title"
-        class="py-2"
+        class="py-1"
       >
         <MainMenuItemList
           :title="item.title"

@@ -30,12 +30,12 @@ onMounted(() => {
 <template>
   <div v-if="authStore.subscriptionStatus === 'active' || authStore.subscriptionStatus === 'trialing'">
     <VCardText>
-      <div class="text-center text-h1 font-weight-bold">
+      <div class="text-center text-h2 font-weight-bold">
         ¡Ya tienes una suscripción activa!
       </div>
     </VCardText>
     <VCardText>
-      <div class="text-center text-h3 font-weight-bold">
+      <div class="text-center text-h5">
         Accede a tu portal de administración de suscripciones aquí
       </div>
       <div class="text-center mt-4">
@@ -44,14 +44,14 @@ onMounted(() => {
           color="primary"
           @click="goToBillingPortal"
         >
-          Panel de administración de suscripciones
+          Ir al panel
           <VIcon
             end
             icon="tabler-credit-card"
           />
         </VBtn>
       </div>
-      <div class="text-center text-h5 mt-6">
+      <div class="text-center text-h6 mt-6">
         Si necesitas ayuda, por favor contáctanos al correo
         <VIcon
           class="mx-2"

@@ -36,18 +36,15 @@ onMounted(() => {
 <template>
   <VRow>
     <VCol cols="12">
-      <VCardText class="text-center text-h3 font-weight-bold">
+      <VCardText class="text-center text-h4 font-weight-bold">
         Historial de Visitas
-      </VCardText>
-      <VCardText class="text-center text-h5 font-weight-bold">
-        {{ companyStore.selectedCompany.name || 'No disponible' }}
       </VCardText>
       <div>
         <VRow>
           <VCol cols="12">
-            <VCardText class="text-center pt-2">
+            <VCardText class="text-center pt-1">
               <h5 class="text-h5">
-                Total de Visitas: {{ data?.visits_count || 'No disponible' }}
+                Total de Visitas: <span class="font-weight-bold">  {{ data?.visits_count || 'No disponible' }}</span>
               </h5>
             </VCardText>
             <CompanyVisitListItemFull
