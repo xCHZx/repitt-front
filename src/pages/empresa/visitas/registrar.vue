@@ -13,12 +13,6 @@ definePage({
   },
 })
 
-// import { useRouter } from 'vue-router'
-
-// const router = useRouter()
-
-// const route: any = useRoute()
-
 const companyStore = useCompanyStore()
 
 const router = useRouter()
@@ -38,11 +32,9 @@ const stampCardList = ref(
   ],
 )
 
-// const stampCardIdFromUrl = ref(route.query.sc)
-
-// // console.log('stampCardIdFromUrl', stampCardIdFromUrl.value)
-
 const selectedStampCard = ref()
+
+const isQrScanned = ref(false)
 
 const getData = async () => {
   try {
@@ -87,9 +79,9 @@ const reloadPage = () => {
 }
 
 const onDetect = (result: any[]) => {
-  // console.log('onDetect', result)
   paused.value = true
   qrCodeValue.value = result[0].rawValue
+  isQrScanned.value = true
 
   // console.log(qrCodeValue.value)
 }
@@ -196,6 +188,25 @@ const onSubmit = async () => {
                 Cargando cámara...
               </p>
             </div>
+
+            <div
+              v-if="isQrScanned === true"
+              class="qr-scanned"
+            >
+              <!--
+                <p class="text-center">
+                Código escaneado: {{ qrCodeValue }}
+                </p>
+              -->
+              <VCardText>
+                <VIcon
+                  size="150"
+                  color="success"
+                  icon="tabler-camera-check"
+                  class="text-center mt-4"
+                />
+              </VCardText>
+            </div>
           </QrcodeStream>
           <div v-if="isCameraAvailable === true">
             <VBtn
@@ -255,3 +266,22 @@ const onSubmit = async () => {
     </VRow>
   </VForm>
 </template>
+
+<style scoped>
+.qr-scanned {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.4rem;
+  color: black;
+
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+}
+</style>
