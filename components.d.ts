@@ -35,7 +35,6 @@ declare module 'vue' {
     CardStatisticsVerticalSimple: typeof import('./src/@core/components/CardStatisticsVerticalSimple.vue')['default']
     CompanyVisitListItemFull: typeof import('./src/components/visits/CompanyVisitListItemFull.vue')['default']
     ConfirmDialog: typeof import('./src/components/dialogs/ConfirmDialog.vue')['default']
-    copy: typeof import('./src/components/stampCards/StampCardListItemAsBusiness copy.vue')['default']
     CreateAppDialog: typeof import('./src/components/dialogs/CreateAppDialog.vue')['default']
     CustomCheckboxes: typeof import('./src/@core/components/app-form-elements/CustomCheckboxes.vue')['default']
     CustomCheckboxesWithIcon: typeof import('./src/@core/components/app-form-elements/CustomCheckboxesWithIcon.vue')['default']
@@ -75,12 +74,10 @@ declare module 'vue' {
     TwoFactorAuthDialog: typeof import('./src/components/dialogs/TwoFactorAuthDialog.vue')['default']
     UserInfoEditDialog: typeof import('./src/components/dialogs/UserInfoEditDialog.vue')['default']
     UserQrCard: typeof import('./src/components/users/UserQrCard.vue')['default']
-    UserStampCardListAsCompany: typeof import('./src/components/stampCards/UserStampCardListAsCompany.vue')['default']
     UserStampCardWaitingRedeemListAsCompany: typeof import('./src/components/stampCards/UserStampCardWaitingRedeemListAsCompany.vue')['default']
     UserUpgradePlanDialog: typeof import('./src/components/dialogs/UserUpgradePlanDialog.vue')['default']
     UserWithCountListItem: typeof import('./src/components/general/UserWithCountListItem.vue')['default']
     VisitListItemFull: typeof import('./src/components/visits/VisitListItemFull.vue')['default']
     VisitListSimple: typeof import('./src/components/visits/VisitListSimple.vue')['default']
-    VueApexCharts: typeof import('vue3-apexcharts')['default']
   }
 }
