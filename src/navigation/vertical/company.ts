@@ -38,6 +38,11 @@ export default [
     to: { name: 'empresa-visitas-registrar' },
     icon: { icon: 'tabler-qrcode' },
   },
+  {
+    title: 'Canjear Recompensas',
+    to: { name: 'empresa-recompensas' },
+    icon: { icon: 'tabler-gift' },
+  },
 
   // {
   //   title: 'PRUEBA COMPANY',
