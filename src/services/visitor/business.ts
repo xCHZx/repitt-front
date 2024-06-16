@@ -2,7 +2,7 @@ import { authAxios } from '../axios'
 
 const baseUrl = '/visitor/business'
 
-const getBusinessByIdAsVisitor = async (businessId: string) => {
+const getBusinessByRepittCodeAsVisitor = async (businessId: string) => {
   return await authAxios.get(`${baseUrl}/${businessId}`)
     .then(response => {
       // console.log('Business fetched successfully', response.data.data)
@@ -15,5 +15,5 @@ const getBusinessByIdAsVisitor = async (businessId: string) => {
 }
 
 export {
-  getBusinessByIdAsVisitor,
+  getBusinessByRepittCodeAsVisitor,
 }

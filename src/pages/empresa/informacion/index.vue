@@ -95,6 +95,24 @@ const goToDownloadFlyer = async () => {
   }
 }
 
+const goToPublicPage = (businessRepittCode: string) => {
+  const url = `/visitante/negocios/${businessRepittCode}`
+
+  window.open(url, '_blank')
+}
+
+const copyPublicLink = () => {
+  const url = `${window.location.origin}/visitante/negocios/${data.value?.business_repitt_code}`
+
+  navigator.clipboard.writeText(url).then(() => {
+    Swal.fire({
+      icon: 'success',
+      title: 'Link copiado',
+      text: 'El link de tu negocio ha sido copiado correctamente.',
+    })
+  })
+}
+
 onMounted(() => {
   getData()
 })
@@ -109,6 +127,7 @@ onMounted(() => {
         :address="data?.address"
         :phone="data?.phone"
         :segment="data?.segment?.name"
+        :business-repitt-code="data?.business_repitt_code"
         :opening-hours="data?.opening_hours"
         :logo-path="data?.logo_path"
         :created-at="data?.created_at"
@@ -189,6 +208,44 @@ onMounted(() => {
         </VBtn>
       </div>
       <div class="mt-4">
+        <VRow>
+          <VCol cols="8">
+            <VBtn
+              block
+              size="small"
+              color="info"
+              @click="goToPublicPage(data?.business_repitt_code)"
+            >
+              Página pública
+              <!--
+                <VIcon
+                end
+                icon="tabler-photo-star"
+                />
+              -->
+              <VIcon
+                end
+                icon="tabler-world"
+              />
+            </VBtn>
+          </VCol>
+          <VCol cols="4">
+            <VBtn
+              block
+              size="small"
+              color="info"
+              @click="copyPublicLink"
+            >
+              Copiar link
+              <VIcon
+                end
+                icon="tabler-copy"
+              />
+            </VBtn>
+          </VCol>
+        </VRow>
+      </div>
+      <div class="mt-4">
         <VBtn
           block
           size="small"
@@ -196,12 +253,6 @@ onMounted(() => {
           @click="goToDownloadFlyer"
         >
           Descargar flyer promocional
-          <!--
-            <VIcon
-            end
-            icon="tabler-photo-star"
-            />
-          -->
           <VIcon
             end
             icon="tabler-download"

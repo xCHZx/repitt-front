@@ -63,7 +63,7 @@ declare module 'vue-router/auto/routes' {
     'empresa-visitas': RouteRecordInfo<'empresa-visitas', '/empresa/visitas', Record<never, never>, Record<never, never>>,
     'empresa-visitas-registrar': RouteRecordInfo<'empresa-visitas-registrar', '/empresa/visitas/registrar', Record<never, never>, Record<never, never>>,
     'visitante': RouteRecordInfo<'visitante', '/visitante', Record<never, never>, Record<never, never>>,
-    'visitante-negocios-id': RouteRecordInfo<'visitante-negocios-id', '/visitante/negocios/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'visitante-negocios-business-repitt-code': RouteRecordInfo<'visitante-negocios-business-repitt-code', '/visitante/negocios/:businessRepittCode', { businessRepittCode: ParamValue<true> }, { businessRepittCode: ParamValue<false> }>,
     'visitante-perfil': RouteRecordInfo<'visitante-perfil', '/visitante/perfil', Record<never, never>, Record<never, never>>,
     'visitante-perfil-qr': RouteRecordInfo<'visitante-perfil-qr', '/visitante/perfil/qr', Record<never, never>, Record<never, never>>,
     'visitante-tarjetas': RouteRecordInfo<'visitante-tarjetas', '/visitante/tarjetas', Record<never, never>, Record<never, never>>,

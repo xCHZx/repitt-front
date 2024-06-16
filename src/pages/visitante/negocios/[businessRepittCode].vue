@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Swal from 'sweetalert2'
-import { getBusinessByIdAsVisitor } from '@/services/visitor/business'
+import { getBusinessByRepittCodeAsVisitor } from '@/services/visitor/business'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 
@@ -17,11 +17,11 @@ const router = useRouter()
 const route: any = useRoute()
 
 const data: any = ref({})
-const businessId = route.params.id
+const businessId = route.params.businessRepittCode
 
 const getData = async () => {
   try {
-    data.value = await getBusinessByIdAsVisitor(businessId)
+    data.value = await getBusinessByRepittCodeAsVisitor(businessId)
   }
   catch (error: any) {
     Swal.fire({
@@ -69,6 +69,7 @@ onMounted(() => {
           :address="data?.address"
           :phone="data?.phone"
           :segment="data?.segment?.name"
+          :business-repitt-code="data?.business_repitt_code"
           :opening-hours="data?.opening_hours"
           :logo-path="data?.logo_path"
           :created-at="data?.created_at"

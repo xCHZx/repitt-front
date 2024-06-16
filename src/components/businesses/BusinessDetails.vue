@@ -8,6 +8,7 @@ interface Props {
   openingHours?: string
   logoPath?: string
   createdAt?: string
+  businessRepittCode?: string
 }
 
 const props = defineProps<Props>()
@@ -40,6 +41,20 @@ const props = defineProps<Props>()
       >
         {{ props.segment }}
       </span>
+
+      <div class="d-flex flex-wrap justify-center gap-x-5 mb-0 mt-3 align">
+        <VChip
+          color="primary"
+          size="x-small"
+        >
+          <VIcon
+            start
+            icon="tabler-barcode"
+            size="x-small"
+          />
+          <div>{{ props.businessRepittCode }}</div>
+        </VChip>
+      </div>
 
       <h5 class="text-h5 mt-3 text-weight font-weight-bold">
         {{ props.description }}
