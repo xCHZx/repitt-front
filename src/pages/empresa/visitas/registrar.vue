@@ -22,6 +22,8 @@ const qrCodeValue = ref()
 const isCameraAvailable = ref(false)
 const error = ref()
 
+const isDialogVisible = ref(false)
+
 const stampCardList = ref(
   [
     {
@@ -83,6 +85,8 @@ const onDetect = (result: any[]) => {
   qrCodeValue.value = result[0].rawValue
   isQrScanned.value = true
 
+  isDialogVisible.value = true
+
   // console.log(qrCodeValue.value)
 }
 
@@ -117,6 +121,7 @@ const formData = ref({
 })
 
 const onSubmit = async () => {
+  isDialogVisible.value = false
   try {
     if (!selectedStampCard.value || selectedStampCard.value === null)
       throw new Error('Selecciona una tarjeta')
@@ -162,19 +167,6 @@ const onSubmit = async () => {
 <template>
   <VForm @submit.prevent="onSubmit">
     <VRow>
-      <VCol cols="12">
-        <VCard class="pa-4">
-          <VCardText class="text-center text-h5 font-weight-bold mt-0 pt-0">
-            ¿Para cual tarjeta deseas registrar la visita?
-          </VCardText>
-          <VSelect
-            v-model="selectedStampCard"
-            :items="stampCardList"
-            label="Selecciona una tarjeta"
-            prepend-icon="tabler-cards"
-          />
-        </VCard>
-      </VCol>
       <VCol cols="12">
         <VCard class="pa-4">
           <QrcodeStream
@@ -224,14 +216,26 @@ const onSubmit = async () => {
           </div>
           <div class="mt-2">
             <h4 class="text-center">
-              O bien, ingresa el código Repitt del cliente manualmente:
+              O bien, ingresa el código Repitt del cliente o de la tarjeta manualmente:
             </h4>
             <VTextField
               v-model="formattedQrCodeValue"
-              label="Código del Cliente"
+              label="Código del Cliente o Tarjeta"
               outlined
               class="py-4 pb-0"
             />
+          </div>
+          <div
+            v-if="qrCodeValue"
+            class="mt-4"
+          >
+            <VBtn
+              block
+              color="success"
+              @click="isDialogVisible = true"
+            >
+              Siguiente
+            </VBtn>
           </div>
         </VCard>
       </VCol>
@@ -245,26 +249,78 @@ const onSubmit = async () => {
         </div>
       </VCol>
     </VRow>
-    <VRow class="pt-0 mt-n6">
-      <VCol>
-        <div v-if="qrCodeValue">
-          <h4 class="text-center">
-            Código del Cliente:
-          </h4>
-          <h2 class="text-center">
-            {{ qrCodeValue }}
-          </h2>
-          <VBtn
-            block
-            color="success"
-            type="submit"
-          >
-            Registrar visita
-          </VBtn>
-        </div>
-      </VCol>
-    </VRow>
   </VForm>
+
+  <VDialog
+    v-model="isDialogVisible"
+    title="Selecciona una tarjeta"
+    width="500"
+  >
+    <DialogCloseBtn @click="isDialogVisible = !isDialogVisible" />
+    <VCard title="Paso 2">
+      <VRow v-if="qrCodeValue.length === 11">
+        <VCol cols="12">
+          <VCardText>
+            <div class="text-center">
+              <VIcon
+                size="80"
+                color="success"
+                icon="tabler-camera-check"
+              />
+            </div>
+            <div>
+              <div class="text-center text-h4">
+                Código escaneado: <strong>{{ qrCodeValue }}</strong>
+              </div>
+            </div>
+            <VCardText class="text-center text-h5 font-weight-bold mt-2 pt-0">
+              ¿Para cual tarjeta deseas registrar la visita?
+            </VCardText>
+            <VSelect
+              v-model="selectedStampCard"
+              :items="stampCardList"
+              label="Selecciona una tarjeta"
+              prepend-icon="tabler-cards"
+            />
+          </VCardText>
+        </VCol>
+      </VRow>
+      <VRow
+        v-if="qrCodeValue.length === 11 || qrCodeValue.length === 15"
+        class="mt-n8"
+      >
+        <VCol cols="12">
+          <VCardText>
+            <VBtn
+              color="success"
+              block
+              @click="onSubmit"
+            >
+              Registrar Visita
+            </VBtn>
+          </VCardText>
+        </VCol>
+      </VRow>
+      <VRow
+        v-else
+        class="mt-n8"
+      >
+        <VCol cols="12">
+          <VCardText>
+            <VAlert
+              type="error"
+              elevation="2"
+              colored-border
+            >
+              <p class="mb-0">
+                El código Repitt no es válido.
+              </p>
+            </VAlert>
+          </VCardText>
+        </VCol>
+      </VRow>
+    </VCard>
+  </VDialog>
 </template>
 
 <style scoped>
