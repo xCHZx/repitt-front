@@ -11,7 +11,8 @@ definePage({
 })
 
 const route: any = useRoute()
-const router = useRouter()
+
+const isDialogVisible = ref(false)
 
 const data: any = ref({})
 
@@ -27,10 +28,6 @@ const getData = async () => {
       text: Array.isArray(error) ? error.join('\n') : error,
     })
   }
-}
-
-const goToQr = (stampCardName: string) => {
-  router.push(`/visitante/perfil/qr?sc=${stampCardName}`)
 }
 
 const reloadPage = () => {
@@ -95,7 +92,7 @@ onMounted(() => {
         <VCardText class="text-center">
           <VBtn
             block
-            @click="goToQr(data?.stamp_card?.name)"
+            @click="isDialogVisible = true"
           >
             Sellar tarjeta
           </VBtn>
@@ -131,4 +128,45 @@ onMounted(() => {
     </VRow>
   </div>
   <!-- Fin de Visitas  -->
+
+  <!-- 👉 Dialog  -->
+  <VDialog
+    v-model="isDialogVisible"
+    title="Selecciona una tarjeta"
+    width="500"
+  >
+    <DialogCloseBtn @click="isDialogVisible = !isDialogVisible" />
+    <VCard title="QR de tu Tarjeta">
+      <VRow>
+        <VCol cols="12">
+          <VCardText class="text-center">
+            <p>
+              El negocio puede escanear este código QR para sellar tu tarjeta.
+            </p>
+            <VImg
+              :src="data?.qr_path"
+              alt="QR de tu Tarjeta"
+              width="100%"
+            />
+            <div>
+              <span>
+                Código Repitt de tu Tarjeta:
+              </span>
+              <br>
+              <VChip
+                color="primary"
+                size="large"
+              >
+                <VIcon
+                  start
+                  icon="tabler-barcode"
+                />
+                <h1>{{ data?.userstampcard_repitt_code }}</h1>
+              </VChip>
+            </div>
+          </VCardText>
+        </VCol>
+      </VRow>
+    </VCard>
+  </VDialog>
 </template>
