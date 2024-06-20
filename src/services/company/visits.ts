@@ -14,6 +14,18 @@ const registerVisitAsCompany = async (payload: any) => {
     })
 }
 
+const registerVisitByUserStampCardAsCompany = async (payload: any) => {
+  return await authAxios.post(`${baseUrl}/user-stampcard`, payload)
+    .then(response => {
+      // console.log('register Visit By User StampCard As Company', response.data)
+
+      return response.data
+    })
+    .catch(error => {
+      throw error.response.data.message
+    })
+}
+
 const getAllVisitsByStampCardIdAsCurrentCompany = async (id: number) => {
   return await authAxios.get(`${baseUrl}/stampcard/${id}/logged-user`)
     .then(response => {
@@ -38,4 +50,4 @@ const getAllVisitsByBusinessIdAsCurrentCompany = async (id: number) => {
     })
 }
 
-export { getAllVisitsByBusinessIdAsCurrentCompany, getAllVisitsByStampCardIdAsCurrentCompany, registerVisitAsCompany }
+export { getAllVisitsByBusinessIdAsCurrentCompany, getAllVisitsByStampCardIdAsCurrentCompany, registerVisitAsCompany, registerVisitByUserStampCardAsCompany }

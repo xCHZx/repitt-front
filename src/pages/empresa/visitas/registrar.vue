@@ -3,7 +3,7 @@ import Swal from 'sweetalert2'
 import { QrcodeStream } from 'vue-qrcode-reader'
 import { VCardText } from 'vuetify/lib/components/index.mjs'
 import { getAllActiveStampCardsByBusinessIdAsCurrentCompany } from '@/services/company/stampCards'
-import { registerVisitAsCompany } from '@/services/company/visits'
+import { registerVisitAsCompany, registerVisitByUserStampCardAsCompany } from '@/services/company/visits'
 import { useCompanyStore } from '@/stores/company'
 
 definePage({
@@ -121,37 +121,57 @@ const formData = ref({
 })
 
 const onSubmit = async () => {
-  isDialogVisible.value = false
   try {
-    if (!selectedStampCard.value || selectedStampCard.value === null)
-      throw new Error('Selecciona una tarjeta')
+    if (formattedQrCodeValue.value.length === 11) {
+      if (!selectedStampCard.value || selectedStampCard.value === null)
+        throw new Error('Selecciona una tarjeta')
 
-    if (!formattedQrCodeValue.value)
-      throw new Error('Ingresa un código Repitt')
+      formData.value.repittCode = formattedQrCodeValue.value
+      formData.value.stampCardId = selectedStampCard.value
 
-    if (formattedQrCodeValue.value.length !== 11)
-      throw new Error('El código Repitt no es válido')
+      const payload = {
+        stamp_card_id: formData.value.stampCardId,
+        user_repitt_code: formData.value.repittCode,
+      }
 
-    formData.value.repittCode = formattedQrCodeValue.value
-    formData.value.stampCardId = selectedStampCard.value
+      // console.log(formData.value)
+      await registerVisitAsCompany(payload)
 
-    const payload = {
-      stamp_card_id: formData.value.stampCardId,
-      user_repitt_code: formData.value.repittCode,
+      Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: 'Visita registrada correctamente.',
+        confirmButtonText: 'Aceptar',
+      }).then(async result => {
+        if (result.isConfirmed || result.isDismissed)
+          router.push('/empresa/')
+      })
     }
+    else if (formattedQrCodeValue.value.length === 15) {
+      formData.value.repittCode = formattedQrCodeValue.value
 
-    // console.log(formData.value)
-    await registerVisitAsCompany(payload)
+      // formData.value.stampCardId = selectedStampCard.value
 
-    Swal.fire({
-      icon: 'success',
-      title: 'Éxito',
-      text: 'Visita registrada correctamente.',
-      confirmButtonText: 'Aceptar',
-    }).then(async result => {
-      if (result.isConfirmed || result.isDismissed)
-        router.push('/empresa/')
-    })
+      const payload = {
+        userstampcard_repitt_code: formData.value.repittCode,
+      }
+
+      // console.log(formData.value)
+      await registerVisitByUserStampCardAsCompany(payload)
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: 'Visita registrada correctamente.',
+        confirmButtonText: 'Aceptar',
+      }).then(async result => {
+        if (result.isConfirmed || result.isDismissed)
+          router.push('/empresa/')
+      })
+    }
+    else {
+      throw new Error('El código Repitt no es válido.')
+    }
   }
   catch (e: any) {
     console.error('Error creating Visit:', e)
@@ -161,6 +181,8 @@ const onSubmit = async () => {
       text: Array.isArray(e) ? e.join('\n') : e,
     })
   }
+
+  isDialogVisible.value = false
 }
 </script>
 
@@ -258,7 +280,7 @@ const onSubmit = async () => {
   >
     <DialogCloseBtn @click="isDialogVisible = !isDialogVisible" />
     <VCard title="Paso 2">
-      <VRow v-if="qrCodeValue.length === 11">
+      <VRow v-if="qrCodeValue.length === 11 || qrCodeValue.length === 15">
         <VCol cols="12">
           <VCardText>
             <div class="text-center">
@@ -270,10 +292,31 @@ const onSubmit = async () => {
             </div>
             <div>
               <div class="text-center text-h4">
-                Código escaneado: <strong>{{ qrCodeValue }}</strong>
+                Código escaneado:
+                <br>
+                <strong>{{ qrCodeValue }}</strong>
+              </div>
+              <div class="text-center">
+                <VChip
+                  color="primary"
+                  size="small"
+                >
+                  <div v-if="qrCodeValue.length === 11">
+                    Código de CLIENTE
+                  </div>
+                  <div v-else-if="qrCodeValue.length === 15">
+                    Código de TARJETA
+                  </div>
+                </VChip>
               </div>
             </div>
-            <VCardText class="text-center text-h5 font-weight-bold mt-2 pt-0">
+          </VCardText>
+        </VCol>
+      </VRow>
+      <VRow v-if="qrCodeValue.length === 11">
+        <VCol cols="12">
+          <VCardText>
+            <VCardText class="text-center text-h5 font-weight-bold mt-n6 pt-0">
               ¿Para cual tarjeta deseas registrar la visita?
             </VCardText>
             <VSelect
