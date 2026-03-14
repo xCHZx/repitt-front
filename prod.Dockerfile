@@ -6,14 +6,12 @@ WORKDIR /app
 # Instalamos pnpm globalmente
 RUN npm install -g pnpm@8.6.2
 
-# Copiamos TODOS los archivos de configuración de dependencias
-COPY package.json pnpm-lock.yaml ./
-
-# Instalamos dependencias usando pnpm de forma estricta y limpia
-RUN pnpm install --frozen-lockfile
-
-# Copiamos el resto del código
+# Copiamos TODOS los archivos primero.
+# Esto garantiza que el script "postinstall" de Vuexy encuentre el código fuente (src/...)
 COPY . .
+
+# Instalamos dependencias. El postinstall ahora se ejecutará exitosamente.
+RUN pnpm install --frozen-lockfile
 
 # Construimos la aplicación
 RUN pnpm run build
