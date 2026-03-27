@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import Swal from 'sweetalert2'
-import { requiredValidator } from '@/@core/utils/validators'
 import { sendRecoveryEmail } from '@/services/auth/auth'
-import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
-import { themeConfig } from '@themeConfig'
 
 definePage({
   meta: {
@@ -15,107 +11,170 @@ definePage({
 
 const router = useRouter()
 
-const form = ref({
-  email: '',
-})
+const email = ref('')
+const isLoading = ref(false)
+const error = ref<string | null>(null)
+const sent = ref(false)
 
-const submitForm = async () => {
-  const payload = {
-    email: form.value.email,
-  }
-
+const onSubmit = async () => {
+  error.value = null
+  isLoading.value = true
   try {
-    await sendRecoveryEmail(payload)
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Correo enviado',
-      text: 'Revisa tu bandeja de entrada, no olvides la bandeja de spam.',
-      confirmButtonText: 'Ok',
-    }).then(async result => {
-      if (result.isConfirmed || result.isDismissed)
-        await router.push('/auth/login')
-    })
+    await sendRecoveryEmail(email.value)
+    sent.value = true
   }
-  catch (error: any) {
-    console.error('Recovery email error:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    })
+  catch (e: any) {
+    error.value = Array.isArray(e) ? e.join('\n') : String(e)
+  }
+  finally {
+    isLoading.value = false
   }
 }
 </script>
 
 <template>
-  <div class="auth-wrapper d-flex align-center justify-center pa-4">
+  <div class="auth-page">
+    <!-- Brand -->
+    <div class="auth-brand">
+      <img
+        src="@/assets/images/logo-v2.png"
+        alt="Repitt"
+        class="brand-logo"
+      >
+    </div>
+
+    <!-- Card -->
     <VCard
-      class="auth-card pa-4"
-      max-width="448"
+      rounded="xl"
+      class="auth-card"
+      elevation="2"
     >
-      <VCardItem class="justify-center">
-        <template #prepend>
-          <div class="d-flex">
-            <VNodeRenderer :nodes="themeConfig.app.logo" />
+      <VCardText class="pa-6">
+        <!-- Success state -->
+        <template v-if="sent">
+          <div class="text-center mb-6">
+            <div class="success-icon mb-4">
+              <VIcon
+                icon="tabler-mail-check"
+                size="40"
+                color="success"
+              />
+            </div>
+            <div class="text-h6 font-weight-bold mb-2">
+              Correo enviado
+            </div>
+            <p class="text-body-2 text-medium-emphasis mb-0">
+              Revisa tu bandeja de entrada. Si el correo coincide con nuestros registros recibirás el enlace en los próximos minutos. No olvides revisar spam.
+            </p>
           </div>
+          <VBtn
+            block
+            size="large"
+            color="primary"
+            rounded="xl"
+            @click="router.push('/auth/login')"
+          >
+            Volver al inicio de sesión
+          </VBtn>
         </template>
 
-        <VCardTitle
-          class="font-weight-bold text-capitalize text-h5 py-1"
-          style="color: rgb(var(--v-global-theme-primary))"
-        >
-          {{ themeConfig.app.title }}
-        </VCardTitle>
-      </VCardItem>
-      <VCardText>
-        <h5 class="text-h4 mb-1 text-center">
-          <span>Recupera tu contraseña</span>
-        </h5>
-        <p class="text-center">
-          Ingresa tu correo electrónico y si coincide con nuestros registros, te enviaremos un enlace para restablecer tu contraseña.
-        </p>
-      </VCardText>
+        <!-- Form state -->
+        <template v-else>
+          <div class="text-h6 font-weight-bold mb-1">
+            Recuperar contraseña
+          </div>
+          <p class="text-body-2 text-medium-emphasis mb-5">
+            Ingresa el email de tu cuenta de negocio y te enviaremos un enlace para restablecer tu contraseña.
+          </p>
 
-      <VForm @submit.prevent="submitForm">
-        <VRow>
-          <!-- email -->
-          <VCol cols="12">
-            <VTextField
-              v-model="form.email"
-              type="email"
-              variant="outlined"
-              label="Email *"
-              placeholder="tucorreo@ejemplo.com"
-              prepend-icon="tabler-mail"
-              :rules="[requiredValidator, emailValidator]"
-              required
-            />
-          </VCol>
-        </VRow>
-        <VRow>
-          <VCol
-            cols="12"
-            class="text-center"
+          <VAlert
+            v-if="error"
+            color="error"
+            variant="tonal"
+            rounded="lg"
+            density="compact"
+            icon="tabler-alert-triangle"
+            class="mb-4"
           >
+            {{ error }}
+          </VAlert>
+
+          <VForm @submit.prevent="onSubmit">
+            <AppTextField
+              v-model="email"
+              autofocus
+              label="Email"
+              type="email"
+              placeholder="hola@negocio.com"
+              prepend-inner-icon="tabler-mail"
+              class="mb-5"
+            />
             <VBtn
               type="submit"
-              class="me-3"
+              block
+              size="large"
+              color="primary"
+              rounded="xl"
+              :loading="isLoading"
             >
-              Enviar
+              Enviar enlace
             </VBtn>
-          </VCol>
-        </VRow>
-      </VForm>
-      <VCardText>
-        <p class="text-center">
-          Una vez generado el enlace tendrás 30 minutos para restablecer tu contraseña.
-        </p>
+          </VForm>
+        </template>
+
+        <VDivider class="my-5" />
+
+        <div class="text-center text-body-2">
+          <RouterLink
+            to="/auth/login"
+            class="text-primary font-weight-medium"
+          >
+            ← Volver al inicio de sesión
+          </RouterLink>
+        </div>
       </VCardText>
     </VCard>
+
+    <div class="text-center mt-6">
+      <span class="text-caption text-disabled">Repitt © 2026</span>
+    </div>
   </div>
 </template>
 
-<style lang="scss">
-@use "@core/scss/template/pages/page-auth.scss";
+<style scoped>
+.auth-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, rgba(var(--v-theme-primary), 0.07) 0%, rgb(var(--v-theme-background)) 45%);
+  min-block-size: 100vh;
+  padding-block: 32px;
+  padding-inline: 16px;
+}
+
+.auth-brand {
+  margin-block-end: 28px;
+  text-align: center;
+}
+
+.brand-logo {
+  block-size: auto;
+  inline-size: 160px;
+}
+
+.auth-card {
+  inline-size: 100%;
+  max-inline-size: 420px;
+}
+
+.success-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(var(--v-theme-success), 0.1);
+  block-size: 80px;
+  inline-size: 80px;
+}
 </style>

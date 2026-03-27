@@ -1,17 +1,23 @@
 import { authAxios } from '../axios'
 
-const baseUrl = 'visitor/user'
+const baseUrl = '/users'
 
 const getCurrentVisitorData = async () => {
-  return await authAxios.get(`${baseUrl}/logged-user`)
+  return await authAxios.get(`${baseUrl}/me`)
     .then(response => {
-      // console.log('get Current Visitor Data', response.data.data[0])
-
-      return response.data.data[0]
+      return response.data.data
     })
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 
-export { getCurrentVisitorData }
+const updateCurrentVisitorData = async (data: { firstName?: string; lastName?: string; phone?: string }) => {
+  return await authAxios.patch(`${baseUrl}/me`, data)
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response?.data?.message || error.message
+    })
+}
+
+export { getCurrentVisitorData, updateCurrentVisitorData }

@@ -1,37 +1,25 @@
 <script setup lang="ts">
 import Swal from 'sweetalert2'
-import { useRoute } from 'vue-router'
 import { getUserStampCardByIdAsVisitor } from '@/services/visitor/userStampCards'
 
 definePage({
   meta: {
     requiresAuth: true,
     requiredRole: ['Visitor', 'Owner'],
+    layout: 'visitor',
   },
 })
 
-const route: any = useRoute()
-
-const isDialogVisible = ref(false)
-
-const data: any = ref({})
+const route = useRoute()
+const data = ref<any>(null)
 
 const getData = async () => {
   try {
-    data.value = await getUserStampCardByIdAsVisitor(route.params.id)
+    data.value = await getUserStampCardByIdAsVisitor(route.params.id as string)
   }
   catch (error: any) {
-    console.error('Error getting data:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    })
+    Swal.fire({ icon: 'error', title: 'Error', text: String(error) })
   }
-}
-
-const reloadPage = () => {
-  location.reload()
 }
 
 onMounted(() => {
@@ -40,133 +28,22 @@ onMounted(() => {
 </script>
 
 <template>
-  <VRow>
-    <!-- 👉 StampCard Details  -->
-    <VCol cols="12">
-      <div v-if="!data?.is_active">
-        <VCardText class="text-center ma-0 px-0 py-4">
-          <VAlert
-            color="error"
-            icon="tabler-alert-triangle"
-            variant="tonal"
-            density="compact"
-            style="white-space: normal;"
-          >
-            <p class="mb-0">
-              Esta tarjeta se ha <strong>desactivado</strong> por el negocio 😓
-            </p>
-          </VAlert>
-        </VCardText>
-      </div>
-
-      <div v-if="data?.is_completed && !data?.is_reward_redeemed">
-        <VCardText class="text-center ma-0 px-0 py-4">
-          <VAlert
-            color="success"
-            icon="tabler-gift"
-            variant="tonal"
-            density="compact"
-            style="white-space: normal;"
-          >
-            <div class="mb-0 text-h4">
-              ¡Felicidades! Has completado esta tarjeta. ¡Puedes canjear tu recompensa! 🎉
-            </div>
-          </VAlert>
-        </VCardText>
-      </div>
-
-      <StampCardDetailsAsVisitor
-        v-if="data?.stamp_card"
-        :business-name="data?.stamp_card?.business.name"
-        :reward="data?.stamp_card?.reward"
-        :description="data?.stamp_card?.description"
-        :required-stamps="data?.stamp_card?.required_stamps"
-        :visits-count="data?.visits_count"
-        :business-image="data?.stamp_card.business.logo_path"
-        :start-date="data?.stamp_card?.start_date"
-        :end-date="data?.stamp_card?.end_date"
-        :stamp-icon="data?.stamp_card?.stamp_icon_path"
-        :visits="data?.stamp_card?.visits"
-      />
-      <div v-if="data?.stamp_card?.is_active">
-        <VCardText class="text-center">
-          <VBtn
-            block
-            @click="isDialogVisible = true"
-          >
-            Sellar tarjeta
-          </VBtn>
-        </VCardText>
-        <VCardText class="text-center">
-          <VBtn
-            block
-            size="small"
-            color="secondary"
-            prepend-icon="tabler-reload"
-            variant="outlined"
-            @click="reloadPage"
-          >
-            Actualizar
-          </VBtn>
-        </VCardText>
-      </div>
-    </VCol>
-  </VRow>
-  <!-- 👉 Fin de StampCard Details  -->
-
-  <!-- 👉 Visitas  -->
-  <div v-if="data?.visits_count >= 1">
-    <VRow>
-      <VCol cols="12">
-        <VCardText class="text-center pt-5">
-          <h5 class="text-h5">
-            Visitas
-          </h5>
-        </VCardText>
-        <VisitListSimple :visits="data?.visits" />
-      </VCol>
-    </VRow>
-  </div>
-  <!-- Fin de Visitas  -->
-
-  <!-- 👉 Dialog  -->
-  <VDialog
-    v-model="isDialogVisible"
-    title="Selecciona una tarjeta"
-    width="500"
-  >
-    <DialogCloseBtn @click="isDialogVisible = !isDialogVisible" />
-    <VCard title="QR de tu Tarjeta">
-      <VRow>
-        <VCol cols="12">
-          <VCardText class="text-center">
-            <p>
-              El negocio puede escanear este código QR para sellar tu tarjeta.
-            </p>
-            <VImg
-              :src="data?.qr_path"
-              alt="QR de tu Tarjeta"
-              width="100%"
-            />
-            <div>
-              <span>
-                Código Repitt de tu Tarjeta:
-              </span>
-              <br>
-              <VChip
-                color="primary"
-                size="large"
-              >
-                <VIcon
-                  start
-                  icon="tabler-barcode"
-                />
-                <h1>{{ data?.userstampcard_repitt_code }}</h1>
-              </VChip>
-            </div>
-          </VCardText>
-        </VCol>
-      </VRow>
-    </VCard>
-  </VDialog>
+  <StampCardDetailsAsVisitor
+    v-if="data?.stampCard"
+    :business-name="data?.business?.name"
+    :reward="data?.stampCard?.reward"
+    :description="data?.stampCard?.description"
+    :required-stamps="data?.stampCard?.requiredStamps"
+    :visits-count="data?.visitsCount"
+    :business-image="data?.business?.logoPath"
+    :start-date="data?.stampCard?.startDate"
+    :end-date="data?.stampCard?.endDate"
+    :stamp-icon="data?.stampCard?.stampIconPath"
+    :primary-color="data?.stampCard?.primaryColor"
+    :is-completed="data?.isCompleted"
+    :is-reward-redeemed="data?.isRewardRedeemed"
+    :is-active="data?.isActive"
+    :visits="data?.visits"
+    :qr-path="data?.qrPath"
+  />
 </template>

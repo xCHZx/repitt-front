@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import Swal from 'sweetalert2'
 import { logoutUser } from '@/services/auth/auth'
-import { getAllBusinessAsCurrentCompany } from '@/services/company/businesses'
+import { getAllBusinessesMe } from '@/services/company/businesses'
+import { getSubscriptionStatus } from '@/services/subscription/subscription'
 import { refreshUserData } from '@/services/utils/utils'
 import { useCompanyStore } from '@/stores/company'
 
@@ -9,311 +9,198 @@ definePage({
   meta: {
     requiresAuth: true,
     requiredRole: ['Owner'],
+    layout: 'company',
   },
 })
 
 const companyStore = useCompanyStore()
-
-const menuItems = [
-  {
-    title: 'Información del Negocio',
-    description: 'Administra la información de tu negocio.',
-    icon: 'tabler-building-store',
-    url: '/empresa/informacion',
-    isDisabled: false,
-  },
-  {
-    title: 'Planes',
-    description: 'Gestiona tu plan de suscripción.',
-    icon: 'tabler-premium-rights',
-    url: '/empresa/planes',
-    isDisabled: false,
-  },
-  {
-    title: 'Métricas',
-    description: 'Visualiza la actividad de tus recompensas y clientes.',
-    icon: 'tabler-chart-histogram',
-    url: '/empresa/metricas',
-    isDisabled: false,
-  },
-  {
-    title: 'Tarjetas de Lealtad',
-    description: 'Administra las tarjetas de lealtad de tu negocio.',
-    icon: 'tabler-cards',
-    url: '/empresa/tarjetas',
-    isDisabled: false,
-  },
-  {
-    title: 'Visitas',
-    description: 'Visualiza el historial de visitas a tu negocio.',
-    icon: 'tabler-walk',
-    url: '/empresa/visitas',
-    isDisabled: false,
-  },
-  {
-    title: 'Registrar Visita',
-    description: 'Registra la visita de tu cliente con un código QR.',
-    icon: 'tabler-qrcode',
-    url: '/empresa/visitas/registrar',
-    isDisabled: !companyStore.selectedCompany.is_active,
-  },
-  {
-    title: 'Canjear Recompensas',
-    description: 'Canjea las recompensas de tus clientes.',
-    icon: 'tabler-gift',
-    url: '/empresa/recompensas',
-    isDisabled: false,
-  },
-
-]
-
-const businesses: any = ref({})
-const user: any = ref({})
-
-const isDialogVisible = ref(false)
-
 const router = useRouter()
+
+const planStatusLabel = computed(() => {
+  const sub = companyStore.businessSubscription
+  if (!sub) return 'Sin plan'
+  if (sub.cancelAtPeriodEnd && sub.cancelAt) {
+    const date = new Date(sub.cancelAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+    return `Cancela el ${date}`
+  }
+  if (sub.status === 'active') return 'Activo'
+  if (sub.status === 'trialing') return 'Prueba'
+  if (sub.status === 'past_due') return 'Pago pendiente'
+  if (sub.status === 'canceled') return 'Cancelado'
+  if (sub.status === 'paused') return 'Pausado'
+  return 'Sin plan'
+})
+
+const planStatusColor = computed(() => {
+  const sub = companyStore.businessSubscription
+  if (!sub) return 'error'
+  if (sub.cancelAtPeriodEnd) return 'warning'
+  if (sub.status === 'active') return 'success'
+  if (sub.status === 'trialing') return 'info'
+  if (sub.status === 'past_due') return 'warning'
+  return 'error'
+})
+const isDialogVisible = ref(false)
+const businesses: any = ref([])
+const user: any = ref(null)
+
+const quickActions = [
+  { icon: 'tabler-cards', label: 'Tarjetas', caption: 'De lealtad', to: '/empresa/tarjetas' },
+  { icon: 'tabler-walk', label: 'Visitas', caption: 'Historial', to: '/empresa/visitas' },
+  { icon: 'tabler-chart-histogram', label: 'Métricas', caption: 'Actividad', to: '/empresa/metricas' },
+  { icon: 'tabler-gift', label: 'Recompensas', caption: 'Canjear', to: '/empresa/recompensas' },
+]
 
 const getData = async () => {
   try {
-    businesses.value = await getAllBusinessAsCurrentCompany()
-    user.value = await refreshUserData()
+    const businessId = companyStore.selectedCompany?.id as number
+    const [businessList, userData, subscriptionData] = await Promise.all([
+      getAllBusinessesMe(),
+      refreshUserData(),
+      getSubscriptionStatus(businessId),
+    ])
+    businesses.value = businessList
+    user.value = userData.data
+    companyStore.setBusinessSubscription(subscriptionData)
   }
-  catch (error: any) {
-    console.error('Error getting data:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Por ahora no tienes negocios registrados.',
-    })
+  catch {
+    // silently ignore
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  const currentCode = companyStore.selectedCompany.businessRepittCode
+  if (!companyStore.selectedCompany.name || !currentCode) {
+    router.push('/empresa/seleccionar')
+    return
+  }
+  await companyStore.refreshCompany(currentCode)
   getData()
 })
 
-const goToUserHome = () => {
-  router.push('/visitante')
-}
-
 const logout = async () => {
   await logoutUser()
-  await router.push('auth/login')
+  await router.push('/auth/login')
 }
 
-const goToBusiness = (business: any) => {
-  companyStore.selectCompany(business)
-
-  router.push('/empresa/')
-
-  isDialogVisible.value = false
-}
-
-const goToPage = (url: string) => {
-  router.push(url)
-}
-
-const goToCreateBusiness = () => {
-  router.push('/empresa/crear')
-}
-
-onBeforeMount(async () => {
-  if (!companyStore.selectedCompany.name)
-    await router.push('/empresa/seleccionar')
-  else
-    await companyStore.refreshCompany(companyStore.selectedCompany.id)
-})
+const isActive = computed(() => companyStore.selectedCompany.isActive)
 </script>
 
 <template>
-  <VRow>
-    <VCol cols="12">
-      <VCardText>
-        <div class="text-center text-h3">
-          <VAvatar
-            size="50"
-            color="#FFFFFF"
-            class="mb-1"
-          >
-            <VImg
-              :src="companyStore.selectedCompany?.logo_path || undefined"
-              alt="Logo"
-            />
-          </VAvatar>
-          {{ companyStore.selectedCompany?.name || 'Bienvenido...' }}
-        </div>
-        <div v-if="companyStore.selectedCompany.is_active">
-          <VAlert
-            color="success"
-            icon="tabler-eye"
-            variant="tonal"
-            density="compact"
-            style="white-space: normal;"
-            class="pb-2 text-left mb-0 mt-1"
-          >
-            <p class="mb-0">
-              Tu negocio está <strong>ACTIVO.</strong>
-            </p>
-          </VAlert>
-        </div>
-        <div v-else>
-          <VAlert
-            color="error"
-            icon="tabler-alert-triangle"
-            variant="tonal"
-            density="compact"
-            style="white-space: normal;"
-            class="pb-2 text-left mb-0 mt-1"
-          >
-            <p class="mb-0">
-              Tu negocio está <strong>INACTIVO.</strong>
-            </p>
-          </VAlert>
-        </div>
-      </VCardText>
-      <div
-        v-for="item in menuItems"
-        :key="item.title"
-        class="py-1"
+  <div class="pa-0">
+    <!-- Business Header -->
+    <div class="d-flex align-center gap-3 mb-4">
+      <VAvatar
+        color="primary"
+        variant="tonal"
+        size="44"
       >
-        <MainMenuItemList
-          :title="item.title"
-          :description="item.description"
-          :icon="item.icon"
-          :url="item.url"
-          accent-color="#E0D9FF"
-          text-accent-color="#493599"
-          :disabled="item.isDisabled"
-          @click="goToPage(item.url)"
+        <VImg
+          v-if="companyStore.selectedCompany.logoPath"
+          :src="companyStore.selectedCompany.logoPath"
         />
-      </div>
-      <div class="d-flex flex-column justify-center mt-10">
-        <div class="text-center">
-          <VBtn
-            variant="text"
-
-            @click="isDialogVisible = true"
-          >
-            <VIcon
-              start
-              size="25"
-              icon="tabler-refresh"
-            />
-            Cambiar de Perfil
-          </VBtn>
-        </div>
-      </div>
-      <div class="d-flex flex-column justify-center mt-10">
-        <div class="text-center">
-          <VBtn
-            color="secondary"
-            variant="text"
-            @click="logout"
-          >
-            <VIcon
-              start
-              size="25"
-              icon="tabler-logout"
-            />
-            Cerrar Sesión
-          </VBtn>
-        </div>
-      </div>
-    </VCol>
-  </VRow>
-  <!-- Dialog Content  -->
-  <VDialog
-    v-model="isDialogVisible"
-    fullscreen
-    :scrim="false"
-    transition="dialog-bottom-transition"
-  >
-    <!-- Dialog Content -->
-    <VCard>
-      <!-- Toolbar -->
-      <div>
-        <VToolbar color="primary">
-          <VToolbarTitle>Cambiar de Perfil</VToolbarTitle>
-
-          <VSpacer />
-
-          <VToolbarItems>
-            <VBtn
-              icon
-              variant="plain"
-              @click="isDialogVisible = false"
-            >
-              <VIcon
-                color="white"
-                icon="tabler-x"
-              />
-            </VBtn>
-          </VToolbarItems>
-        </VToolbar>
-      </div>
-      <div class="px-4">
-        <!-- List -->
-        <VCardText>
-          <div class="text-center text-h5">
-            Perfil de Negocio
-          </div>
-        </VCardText>
-        <div
-          v-for="business in businesses"
-          :key="business.name"
-          class="py-3"
+        <span
+          v-else
+          class="text-h6 font-weight-bold"
         >
-          <BusinessListItem
-            :image="business.logo_path"
-            :business-name="business.name"
-            :segment="business.segment.name"
-            :description="business.description"
-            :is-active="business.is_active"
-            @click="goToBusiness(business)"
-          />
-        </div>
-        <VDivider class="my-5" />
-        <div>
-          <VCardText>
-            <div class="text-center text-h5">
-              Perfil de Visitante
-            </div>
-          </VCardText>
-          <MainMenuItemList
-            :title="user?.data.first_name"
-            :description="user?.data.repitt_code"
-            icon="tabler-user"
-            url="/visitante/"
-            @click="goToUserHome"
-          />
-        </div>
-        <div class="d-flex flex-column justify-center mt-10">
-          <div class="text-center">
-            <VBtn
-              variant="text"
-              color="success"
-              @click="goToCreateBusiness"
-            >
-              <VIcon
-                start
-                size="25"
-                icon="tabler-square-plus"
-              />
-              Crear nuevo Negocio
-            </VBtn>
-          </div>
-        </div>
+          {{ String(companyStore.selectedCompany?.name || 'R').charAt(0).toUpperCase() }}
+        </span>
+      </VAvatar>
+      <div class="flex-grow-1 overflow-hidden">
+        <p class="text-h6 font-weight-bold mb-0 text-truncate">
+          {{ companyStore.selectedCompany?.name || 'Mi Negocio' }}
+        </p>
+        <VChip
+          :color="isActive ? 'success' : 'error'"
+          size="x-small"
+          variant="tonal"
+        >
+          {{ isActive ? 'Activo' : 'Inactivo' }}
+        </VChip>
       </div>
+    </div>
 
-      <!-- List -->
+    <!-- Primary CTA: Registrar Visita -->
+    <HeroCTACard
+      icon="tabler-qrcode"
+      title="Registrar Visita"
+      :subtitle="isActive ? 'Escanea el código QR de tu cliente' : 'Negocio inactivo'"
+      to="/empresa/visitas/registrar"
+      :disabled="!isActive"
+      class="mb-4"
+    />
+
+    <!-- Quick Actions Grid -->
+    <VRow dense class="mb-2">
+      <VCol
+        v-for="action in quickActions"
+        :key="action.to"
+        cols="6"
+      >
+        <QuickActionCard v-bind="action" />
+      </VCol>
+    </VRow>
+
+    <!-- Secondary Actions List -->
+    <VCard
+      rounded="xl"
+      class="mb-4"
+    >
+      <VList>
+        <VListItem
+          prepend-icon="tabler-building-store"
+          title="Información del Negocio"
+          subtitle="Edita los datos de tu negocio"
+          append-icon="tabler-chevron-right"
+          to="/empresa/informacion"
+        />
+        <VDivider />
+        <VListItem
+          prepend-icon="tabler-crown"
+          title="Mi Plan"
+          append-icon="tabler-chevron-right"
+          to="/empresa/planes"
+        >
+          <template #subtitle>
+            <VChip
+              :color="planStatusColor"
+              size="x-small"
+              variant="tonal"
+              class="mt-1"
+            >
+              {{ planStatusLabel }}
+            </VChip>
+          </template>
+        </VListItem>
+      </VList>
     </VCard>
-  </VDialog>
-</template>
 
-<style lang="scss">
-.dialog-bottom-transition-enter-active,
-.dialog-bottom-transition-leave-active {
-  transition: transform 0.2s ease-in-out;
-}
-</style>
+    <!-- Footer -->
+    <div class="d-flex justify-center gap-4 mt-2">
+      <VBtn
+        variant="text"
+        size="small"
+        prepend-icon="tabler-refresh"
+        @click="isDialogVisible = true"
+      >
+        Cambiar Perfil
+      </VBtn>
+      <VBtn
+        color="secondary"
+        variant="text"
+        size="small"
+        prepend-icon="tabler-logout"
+        @click="logout"
+      >
+        Cerrar Sesión
+      </VBtn>
+    </div>
+  </div>
+
+  <!-- Cambiar Perfil Dialog -->
+  <CambiarPerfilDialog
+    v-model="isDialogVisible"
+    :businesses="businesses"
+    :user="user"
+  />
+</template>

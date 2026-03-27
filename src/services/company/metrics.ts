@@ -1,16 +1,12 @@
 import { authAxios } from '../axios'
 
-const baseUrl = '/company/metric'
-
-const getGlobalMetrics = async (payload: any) => {
-  return await authAxios.post(`${baseUrl}/global`, payload)
-    .then(response => {
-      // console.log('get Global Metrics', response.data.data)
-
-      return response.data.data
-    })
+const getGlobalMetrics = async (businessId: number, timePeriod = 'month') => {
+  return await authAxios.get(`/businesses/${businessId}/metrics`, {
+    params: { timePeriod },
+  })
+    .then(response => response.data)
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 

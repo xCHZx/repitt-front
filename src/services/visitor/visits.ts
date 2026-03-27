@@ -1,16 +1,10 @@
 import { authAxios } from '../axios'
 
-const baseUrl = 'visitor/visit'
-
 const getAllVisitsAsCurrentVisitor = async () => {
-  return await authAxios.get(`${baseUrl}/logged-user`)
-    .then(response => {
-      // console.log('get All Visits As Current Visitor', response.data.data)
-
-      return response.data.data
-    })
+  return await authAxios.get(`/users/me/visits`)
+    .then(response => response.data)
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 

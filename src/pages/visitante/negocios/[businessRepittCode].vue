@@ -1,43 +1,43 @@
 <script setup lang="ts">
-import Swal from 'sweetalert2'
 import { getBusinessByRepittCodeAsVisitor } from '@/services/visitor/business'
-import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
-import { themeConfig } from '@themeConfig'
 
 definePage({
   meta: {
     layout: 'blank',
     requiresAuth: false,
-
-    // requiredRole: ['Visitor', 'Owner'],
   },
 })
 
 const router = useRouter()
 const route: any = useRoute()
 
-const data: any = ref({})
-const businessId = route.params.businessRepittCode
+const data: any = ref(null)
+const isLoading = ref(true)
 
 const getData = async () => {
   try {
-    data.value = await getBusinessByRepittCodeAsVisitor(businessId)
+    data.value = await getBusinessByRepittCodeAsVisitor(route.params.businessRepittCode)
   }
-  catch (error: any) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    }).then(async result => {
-      if (result.isConfirmed || result.isDismissed)
-        router.push('/auth/login')
-    })
+  catch {
+    router.push('/auth/login')
+  }
+  finally {
+    isLoading.value = false
   }
 }
 
-const goToRegister = () => {
-  router.push('/auth/registro')
-}
+const heroColor = computed(() => {
+  const card = data.value?.stampCards?.find((sc: any) => sc.isActive) ?? data.value?.stampCards?.[0]
+  return card?.primaryColor || '#6C3CE1'
+})
+
+const heroStyle = computed(() => ({
+  background: `linear-gradient(145deg, ${heroColor.value}ee 0%, ${heroColor.value}99 100%)`,
+}))
+
+const activeStampCards = computed(() =>
+  (data.value?.stampCards ?? []).filter((sc: any) => sc.isActive),
+)
 
 onMounted(() => {
   getData()
@@ -45,112 +45,251 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="auth-wrapper d-flex align-center justify-center pa-8">
-    <VRow>
-      <VCol cols="12">
-        <VCardItem class="justify-center">
-          <template #prepend>
-            <div class="d-flex">
-              <VNodeRenderer :nodes="themeConfig.app.logo" />
-            </div>
-          </template>
-
-          <VCardTitle
-            class="font-weight-bold text-capitalize text-h5 py-1"
-            style="color: rgb(var(--v-global-theme-primary))"
-          >
-            {{ themeConfig.app.title }}
-          </VCardTitle>
-        </VCardItem>
-
-        <BusinessDetails
-          :name="data?.name"
-          :description="data?.description"
-          :address="data?.address"
-          :phone="data?.phone"
-          :segment="data?.segment?.name"
-          :business-repitt-code="data?.business_repitt_code"
-          :opening-hours="data?.opening_hours"
-          :logo-path="data?.logo_path"
-          :created-at="data?.created_at"
-        />
-        <div v-if="!data?.is_active">
-          <VAlert
-            color="error"
-            icon="tabler-alert-triangle"
-            variant="tonal"
-            density="compact"
-            style="white-space: normal;"
-            class="pb-2 text-left mb-6 mt-2"
-          >
-            <p class="mb-0">
-              Negocio <strong>INACTIVO.</strong>
-            </p>
-          </VAlert>
-        </div>
-
-        <VCardText
-          v-if="data?.is_active"
-          class="text-center pt-4"
-        >
-          <VIcon
-            icon="tabler-award"
-            size="1.5rem"
+  <div class="biz-page">
+    <!-- ── Loading ─────────────────────────────── -->
+    <template v-if="isLoading">
+      <VSkeletonLoader
+        type="image"
+        height="200"
+        class="rounded-0"
+      />
+      <div class="px-5 pt-0">
+        <div class="d-flex flex-column align-center">
+          <VSkeletonLoader
+            type="avatar"
+            class="mt-n10 mb-4"
+            width="88"
+            height="88"
+          />
+          <VSkeletonLoader
+            type="heading"
+            width="180"
             class="mb-2"
           />
-          <span
-            v-if="data?.stamp_cards?.length > 0"
-            class="text-h4"
-          >
-            Recompensas de este negocio
-          </span>
-        </VCardText>
-
-        <div
-          v-for="stampCard in data?.stamp_cards"
-          :key="stampCard.id"
-          class="mt-4"
-        >
-          <StampCardListItemAsBusiness
-            :title="stampCard.reward"
-            :description="`${stampCard.required_stamps} visitas para esta recompensa`"
-            icon="tabler-gift"
-            accent-color="#E0D9FF"
-            text-accent-color="#493599"
-            :is-active="stampCard.is_active"
+          <VSkeletonLoader
+            type="chip"
+            width="100"
+            class="mb-5"
           />
         </div>
+        <VSkeletonLoader
+          type="list-item-three-line"
+          rounded="xl"
+          class="mb-4"
+        />
+        <VSkeletonLoader
+          type="card"
+          rounded="xl"
+          class="mb-4"
+        />
+      </div>
+    </template>
 
-        <div
-          v-if="data?.is_active"
-          class="mt-5"
+    <!-- ── Content ─────────────────────────────── -->
+    <template v-else-if="data">
+      <!-- Hero -->
+      <div
+        class="biz-hero"
+        :style="heroStyle"
+      >
+        <div class="biz-hero__dots" />
+      </div>
+
+      <!-- Identity -->
+      <div class="biz-identity px-5">
+        <VAvatar
+          class="biz-avatar"
+          size="88"
+          rounded="xl"
+          color="white"
         >
-          <VBtn
-            block
-            color="success"
-            @click="goToRegister"
+          <VImg
+            v-if="data.logoPath"
+            :src="data.logoPath"
+            cover
+          />
+          <span
+            v-else
+            class="text-h3 font-weight-bold"
+            :style="{ color: heroColor }"
           >
-            ¡Quiero ser parte de las recompensas!
-            <VIcon
-              end
-              icon="tabler-award-filled"
-            />
-          </VBtn>
+            {{ String(data.name || 'R').charAt(0).toUpperCase() }}
+          </span>
+        </VAvatar>
+
+        <h1 class="text-h5 font-weight-bold mt-3 mb-2 text-center">
+          {{ data.name }}
+        </h1>
+
+        <div class="d-flex flex-wrap justify-center gap-2 mb-3">
+          <VChip
+            v-if="data.category?.name"
+            size="small"
+            variant="flat"
+            :style="{ background: `${heroColor}20`, color: heroColor }"
+          >
+            {{ data.category.name }}
+          </VChip>
+          <VChip
+            v-if="!data.isActive"
+            size="small"
+            color="error"
+            variant="tonal"
+            prepend-icon="tabler-circle-x"
+          >
+            Inactivo
+          </VChip>
         </div>
-      </VCol>
-    </VRow>
+
+        <p
+          v-if="data.description"
+          class="text-body-2 text-medium-emphasis text-center mb-0"
+        >
+          {{ data.description }}
+        </p>
+      </div>
+
+      <!-- Contact -->
+      <div
+        v-if="data.address || data.phone || data.openingHours"
+        class="px-4 mt-5"
+      >
+        <VCard rounded="xl">
+          <VList density="compact">
+            <VListItem
+              v-if="data.address"
+              prepend-icon="tabler-map-pin"
+            >
+              <VListItemTitle class="text-body-2">
+                {{ data.address }}
+              </VListItemTitle>
+            </VListItem>
+            <VDivider v-if="data.address && data.phone" />
+            <VListItem
+              v-if="data.phone"
+              prepend-icon="tabler-phone"
+            >
+              <VListItemTitle class="text-body-2">
+                {{ data.phone }}
+              </VListItemTitle>
+            </VListItem>
+            <VDivider v-if="data.phone && data.openingHours" />
+            <VListItem
+              v-if="data.openingHours"
+              prepend-icon="tabler-clock"
+            >
+              <VListItemTitle class="text-body-2">
+                {{ data.openingHours }}
+              </VListItemTitle>
+            </VListItem>
+          </VList>
+        </VCard>
+      </div>
+
+      <!-- Stamp cards -->
+      <div
+        v-if="data.isActive && activeStampCards.length"
+        class="px-4 mt-6"
+      >
+        <div class="section-label mb-3">
+          <VIcon
+            icon="tabler-award"
+            size="15"
+          />
+          Programas de fidelidad
+          <VChip
+            size="x-small"
+            variant="flat"
+            class="ms-1"
+            :style="{ background: `${heroColor}20`, color: heroColor }"
+          >
+            {{ activeStampCards.length }}
+          </VChip>
+        </div>
+
+        <StampCardListItemAsBusiness
+          v-for="sc in activeStampCards"
+          :key="sc.id"
+          :name="sc.name"
+          :reward="sc.reward"
+          :required-stamps="sc.requiredStamps"
+          :stamp-icon="sc.stampIconPath"
+          :primary-color="sc.primaryColor"
+          :is-active="sc.isActive"
+          class="mb-3"
+        />
+      </div>
+
+      <!-- CTA -->
+      <div
+        v-if="data.isActive"
+        class="px-4 mt-4 pb-6"
+      >
+        <VBtn
+          block
+          size="x-large"
+          :style="{ background: heroColor }"
+          rounded="xl"
+          append-icon="tabler-award-filled"
+          @click="router.push('/auth/registro')"
+        >
+          ¡Quiero mis recompensas!
+        </VBtn>
+      </div>
+
+      <!-- Powered by -->
+      <div class="text-center pb-8 pt-2">
+        <span
+          class="text-caption text-disabled"
+          style="font-size: 0.7rem;"
+        >
+          Powered by Repitt
+        </span>
+      </div>
+    </template>
   </div>
 </template>
 
-<style lang = "scss" scoped>
-  .auth-wrapper {
-    // background-color: #E0D9FF;
-    // background-image: url('https://cdn.vuetifyjs.com/images/backgrounds/bg-2.jpg');
-    // // background-size: cover;
-    // background-position: center center;
-    // background-repeat: repeat;
+<style scoped>
+.biz-page {
+  background: rgb(var(--v-theme-background));
+  min-block-size: 100vh;
+}
 
-    background: rgb(224,217,255);
-    background: linear-gradient(135deg, rgba(224,217,255,1) 0%, rgba(248,247,250,1) 100%);
-  }
+.biz-hero {
+  position: relative;
+  overflow: hidden;
+  block-size: 180px;
+}
+
+.biz-hero__dots {
+  position: absolute;
+  background-image: radial-gradient(circle, rgba(255 255 255 / 18%) 1px, transparent 1px);
+  background-size: 22px 22px;
+  inset: 0;
+}
+
+.biz-identity {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-block-start: -44px;
+}
+
+.biz-avatar {
+  box-shadow: 0 4px 24px rgba(0 0 0 / 18%);
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  color: rgb(var(--v-theme-primary));
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
 </style>

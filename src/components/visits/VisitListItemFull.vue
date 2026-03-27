@@ -1,55 +1,68 @@
 <script setup lang="ts">
 interface Props {
-  visits: any[]
+  visit: any
 }
 
 const props = defineProps<Props>()
 
-const formatDate = (date: string, options: any) => {
-  return new Date(date).toLocaleDateString('es-ES', options)
-}
+const formattedDate = computed(() => {
+  if (!props.visit?.createdAt) return '—'
+
+  return new Date(props.visit.createdAt).toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+})
+
+const initial = computed(() =>
+  String(props.visit?.business?.name || 'R').charAt(0).toUpperCase(),
+)
 </script>
 
 <template>
-  <div
-    v-for="visit in props.visits"
-    :key="visit.id"
+  <VCard
+    rounded="xl"
+    style="border-inline-start: 3px solid rgb(var(--v-theme-primary));"
   >
-    <VCard
-      flat
-      class="mt-3"
-    >
-      <VCardText>
-        <div class="d-flex align-center ma-n3">
-          <div>
-            <h5 class="text-h5">
-              <VAvatar
-                size="x-small"
-                color="primary"
-                variant="tonal"
-              >
-                <VImg
-                  :src="visit?.stamp_card?.business?.logo_path"
-                  class="text-5xl font-weight-medium"
-                />
-              </VAvatar>
-              {{ visit?.stamp_card?.business?.name }}
-            </h5>
-            <h6 class="text-h6">
-              {{ visit?.stamp_card?.name }}
-            </h6>
-            <h5 class="text-h5">
-              <VIcon
-                size="small"
-                icon="tabler-calendar"
-                color="primary"
-                class="mb-1"
-              />
-              {{ formatDate(visit?.created_at) }}
-            </h5>
+    <VCardText class="pa-4">
+      <div class="d-flex align-center gap-3">
+        <VAvatar
+          rounded="lg"
+          size="44"
+          color="primary"
+          variant="tonal"
+        >
+          <VImg
+            v-if="visit?.business?.logoPath"
+            :src="visit.business.logoPath"
+          />
+          <span
+            v-else
+            class="text-body-2 font-weight-bold"
+          >{{ initial }}</span>
+        </VAvatar>
+
+        <div class="flex-grow-1 overflow-hidden">
+          <div class="text-subtitle-2 font-weight-bold text-truncate">
+            {{ visit?.business?.name ?? 'Sin nombre' }}
+          </div>
+          <div class="text-caption text-medium-emphasis text-truncate">
+            {{ visit?.stampCard?.name ?? '—' }}
+          </div>
+          <div class="d-flex align-center gap-1 mt-1">
+            <VIcon
+              icon="tabler-calendar"
+              size="12"
+              color="medium-emphasis"
+            />
+            <span class="text-caption text-medium-emphasis">{{ formattedDate }}</span>
           </div>
         </div>
-      </VCardText>
-    </VCard>
-  </div>
+
+      </div>
+    </VCardText>
+  </VCard>
 </template>

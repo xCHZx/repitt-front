@@ -1,5 +1,4 @@
-<script lang = "ts" setup>
-import Swal from 'sweetalert2'
+<script lang="ts" setup>
 import { getUserStampCardReadyToRedeemAsCurrentCompany } from '@/services/company/userStampCards'
 import { useCompanyStore } from '@/stores/company'
 
@@ -7,30 +6,32 @@ definePage({
   meta: {
     requiresAuth: true,
     requiredRole: ['Owner'],
+    layout: 'company',
   },
 })
 
 const router = useRouter()
 
 const data: any = ref([])
+const isLoading = ref(true)
+const error = ref<string | null>(null)
 
 const companyStore = useCompanyStore()
 const businessId = companyStore.selectedCompany.id
 
 const getData = async () => {
+  if (!businessId)
+    return
+  isLoading.value = true
+  error.value = null
   try {
-    const payload = {
-      business_id: businessId ?? 0,
-    }
-
-    data.value = await getUserStampCardReadyToRedeemAsCurrentCompany(payload)
+    data.value = await getUserStampCardReadyToRedeemAsCurrentCompany(businessId)
   }
-  catch (error: any) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    })
+  catch (e: any) {
+    error.value = Array.isArray(e) ? e.join('\n') : String(e)
+  }
+  finally {
+    isLoading.value = false
   }
 }
 
@@ -44,30 +45,91 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- Error -->
+  <VAlert
+    v-if="error"
+    color="error"
+    variant="tonal"
+    rounded="xl"
+    class="mb-4"
+    icon="tabler-alert-triangle"
+  >
+    {{ error }}
+  </VAlert>
+
+  <!-- Skeleton -->
+  <template v-if="isLoading">
+    <VSkeletonLoader
+      v-for="n in 3"
+      :key="n"
+      type="list-item-avatar"
+      rounded="xl"
+      class="mb-3"
+    />
+  </template>
+
+  <!-- Empty state -->
   <div
-    v-if="data.length === 0"
-    class="d-flex flex-column align-center justify-center"
+    v-else-if="!error && data.length === 0"
+    class="d-flex flex-column align-center justify-center text-center pa-8"
   >
     <VIcon
       icon="tabler-gift-off"
-      size="50"
-      color="primary"
+      size="52"
+      color="medium-emphasis"
+      class="mb-3"
     />
-    <VCardText class="text-center text-h4 font-weight-medium mt-2">
-      No hay recompensas listas para redimir
-    </VCardText>
+    <div class="text-body-1 font-weight-bold mb-1">
+      Sin recompensas pendientes
+    </div>
+    <div class="text-body-2 text-medium-emphasis">
+      Aquí aparecerán los visitantes con tarjetas completas listas para canjear
+    </div>
   </div>
-  <UserStampCardWaitingRedeemListAsCompany
-    v-for="(item, index) in data"
-    :key="index"
-    :title="item.stamp_card.reward"
-    :description="item.stamp_card.name"
-    icon="tabler-gift"
-    :completed-date="item.completed_at"
-    :linked-user="`${item.user.first_name} ${item.user.last_name}`"
-    accent-color="#E0D9FF"
-    text-accent-color="#493599"
-    class="mt-2"
-    @click="goToCard(item.stamp_card.id, item.id)"
-  />
+
+  <!-- List -->
+  <template v-else-if="!isLoading">
+    <div class="section-label mb-3">
+      <VIcon
+        icon="tabler-gift"
+        size="15"
+      />
+      Listas para canjear
+      <VChip
+        size="x-small"
+        color="success"
+        variant="flat"
+        class="ms-1"
+      >
+        {{ data.length }}
+      </VChip>
+    </div>
+
+    <UserStampCardWaitingRedeemListAsCompany
+      v-for="item in data"
+      :key="item.id"
+      :reward="item.stampCard.reward"
+      :stamp-card-name="item.stampCard.name"
+      :customer-name="`${item.customer.firstName} ${item.customer.lastName}`"
+      :completed-date="item.completedAt"
+      :primary-color="item.stampCard.primaryColor"
+      :stamp-icon="item.stampCard.stampIcon"
+      class="mb-3"
+      style="cursor: pointer;"
+      @click="goToCard(item.stampCard.id, item.id)"
+    />
+  </template>
 </template>
+
+<style scoped>
+.section-label {
+  display: flex;
+  align-items: center;
+  color: rgb(var(--v-theme-primary));
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+</style>

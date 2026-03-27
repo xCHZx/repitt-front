@@ -31,12 +31,14 @@ authAxios.interceptors.response.use(
   response => {
     return response
   }, error => {
-    if (error.response.status === 401) {
-      // Redirigir a la página de inicio de sesión si el token es inválido
+    const isAuthEndpoint = error.config?.url?.includes('/auth/')
+
+    if (error.response?.status === 401 && !isAuthEndpoint) {
+      // Solo redirigir a login si el 401 es en una ruta protegida (token expirado),
+      // no en los endpoints de autenticación (login fallido debe mostrar error).
       window.location.href = '/auth/login'
     }
 
-    // Otherwise, throw the error to be handled by the catch block
     return Promise.reject(error)
   },
 )

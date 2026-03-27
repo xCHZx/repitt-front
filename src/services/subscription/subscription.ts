@@ -1,33 +1,27 @@
 import { authAxios } from '../axios'
 
-const baseUrl = '/subscription'
-
-const getCheckoutUrl = async (periodTag: any) => {
-  const payload = {
-    price: periodTag,
-  }
-
-  return await authAxios.post(`${baseUrl}/checkout`, payload)
-    .then(response => {
-      // console.log('Checkout Session successful', response.data.url)
-
-      return response.data.url
-    })
-    .catch(error => {
-      throw error.response.data.message
-    })
+const createCheckoutSession = async (businessId: number, planId?: string) => {
+  return await authAxios.post('/subscriptions/checkout', { businessId, ...(planId ? { planId } : {}) })
+    .then(response => response.data)
+    .catch(error => { throw error.response?.data?.message || error.message })
 }
 
-const getBillingPortalUrl = async () => {
-  return await authAxios.get(`${baseUrl}/billing-portal`)
-    .then(response => {
-      // console.log('Billing portal Session successful', response.data.url)
-
-      return response.data.url
-    })
-    .catch(error => {
-      throw error.response.data.message
-    })
+const createPortalSession = async (businessId: number) => {
+  return await authAxios.post('/subscriptions/portal', { businessId })
+    .then(response => response.data)
+    .catch(error => { throw error.response?.data?.message || error.message })
 }
 
-export { getBillingPortalUrl, getCheckoutUrl }
+const getSubscriptionStatus = async (businessId: number) => {
+  return await authAxios.get(`/subscriptions/business/${businessId}`)
+    .then(response => response.data)
+    .catch(error => { throw error.response?.data?.message || error.message })
+}
+
+const cancelSubscription = async (businessId: number) => {
+  return await authAxios.post('/subscriptions/cancel', { businessId })
+    .then(response => response.data)
+    .catch(error => { throw error.response?.data?.message || error.message })
+}
+
+export { cancelSubscription, createCheckoutSession, createPortalSession, getSubscriptionStatus }

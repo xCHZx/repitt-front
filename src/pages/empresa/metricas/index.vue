@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import Swal from 'sweetalert2'
 import { getGlobalMetrics } from '@/services/company/metrics'
 import { useCompanyStore } from '@/stores/company'
 
@@ -7,514 +6,405 @@ definePage({
   meta: {
     requiresAuth: true,
     requiredRole: ['Owner'],
-  },
-})
-
-const metrics = ref({
-  activeUsers: 0,
-  completedStampCards: {
-    current: 0,
-    previous: 0,
-    growth: 0,
-  },
-  redeemedRewards: {
-    current: 0,
-    previous: 0,
-    growth: 0,
-  },
-  visits: {
-    current: 0,
-    previous: 0,
-    growth: 0,
-  },
-  topClients: [
-    {
-      user_id: 0,
-      visits: 0,
-      user: {
-        first_name: '',
-        last_name: '',
-        repitt_code: '',
-      },
-    },
-  ],
-  visitsByMonth: [
-    {
-      month: 'No disponible',
-      visits: 0,
-    },
-  ],
-  mostVisitedMonth: {
-    month: 'No disponible',
-    visits: 0,
+    layout: 'company',
   },
 })
 
 const companyStore = useCompanyStore()
+const timePeriod = ref('month')
+const isLoading = ref(false)
+const error = ref<string | null>(null)
 
-const chartColors = {
-  line: {
-    series1: '#493599',
+const timePeriodOptions = [
+  { title: 'Día', value: 'day' },
+  { title: 'Semana', value: 'week' },
+  { title: 'Mes', value: 'month' },
+  { title: 'Año', value: 'year' },
+]
+
+const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+
+const metrics = ref({
+  activeUsers: 0,
+  completedStampCards: { current: 0, previous: 0, growth: null as number | null },
+  redeemedRewards: { current: 0, previous: 0, growth: null as number | null },
+  visits: { current: 0, previous: 0, growth: null as number | null },
+  topClients: [] as { userId: number; firstName: string; lastName: string; repittCode: string; visitsCount: number }[],
+  visitsByMonth: Array.from({ length: 12 }, (_, i) => ({ month: i + 1, visitsCount: 0 })),
+})
+
+const statCards = computed(() => [
+  {
+    title: 'Visitas',
+    value: metrics.value.visits.current,
+    growth: metrics.value.visits.growth,
+    icon: 'tabler-walk',
+    color: 'primary',
   },
-}
+  {
+    title: 'Tarjetas completadas',
+    value: metrics.value.completedStampCards.current,
+    growth: metrics.value.completedStampCards.growth,
+    icon: 'tabler-cards',
+    color: 'info',
+  },
+  {
+    title: 'Recompensas canjeadas',
+    value: metrics.value.redeemedRewards.current,
+    growth: metrics.value.redeemedRewards.growth,
+    icon: 'tabler-gift',
+    color: 'success',
+  },
+  {
+    title: 'Clientes activos',
+    value: metrics.value.activeUsers,
+    growth: null,
+    icon: 'tabler-users-group',
+    color: 'warning',
+  },
+])
 
+// Chart
 const labelColor = 'rgba(var(--v-theme-on-background), var(--v-medium-emphasis-opacity))'
 const borderColor = 'rgba(var(--v-border-color), var(--v-border-opacity))'
 
 const series = computed(() => [
   {
-    name: 'Visitas por Mes',
-    data: metrics.value.visitsByMonth.map(item => item.visits),
+    name: 'Visitas',
+    data: metrics.value.visitsByMonth.map(item => item.visitsCount),
   },
 ])
 
-const xAxisCategories = computed(() => {
-  // console.log(metrics.value.visitsByMonth)
+const maxVisits = computed(() =>
+  Math.max(...metrics.value.visitsByMonth.map(i => i.visitsCount), 1),
+)
 
-  return metrics.value.visitsByMonth.map(item => item.month)
-})
-
-const shipmentConfig = computed(() => ({
+const chartOptions = computed(() => ({
   chart: {
     type: 'bar',
-    stacked: false,
+    toolbar: { show: false },
+    zoom: { enabled: false },
     parentHeightOffset: 0,
-    toolbar: {
-      show: false,
-    },
-    zoom: {
-      enabled: false,
-    },
   },
   plotOptions: {
     bar: {
-      horizontal: false,
-      borderRadius: 7,
-      columnWidth: '35%',
-      dataLabels: {
-        position: 'top',
-      },
+      columnWidth: '45%',
+      dataLabels: { position: 'top' },
     },
   },
   dataLabels: {
     enabled: true,
-
-    // formatter(val: any) {
-    //   return `${val}%`
-    // },
-    offsetY: -20,
+    offsetY: -18,
     style: {
-      fontSize: '12px',
-      colors: ['#777777'],
+      fontSize: '11px',
+      colors: [labelColor],
     },
   },
-
+  colors: ['#6C3CE1'],
   grid: {
-    strokeDashArray: 8,
+    strokeDashArray: 6,
     borderColor,
   },
-  colors: [chartColors.line.series1],
-  fill: {
-    opacity: [1, 1],
-  },
-
   xaxis: {
-    tickAmount: 10,
-    categories: xAxisCategories.value,
+    categories: metrics.value.visitsByMonth.map(i => monthNames[i.month - 1]),
+    axisBorder: { show: false },
+    axisTicks: { show: false },
     labels: {
-      style: {
-        colors: labelColor,
-        fontSize: '13px',
-        fontWeight: 400,
-      },
-    },
-    axisBorder: {
-      show: false,
-    },
-    axisTicks: {
-      show: false,
+      style: { colors: labelColor, fontSize: '12px' },
     },
   },
   yaxis: {
     tickAmount: 4,
     min: 0,
-    max: metrics.value.mostVisitedMonth.visits + Math.round(metrics.value.mostVisitedMonth.visits * 0.2),
+    max: maxVisits.value + Math.ceil(maxVisits.value * 0.2) + 1,
     labels: {
-      style: {
-        colors: labelColor,
-        fontSize: '13px',
-        fontWeight: 400,
-      },
-
-      // formatter(val: string) {
-      //   return `${val}%`
-      // },
+      style: { colors: labelColor, fontSize: '12px' },
     },
   },
   responsive: [
     {
-      breakpoint: 1400,
-      options: {
-        chart: {
-          height: 320,
-        },
-        xaxis: {
-          labels: {
-            style: {
-              fontSize: '10px',
-            },
-          },
-        },
-        legend: {
-          itemMargin: {
-            vertical: 0,
-            horizontal: 10,
-          },
-          fontSize: '13px',
-          offsetY: 12,
-        },
-      },
-    },
-    {
-      breakpoint: 1025,
-      options: {
-        chart: {
-          height: 415,
-        },
-        plotOptions: {
-          bar: {
-            columnWidth: '50%',
-          },
-        },
-      },
-    },
-    {
-      breakpoint: 982,
-      options: {
-        plotOptions: {
-          bar: {
-            columnWidth: '30%',
-          },
-        },
-      },
-    },
-    {
       breakpoint: 480,
       options: {
-        chart: {
-          height: 250,
-        },
-        legend: {
-          offsetY: 7,
-        },
+        chart: { height: 200 },
+        plotOptions: { bar: { columnWidth: '60%' } },
       },
     },
   ],
-}),
-)
+}))
+
+// Top clients rank colors
+const rankColor = (index: number) => {
+  if (index === 0) return 'warning'
+  if (index === 1) return 'secondary'
+  if (index === 2) return 'error'
+  return 'default'
+}
 
 const getData = async () => {
+  if (!companyStore.selectedCompany?.id)
+    return
+  isLoading.value = true
+  error.value = null
   try {
-    const payload = {
-      business_id: companyStore.company?.id,
-    }
-
-    metrics.value = await getGlobalMetrics(payload)
-
-    // // console.log(metrics.value.visitsByMonth.map(item => item.month))
+    metrics.value = await getGlobalMetrics(companyStore.selectedCompany.id, timePeriod.value)
   }
-  catch (error: any) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    })
+  catch (e: any) {
+    error.value = Array.isArray(e) ? e.join('\n') : String(e)
+  }
+  finally {
+    isLoading.value = false
   }
 }
 
-onMounted(() => {
-  getData()
-})
+watch(timePeriod, () => getData())
+onMounted(() => { getData() })
 </script>
 
-<!--
-  <template>
-  <VRow>
-  <VCol
-  cols="12"
-  md="3"
-  >
-  <ProgressMiniCard
-  title="Visitas de Clientes"
-  main-number="100"
-  growth="10"
-  icon="tabler-walk"
-  color="primary"
-  />
-  </VCol>
-  <VCol
-  cols="12"
-  md="3"
-  >
-  <ProgressMiniCard
-  title="Tarjetas Completadas"
-  main-number="2,300"
-  growth="16"
-  icon="tabler-cards"
-  color="info"
-  />
-  </VCol>
-  <VCol
-  cols="12"
-  md="3"
-  >
-  <ProgressMiniCard
-  title="Recompensas Canjeadas"
-  main-number="680"
-  growth="8"
-  icon="tabler-award"
-  color="warning"
-  />
-  </VCol>
-  <VCol
-  cols="12"
-  md="3"
-  >
-  <ProgressMiniCard
-  title="Usuarios activos"
-  main-number="250"
-  growth="35"
-  icon="tabler-users-group"
-  color="error"
-  />
-  </VCol>
-  </VRow>
-  <VRow>
-  <VCol
-  cols="12"
-  md="8"
-  >
-  <div
-  style="background-color: white; border-radius: 8px;"
-  class="pa-6"
-  >
-  <VCard style="background-color: #FFF2F7;">
-  <VCardItem
-  title="Serie de Datos 1"
-  subtitle="Total number of $$$$$ 28,500"
-  />
-
-  <VCardText>
-  <VueApexCharts
-  id="shipment-statistics"
-  type="bar"
-  height="320"
-  :options="shipmentConfig"
-  :series="series"
-  />
-  </VCardText>
-  </VCard>
-  </div>
-  </VCol>
-  <VCol
-  cols="12"
-  md="4"
-  >
-  <div
-  style="background-color: white; border-radius: 8px;"
-  class="pa-6"
-  >
-  <VCardText>
-  <div class="text-h4 font-weight-bold">
-  Clientes más frecuentes
-  </div>
-  </VCardText>
-  <VRow>
-  <VCol
-  cols="12"
-  md="12"
-  >
-  <div class="py-2">
-  <UserWithCountListItem
-  first-name="Nombre"
-  last-name="Apellido"
-  visits="10"
-  last-visit="24/09/2021"
-  icon="tabler-number-1"
-  />
-  </div>
-  <div class="py-2">
-  <UserWithCountListItem
-  first-name="Nombre"
-  last-name="Apellido"
-  visits="10"
-  last-visit="24/09/2021"
-  icon="tabler-number-2"
-  />
-  </div>
-  <div class="py-2">
-  <UserWithCountListItem
-  first-name="Nombre"
-  last-name="Apellido"
-  visits="10"
-  last-visit="24/09/2021"
-  icon="tabler-number-3"
-  />
-  </div>
-  </VCol>
-  </VRow>
-  </div>
-  </VCol>
-  </VRow>
-  </template>
--->
-
 <template>
-  <div v-if="companyStore.company.is_active">
-    <VRow>
-      <VCol
-        cols="12"
-        md="4"
-      >
-        <ProgressMiniCard
-          title="Visitas de Clientes"
-          :main-number="metrics.visits.current"
-          :growth="metrics.visits.growth"
-          icon="tabler-walk"
+  <!-- Inactive -->
+  <VAlert
+    v-if="!companyStore.selectedCompany?.isActive"
+    color="error"
+    variant="tonal"
+    rounded="xl"
+    icon="tabler-lock"
+    class="mb-4"
+  >
+    Las métricas no están disponibles mientras tu negocio esté <strong>inactivo</strong>.
+  </VAlert>
+
+  <template v-else>
+    <!-- Header: label + period toggle -->
+    <div class="d-flex align-center justify-space-between mb-4">
+      <div class="section-label">
+        <VIcon
+          icon="tabler-chart-bar"
+          size="13"
           color="primary"
-          class="mb-4"
         />
-        <ProgressMiniCard
-          title="Tarjetas Completadas"
-          :main-number="metrics.completedStampCards.current"
-          :growth="metrics.completedStampCards.growth"
-          icon="tabler-cards"
-          color="info"
-          class="mb-4"
-        />
-      </VCol>
-      <VCol
-        cols="12"
-        md="4"
+        Resumen
+      </div>
+      <VBtnToggle
+        v-model="timePeriod"
+        mandatory
+        variant="outlined"
+        color="primary"
+        density="compact"
+        rounded="xl"
       >
-        <ProgressMiniCard
-          title="Recompensas Canjeadas"
-          :main-number="metrics.redeemedRewards.current"
-          :growth="metrics.redeemedRewards.growth"
-          icon="tabler-award"
-          color="warning"
-          class="mb-4"
-        />
-        <ProgressMiniCard
-          title="Usuarios activos totales"
-          :main-number="metrics.activeUsers"
-          icon="tabler-users-group"
-          color="error"
-          class="mb-4"
-        />
-      </VCol>
-      <VCol
-        cols="12"
-        md="4"
-      >
-        <div
-          style="background-color: white; border-radius: 8px;"
-          class="pa-4"
+        <VBtn
+          v-for="opt in timePeriodOptions"
+          :key="opt.value"
+          :value="opt.value"
+          size="small"
         >
-          <VCardText class="my-0 py-0">
-            <div class="text-h4 font-weight-bold">
-              Clientes más frecuentes
+          {{ opt.title }}
+        </VBtn>
+      </VBtnToggle>
+    </div>
+
+    <!-- Error -->
+    <VAlert
+      v-if="error"
+      color="error"
+      variant="tonal"
+      rounded="lg"
+      density="compact"
+      icon="tabler-alert-triangle"
+      class="mb-4"
+    >
+      {{ error }}
+    </VAlert>
+
+    <!-- Skeleton -->
+    <template v-if="isLoading">
+      <div class="stats-grid mb-4">
+        <VSkeletonLoader
+          v-for="n in 4"
+          :key="n"
+          type="card"
+          rounded="xl"
+        />
+      </div>
+      <VSkeletonLoader
+        type="card"
+        rounded="xl"
+        class="mb-4"
+      />
+      <VSkeletonLoader
+        type="list-item-avatar-three-line, list-item-avatar-three-line, list-item-avatar-three-line"
+        rounded="xl"
+      />
+    </template>
+
+    <template v-else>
+      <!-- KPI cards 2x2 -->
+      <div class="stats-grid mb-4">
+        <VCard
+          v-for="card in statCards"
+          :key="card.title"
+          rounded="xl"
+        >
+          <VCardText class="pa-4">
+            <div class="d-flex align-center justify-space-between mb-3">
+              <VAvatar
+                rounded="lg"
+                size="36"
+                :color="card.color"
+                variant="tonal"
+              >
+                <VIcon
+                  :icon="card.icon"
+                  size="20"
+                />
+              </VAvatar>
+              <VChip
+                v-if="card.growth !== null"
+                :color="card.growth >= 0 ? 'success' : 'error'"
+                size="x-small"
+                variant="tonal"
+              >
+                {{ card.growth >= 0 ? '+' : '' }}{{ card.growth }}%
+              </VChip>
+            </div>
+            <div class="text-h4 font-weight-bold mb-1">
+              {{ card.value }}
+            </div>
+            <div class="text-caption text-medium-emphasis">
+              {{ card.title }}
             </div>
           </VCardText>
-          <VRow>
-            <VCol
-              cols="12"
-              md="12"
-            >
-              <div
-                v-for="client in metrics.topClients"
-                :key="client.user_id"
-                class="py-2"
-              >
-                <UserWithCountListItem
-                  :first-name="client.user.first_name"
-                  :last-name="client.user.last_name"
-                  :visits="client.visits"
-                  icon="tabler-number-1"
-                />
-              </div>
-            </VCol>
-          </VRow>
-        </div>
-      </VCol>
-    </VRow>
-    <VRow>
-      <VCol
-        cols="12"
-        md="12"
-      >
-        <div
-          style="background-color: white; border-radius: 8px;"
-          class="pa-6"
-        >
-          <VCard style="background-color: #FFF2F7;">
-            <VCardItem
-              title="Visitas por mes"
-              subtitle="Gente que ha visitado tu negocio y ha sellado su tarjeta."
-            />
+        </VCard>
+      </div>
 
-            <VCardText>
-              <VueApexCharts
-                id="shipment-statistics"
-                type="bar"
-                height="320"
-                :options="shipmentConfig"
-                :series="series"
-              />
-            </VCardText>
-          </VCard>
-        </div>
-      </VCol>
-      <VCol
-        cols="12"
-        md="4"
-      />
-    </VRow>
-  </div>
-  <div v-else>
-    <VAlert
-      color="error"
-      icon="tabler-alert-triangle"
-      variant="tonal"
-      density="compact"
-      style="white-space: normal;"
-      class="pb-2 text-left mb-6 mt-2"
-    >
-      <p class="mb-0">
-        No puedes acceder a tus métricas cuando tu negocio está <strong>INACTIVO.</strong>
-      </p>
-    </VAlert>
-  </div>
+      <!-- Chart -->
+      <VCard
+        rounded="xl"
+        class="mb-4"
+      >
+        <VCardText class="pa-4 pb-0">
+          <div class="section-label mb-1">
+            <VIcon
+              icon="tabler-chart-bar"
+              size="13"
+              color="primary"
+            />
+            Visitas por mes
+          </div>
+          <div class="text-caption text-medium-emphasis">
+            Sellos registrados en el año actual
+          </div>
+        </VCardText>
+        <VCardText class="pa-2 pt-0">
+          <VueApexCharts
+            type="bar"
+            height="240"
+            :options="chartOptions"
+            :series="series"
+          />
+        </VCardText>
+      </VCard>
+
+      <!-- Top clients -->
+      <VCard rounded="xl">
+        <VCardText class="pa-4 pb-2">
+          <div class="section-label">
+            <VIcon
+              icon="tabler-crown"
+              size="13"
+              color="primary"
+            />
+            Clientes más frecuentes
+          </div>
+        </VCardText>
+
+        <VList v-if="metrics.topClients.length">
+          <template
+            v-for="(client, index) in metrics.topClients"
+            :key="client.userId"
+          >
+            <VListItem class="px-4 py-2">
+              <template #prepend>
+                <div
+                  class="rank-num text-caption font-weight-bold me-3"
+                  :style="{ color: `rgb(var(--v-theme-${rankColor(index)}))` }"
+                >
+                  #{{ index + 1 }}
+                </div>
+                <VAvatar
+                  rounded="lg"
+                  size="36"
+                  color="primary"
+                  variant="tonal"
+                >
+                  <span class="text-caption font-weight-bold">
+                    {{ client.firstName?.charAt(0).toUpperCase() }}
+                  </span>
+                </VAvatar>
+              </template>
+
+              <VListItemTitle class="text-body-2 font-weight-bold">
+                {{ client.firstName }} {{ client.lastName }}
+              </VListItemTitle>
+              <VListItemSubtitle class="text-caption">
+                {{ client.repittCode }}
+              </VListItemSubtitle>
+
+              <template #append>
+                <VChip
+                  :color="rankColor(index)"
+                  size="x-small"
+                  variant="tonal"
+                >
+                  {{ client.visitsCount }} visitas
+                </VChip>
+              </template>
+            </VListItem>
+            <VDivider v-if="index < metrics.topClients.length - 1" />
+          </template>
+        </VList>
+
+        <VCardText
+          v-else
+          class="text-center text-medium-emphasis py-8"
+        >
+          <VIcon
+            icon="tabler-users-group"
+            size="36"
+            class="mb-2 d-block mx-auto"
+            style="opacity: 0.3;"
+          />
+          Sin datos para este período
+        </VCardText>
+      </VCard>
+    </template>
+  </template>
 </template>
 
 <style lang="scss">
 @use "@core/scss/template/libs/apex-chart.scss";
+</style>
 
-.v-btn-group--divided .v-btn:not(:last-child) {
-  border-inline-end-color: rgba(var(--v-theme-primary), 0.5);
+<style lang="scss" scoped>
+.stats-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
 }
 
-#shipment-statistics {
-  .apexcharts-legend-text {
-    font-size: 16px !important;
-  }
+.section-label {
+  display: flex;
+  align-items: center;
+  color: rgb(var(--v-theme-primary));
+  font-size: 0.78rem;
+  font-weight: 600;
+  gap: 5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
 
-  .apexcharts-legend-series {
-    border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-    border-radius: 0.375rem;
-    block-size: 83%;
-    padding-block: 4px;
-    padding-inline: 16px 12px;
-  }
+.rank-num {
+  inline-size: 24px;
+  text-align: center;
 }
 </style>

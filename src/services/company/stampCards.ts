@@ -1,97 +1,76 @@
 import { authAxios } from '../axios'
 
-const baseUrl = '/company/stampcard'
-
 const getAllStampCardsByBusinessIdAsCurrentCompany = async (id: any) => {
-  return await authAxios.get(`${baseUrl}/business/${id}/logged-user`)
+  return await authAxios.get(`/businesses/${id}/stamp-cards/me`)
     .then(response => {
-      // console.log('get All StampCards By BusinessId As CurrentCompany', response.data.data[0])
-
-      return response.data.data[0]
+      return response.data
     })
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 
 const getAllActiveStampCardsByBusinessIdAsCurrentCompany = async (id: any) => {
-  return await authAxios.get(`${baseUrl}/business/${id}/active/logged-user`)
+  return await authAxios.get(`/businesses/${id}/stamp-cards`)
     .then(response => {
-      // console.log('get All Active StampCards By BusinessId As CurrentCompany', response.data.data[0])
-
-      return response.data.data[0]
+      return response.data
     })
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 
-const getStampCardByIdAsCurrentCompany = async (id: number) => {
-  return await authAxios.get(`${baseUrl}/${id}/logged-user`)
+const getStampCardByIdAsCurrentCompany = async (businessId: number, stampCardId: number) => {
+  return await authAxios.get(`/businesses/${businessId}/stamp-cards/${stampCardId}/me`)
     .then(response => {
-      // console.log('get StampCard By Id As CurrentCompany', response.data.data[0])
-
-      return response.data.data[0]
+      return response.data
     })
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 
-const createStampCardAsCompany = async (data: any) => {
-  return await authAxios.post(`${baseUrl}`, data, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+const createStampCardAsCompany = async (businessId: number, data: any) => {
+  return await authAxios.post(`/businesses/${businessId}/stamp-cards`, data)
+    .then(response => response.data)
+    .catch(error => {
+      throw error.response?.data?.message || error.message
+    })
+}
+
+const updateStampCardAsCompany = async (businessId: number, stampCardId: number, data: any) => {
+  return await authAxios.patch(`/businesses/${businessId}/stamp-cards/${stampCardId}`, data)
+    .then(response => {
+      return response.data
+    })
+    .catch(error => {
+      throw error.response?.data?.message || error.message
+    })
+}
+
+const uploadStampCardIcon = async (businessId: number, stampCardId: number, file: File) => {
+  const formData = new FormData()
+  formData.append('stamp_icon_file', file)
+
+  return await authAxios.post(`/businesses/${businessId}/stamp-cards/${stampCardId}/icon`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
   })
     .then(response => {
-      // console.log('StampCard creation successful', response.data.data[0])
-
-      return response.data.data[0]
+      return response.data
     })
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 
-const updateStampCardAsCompany = async (id: number, data: any) => {
-  return await authAxios.post(`${baseUrl}/${id}/logged-user`, data, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  })
+const setStampCardActiveStatus = async (businessId: number, stampCardId: number, isActive: boolean) => {
+  return await authAxios.patch(`/businesses/${businessId}/stamp-cards/${stampCardId}`, { isActive })
     .then(response => {
-      // console.log('StampCard update successful', response.data.data[0])
-
-      return response.data.data[0]
+      return response.data
     })
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 
-const publishStampCard = async (id: number) => {
-  return await authAxios.post(`${baseUrl}/${id}/publish`)
-    .then(response => {
-      // console.log('StampCard publish successful', response.data.data)
-
-      return response.data.data
-    })
-    .catch(error => {
-      throw error.response.data.message
-    })
-}
-
-const unpublishStampCard = async (id: number) => {
-  return await authAxios.post(`${baseUrl}/${id}/unpublish`)
-    .then(response => {
-      // console.log('StampCard unpublish successful', response.data.data)
-
-      return response.data.data
-    })
-    .catch(error => {
-      throw error.response.data.message
-    })
-}
-
-export { createStampCardAsCompany, getAllActiveStampCardsByBusinessIdAsCurrentCompany, getAllStampCardsByBusinessIdAsCurrentCompany, getStampCardByIdAsCurrentCompany, publishStampCard, unpublishStampCard, updateStampCardAsCompany }
+export { createStampCardAsCompany, getAllActiveStampCardsByBusinessIdAsCurrentCompany, getAllStampCardsByBusinessIdAsCurrentCompany, getStampCardByIdAsCurrentCompany, setStampCardActiveStatus, updateStampCardAsCompany, uploadStampCardIcon }

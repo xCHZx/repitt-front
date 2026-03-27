@@ -31,12 +31,12 @@ const props = defineProps<Props>()
         <div class="align-center">
           <VCardItem class="px-3 pt-2 pb-0">
             <VCardTitle class="font-weight-bold text-h4">
-              {{ props.title || '...' }}
+              {{ props.title || 'Sin nombre' }}
             </VCardTitle>
           </VCardItem>
           <VCardTitle class="text-h6 px-3 pt-0 pb-0">
             <span class="font-weight-medium ">
-              {{ props.description || '...' }}
+              {{ props.description || '—' }}
             </span>
           </VCardTitle>
         </div>

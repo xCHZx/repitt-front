@@ -1,74 +1,186 @@
 <script setup lang="ts">
 interface Props {
   businessName: string
-  segment: string
-  reward: string
+  segment?: string | null
+  reward?: string | null
   visitsCount: number
   requiredStamps: number
-  image: string
-  isCompleted?: number
-  isRedeemed?: number
+  image?: string | null
+  primaryColor?: string | null
+  isCompleted?: boolean | number
+  isRedeemed?: boolean | number
+  disabled?: boolean
+  to?: string
 }
 
 const props = defineProps<Props>()
+
+const initial = computed(() =>
+  String(props.businessName || 'R').charAt(0).toUpperCase(),
+)
+
+const progress = computed(() =>
+  props.requiredStamps > 0
+    ? Math.min((props.visitsCount / props.requiredStamps) * 100, 100)
+    : 0,
+)
+
+const accentColor = computed(() => props.primaryColor || '#6C3CE1')
+
+const isRedeemable = computed(() => props.isCompleted && !props.isRedeemed)
+
+const showDots = computed(() => props.requiredStamps <= 12)
 </script>
 
 <template>
   <VCard
-    height="100"
-    :class="{ glow: props.isCompleted === 1 && props.isRedeemed === 0 }"
+    rounded="xl"
+    :to="to"
+    :style="{
+      borderInlineStart: `4px solid ${accentColor}`,
+      background: `linear-gradient(to right, ${accentColor}10, transparent 55%)`,
+      opacity: disabled ? 0.5 : 1,
+    }"
+    :class="{ 'stamp-card--redeemable': isRedeemable }"
   >
-    <VRow no-gutters>
-      <VCol cols="3">
-        <div class="ma-auto pa-3">
+    <VCardText class="pa-4">
+      <!-- Header -->
+      <div class="d-flex align-center gap-3 mb-4">
+        <VAvatar
+          rounded="lg"
+          :size="48"
+          color="primary"
+          variant="tonal"
+        >
           <VImg
-            height="80"
-            :src="props.image"
-            class="vertical-align-middle"
+            v-if="image"
+            :src="image"
           />
-        </div>
-      </VCol>
-      <VCol cols="7">
-        <VCardItem class="px-3 pt-3 pb-0">
-          <VCardTitle class="font-weight-bold text-h5">
-            {{ props.businessName }}
-          </VCardTitle>
-        </VCardItem>
-        <VCardText class="text-subtitle-2 px-3 pb-1">
           <span
-            class="font-weight-medium text-white rounded pa-1 text-xs"
-            style="background-color: #493599;"
-          >
-            {{ props.segment }}
-          </span>
-        </VCardText>
+            v-else
+            class="text-body-1 font-weight-bold"
+          >{{ initial }}</span>
+        </VAvatar>
 
-        <VCardTitle class="text-h6 px-3 pt-1">
-          <span class="font-weight-medium ">
-            {{ props.reward }}
-          </span>
-        </VCardTitle>
-      </VCol>
-      <VCol
-        cols="2"
-        style="background-color: #493599;"
-      >
-        <div class="d-flex flex-column align-center py-10 h-200 justify-center">
-          <p class="mb-8">
-            <sup class="text-h4 font-weight-medium text-white">
-              {{ props.visitsCount }}/{{ props.requiredStamps }}
-            </sup>
-          </p>
+        <div class="flex-grow-1 overflow-hidden">
+          <div class="text-subtitle-1 font-weight-bold text-truncate">
+            {{ businessName }}
+          </div>
+          <VChip
+            v-if="segment"
+            size="x-small"
+            variant="flat"
+            class="mt-1 text-white"
+            :style="{ backgroundColor: accentColor }"
+          >
+            {{ segment }}
+          </VChip>
         </div>
-      </VCol>
-    </VRow>
+
+        <!-- Status -->
+        <div class="flex-shrink-0">
+          <VChip
+            v-if="isRedeemed"
+            size="small"
+            variant="tonal"
+            color="success"
+            prepend-icon="tabler-check"
+          >
+            Canjeada
+          </VChip>
+          <VChip
+            v-else-if="isCompleted"
+            size="small"
+            variant="flat"
+            color="warning"
+            prepend-icon="tabler-gift"
+            class="font-weight-bold"
+          >
+            ¡A canjear!
+          </VChip>
+          <div
+            v-else
+            class="text-end"
+          >
+            <div
+              class="text-h6 font-weight-bold"
+              :style="{ color: accentColor }"
+            >
+              {{ visitsCount }}/{{ requiredStamps }}
+            </div>
+            <div class="text-caption text-medium-emphasis">
+              sellos
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stamp dots (≤ 12) o progress bar -->
+      <div
+        v-if="showDots"
+        class="stamps-row mb-3"
+      >
+        <div
+          v-for="i in requiredStamps"
+          :key="i"
+          class="stamp-dot"
+          :style="{
+            background: i <= visitsCount ? accentColor : 'transparent',
+            borderColor: accentColor,
+            opacity: i <= visitsCount ? 1 : 0.2,
+          }"
+        />
+      </div>
+      <VProgressLinear
+        v-else
+        :model-value="progress"
+        :color="accentColor"
+        bg-color="rgba(0,0,0,0.07)"
+        rounded
+        height="7"
+        class="mb-3"
+      />
+
+      <!-- Reward -->
+      <div class="d-flex align-center gap-1 text-caption text-medium-emphasis">
+        <VIcon
+          size="14"
+          icon="tabler-gift"
+        />
+        <span>{{ reward || 'Sin recompensa definida' }}</span>
+      </div>
+    </VCardText>
   </VCard>
 </template>
 
 <style scoped>
-.glow {
-  /* -webkit-box-shadow:0px 0px 105px 45px rgba(45, 255, 150, 0.5);
--moz-box-shadow: 0px 0px 105px 45px rgba(45, 255, 150, 0.5); */
-box-shadow: 0px 0px 20px 10px rgba(45, 255, 150, 0.5);
+.stamps-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.stamp-dot {
+  border: 1.5px solid;
+  border-radius: 50%;
+  block-size: 26px;
+  inline-size: 26px;
+  transition: opacity 0.2s;
+}
+
+.stamp-card--redeemable {
+  animation: redeemable-pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 0 2px rgb(var(--v-theme-success)), 0 4px 24px rgba(var(--v-theme-success), 0.35);
+}
+
+@keyframes redeemable-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px rgb(var(--v-theme-success)), 0 4px 24px rgba(var(--v-theme-success), 0.35);
+  }
+
+  50% {
+    box-shadow: 0 0 0 3px rgb(var(--v-theme-success)), 0 6px 32px rgba(var(--v-theme-success), 0.55);
+  }
 }
 </style>

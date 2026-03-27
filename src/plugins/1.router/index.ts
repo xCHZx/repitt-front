@@ -4,6 +4,8 @@ import { setupLayouts } from 'virtual:generated-layouts'
 import type { RouteRecordRaw } from 'vue-router/auto'
 
 import { createRouter, createWebHistory } from 'vue-router/auto'
+import { useAuthStore } from '@/stores/auth'
+import { useCompanyStore } from '@/stores/company'
 
 function recursiveLayouts(route: RouteRecordRaw): RouteRecordRaw {
   if (route.children) {
@@ -29,32 +31,49 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, from, next) => {
-  // Convert localStorage.getItem('auth') to JSON to access the authToken
-  const authData = JSON.parse(localStorage.getItem('auth') || '{}')
-  const authToken = authData.authToken
-  const authRole = authData.authRole
+const VALID_ROLES = ['Owner', 'Visitor']
 
-  // Redirect to login page if not logged in
+// Rutas de empresa accesibles sin suscripción activa
+const EMPRESA_NO_SUB_REQUIRED = ['/empresa/planes', '/empresa/seleccionar', '/empresa/crear']
+
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+  const authToken = authStore.authToken
+  const authRole = authStore.authRole
+
+  // Si hay token pero la sesión está corrupta (sin rol válido), limpiar y redirigir a login
+  if (authToken && !VALID_ROLES.includes(authRole)) {
+    authStore.deleteAuthData()
+    localStorage.removeItem('company')
+    next({ name: 'auth-login' })
+
+    return
+  }
+
   if (to.meta.requiresAuth && !authToken) {
-    // console.log(to.meta.requiresAuth, authToken)
     next({ name: 'auth-login' })
   }
-  else {
-    // Check if the meta requiredRole (array) contains the user role in the store
-    if (to.meta.requiredRole && !to.meta.requiredRole.includes(authRole)) {
-      // console.log(to.meta.requiredRole, authRole)
+  else if (to.meta.requiredRole && !to.meta.requiredRole.includes(authRole)) {
+    next('/404')
+  }
+  else if (
+    authRole === 'Owner'
+    && to.path.startsWith('/empresa')
+    && !EMPRESA_NO_SUB_REQUIRED.some(p => to.path.startsWith(p))
+  ) {
+    // isActive es la fuente de verdad: false = negocio sin suscripción pagada
+    const companyStore = useCompanyStore()
+    const isBusinessActive = companyStore.selectedCompany?.isActive
 
-      // If not, redirect to the 404 page
-
-      // next({ name: 'visitante' })
-      // console.log('Role error')
-
-      next('/404')
+    if (isBusinessActive === false) {
+      next({ path: '/empresa/planes' })
     }
     else {
       next()
     }
+  }
+  else {
+    next()
   }
 })
 

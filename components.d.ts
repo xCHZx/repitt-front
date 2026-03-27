@@ -28,7 +28,9 @@ declare module 'vue' {
     AppTextField: typeof import('./src/@core/components/app-form-elements/AppTextField.vue')['default']
     BusinessDetails: typeof import('./src/components/businesses/BusinessDetails.vue')['default']
     BusinessListItem: typeof import('./src/components/businesses/BusinessListItem.vue')['default']
+    BusinessPreviewCard: typeof import('./src/components/businesses/BusinessPreviewCard.vue')['default']
     BuyNow: typeof import('./src/@core/components/BuyNow.vue')['default']
+    CambiarPerfilDialog: typeof import('./src/components/empresa/CambiarPerfilDialog.vue')['default']
     CardAddEditDialog: typeof import('./src/components/dialogs/CardAddEditDialog.vue')['default']
     CardStatisticsHorizontal: typeof import('./src/@core/components/cards/CardStatisticsHorizontal.vue')['default']
     CardStatisticsVertical: typeof import('./src/@core/components/cards/CardStatisticsVertical.vue')['default']
@@ -47,6 +49,7 @@ declare module 'vue' {
     DropZone: typeof import('./src/@core/components/DropZone.vue')['default']
     EnableOneTimePasswordDialog: typeof import('./src/components/dialogs/EnableOneTimePasswordDialog.vue')['default']
     ErrorHeader: typeof import('./src/components/ErrorHeader.vue')['default']
+    HeroCTACard: typeof import('./src/components/general/HeroCTACard.vue')['default']
     I18n: typeof import('./src/@core/components/I18n.vue')['default']
     MainMenuItemList: typeof import('./src/components/general/MainMenuItemList.vue')['default']
     MoreBtn: typeof import('./src/@core/components/MoreBtn.vue')['default']
@@ -57,6 +60,7 @@ declare module 'vue' {
     ProductDescriptionEditor: typeof import('./src/@core/components/ProductDescriptionEditor.vue')['default']
     ProfileDetails: typeof import('./src/components/users/ProfileDetails.vue')['default']
     ProgressMiniCard: typeof import('./src/components/general/ProgressMiniCard.vue')['default']
+    QuickActionCard: typeof import('./src/components/general/QuickActionCard.vue')['default']
     ReferAndEarnDialog: typeof import('./src/components/dialogs/ReferAndEarnDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
@@ -79,5 +83,6 @@ declare module 'vue' {
     UserWithCountListItem: typeof import('./src/components/general/UserWithCountListItem.vue')['default']
     VisitListItemFull: typeof import('./src/components/visits/VisitListItemFull.vue')['default']
     VisitListSimple: typeof import('./src/components/visits/VisitListSimple.vue')['default']
+    VueApexCharts: typeof import('vue3-apexcharts')['default']
   }
 }

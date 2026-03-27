@@ -3,54 +3,68 @@ import { defineStore } from 'pinia'
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     authUser: {
-      first_name: null,
-      last_name: null,
+      firstName: null,
+      lastName: null,
       email: null,
     },
     authToken: null,
     authRole: null,
-    authSubscriptionStatus: null,
   }),
   getters: {
     user: state => state.authUser,
     token: state => state.authToken,
     role: state => state.authRole,
-    subscriptionStatus: state => state.authSubscriptionStatus,
   },
   actions: {
     async populateAuthData(response: any) {
       this.authToken = response.token
       this.authRole = response.role
       this.authUser = {
-        first_name: response.data.first_name,
-        last_name: response.data.last_name,
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
         email: response.data.email,
       }
-      if (response.data.subscriptions && response.data.subscriptions.length > 0)
-        this.authSubscriptionStatus = response.data.subscriptions[0].stripe_status
     },
 
     async refreshUserData(response: any) {
-      this.authRole = response.role
+      const userData = response.data?.firstName ? response.data : response
+
       this.authUser = {
-        first_name: response.data.first_name,
-        last_name: response.data.last_name,
-        email: response.data.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
       }
-      if (response.data.subscriptions && response.data.subscriptions.length > 0)
-        this.authSubscriptionStatus = response.data.subscriptions[0].stripe_status
     },
 
     async deleteAuthData() {
       this.authToken = null
       this.authUser = {
-        first_name: null,
-        last_name: null,
+        firstName: null,
+        lastName: null,
         email: null,
       }
       this.authRole = null
-      this.authSubscriptionStatus = null
     },
   },
-  persist: true,
+  persist: {
+    afterRestore(ctx) {
+      const validRoles = ['Owner', 'Visitor']
+      const state = ctx.store.$state
+
+      // Limpiar campos obsoletos del localStorage
+      if ('authSubscriptionStatus' in state)
+        delete (state as any).authSubscriptionStatus
+      if ('authSubscription' in state)
+        delete (state as any).authSubscription
+
+      // Si hay token pero el rol es inválido, limpiar toda la sesión
+      if (state.authToken && !validRoles.includes(state.authRole)) {
+        ctx.store.$patch({
+          authToken: null,
+          authRole: null,
+          authUser: { firstName: null, lastName: null, email: null },
+        })
+      }
+    },
+  },
 })

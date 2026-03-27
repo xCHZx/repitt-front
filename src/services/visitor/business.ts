@@ -1,16 +1,14 @@
-import { authAxios } from '../axios'
+import axios from 'axios'
 
-const baseUrl = '/visitor/business'
+const baseUrl = `${import.meta.env.VITE_API_URL}/businesses`
 
-const getBusinessByRepittCodeAsVisitor = async (businessId: string) => {
-  return await authAxios.get(`${baseUrl}/${businessId}`)
+const getBusinessByRepittCodeAsVisitor = async (repittCode: string) => {
+  return await axios.get(`${baseUrl}/${repittCode}`)
     .then(response => {
-      // console.log('Business fetched successfully', response.data.data)
-
       return response.data.data
     })
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 

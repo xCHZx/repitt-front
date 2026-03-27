@@ -1,172 +1,258 @@
 <script lang="ts" setup>
-import Swal from 'sweetalert2'
-import { createBusinessAsCompany } from '@/services/company/businesses'
-import { getAllSegments } from '@/services/utils/utils'
+import { createBusinessAsCompany, uploadBusinessLogo } from '@/services/company/businesses'
+import { getAllCategories } from '@/services/catalog/categories'
+import { createCheckoutSession } from '@/services/subscription/subscription'
 
 definePage({
   meta: {
     requiresAuth: true,
     requiredRole: ['Owner'],
+    layout: 'company',
   },
 })
 
 const router = useRouter()
+
+const isSubmitting = ref(false)
+const errorMsg = ref('')
 
 const name = ref('')
 const description = ref('')
 const address = ref('')
 const phone = ref('')
 const openingHours = ref('')
-const segment = ref('')
+const segment = ref<number | null>(null)
 const logo = ref<File[]>()
 
-const segmentsList = ref(
-  [
-    {
-      title: 'Cargando categorías...',
-      value: null,
-    },
-  ],
-)
+const categoriesList = ref([{ title: 'Cargando categorías...', value: null as any }])
 
-const getSegments = async () => {
+const loadCategories = async () => {
   try {
-    const response = await getAllSegments()
+    const response = await getAllCategories()
 
-    segmentsList.value = response.map((segmentItem: any) => ({
-      title: segmentItem.name,
-      value: segmentItem.id,
+    categoriesList.value = response.map((c: any) => ({
+      title: c.name,
+      value: c.id,
     }))
   }
-  catch (error) {
-    console.error('Error getting segments:', error)
+  catch {
+    // silently ignore
   }
 }
 
 const onSubmit = async () => {
-  // console.log('Creating business...')
-
-  const payload = {
-    name: name.value,
-    description: description.value,
-    address: address.value,
-    phone: phone.value,
-    segment_id: segment.value,
-    opening_hours: openingHours.value,
-    logo_file: logo.value && logo.value.length > 0 ? logo.value[0] : null,
-  }
-
-  // Call API to create business
+  isSubmitting.value = true
+  errorMsg.value = ''
   try {
-    await createBusinessAsCompany(payload)
-    Swal.fire({
-      icon: 'success',
-      title: 'Éxito',
-      text: 'Negocio creado correctamente.',
-      confirmButtonText: 'Aceptar',
-    }).then(async result => {
-      if (result.isConfirmed || result.isDismissed)
-        router.push('/empresa/')
+    const newBusiness = await createBusinessAsCompany({
+      name: name.value,
+      categoryId: segment.value,
+      description: description.value || undefined,
+      address: address.value || undefined,
+      phone: phone.value ? '+52' + phone.value : undefined,
+      openingHours: openingHours.value || undefined,
     })
 
-    // router.push('/empresa/seleccionar')
+    if (logo.value && logo.value.length > 0)
+      await uploadBusinessLogo(newBusiness.id, logo.value[0])
+
+    const { url } = await createCheckoutSession(newBusiness.id, 'premium')
+    window.location.href = url
   }
   catch (error: any) {
-    console.error('Error creating business:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    })
+    errorMsg.value = Array.isArray(error) ? error.join('\n') : String(error)
+    isSubmitting.value = false
   }
 }
 
 onMounted(() => {
-  getSegments()
+  loadCategories()
 })
 </script>
 
 <template>
-  <div>
-    <h2>Crear Negocio</h2>
-  </div>
-
-  <div>
-    <VForm @submit.prevent="onSubmit">
-      <VCol cols="12">
+  <VForm @submit.prevent="onSubmit">
+    <!-- ─── Básico ──────────────────────────────────────────── -->
+    <div class="section-label mb-3">
+      <VIcon
+        icon="tabler-building-store"
+        size="15"
+      />
+      Tu negocio
+    </div>
+    <VCard
+      rounded="xl"
+      class="mb-5"
+    >
+      <VCardText class="pa-4 d-flex flex-column gap-4">
         <VTextField
           v-model="name"
           variant="outlined"
-          prepend-icon="tabler-building-store"
-          label="Nombre del Negocio *"
-          placeholder="..."
+          density="comfortable"
+          prepend-inner-icon="tabler-building-store"
+          label="Nombre del negocio *"
+          placeholder="Ej: Mi Café"
+          hide-details="auto"
+          :rules="[v => !!v || 'Requerido']"
         />
-      </VCol>
-      <VCol cols="12">
         <VSelect
           v-model="segment"
-          :items="segmentsList"
-          label="Giro del Negocio *"
-          prepend-icon="tabler-tag"
+          :items="categoriesList"
+          variant="outlined"
+          density="comfortable"
+          prepend-inner-icon="tabler-tag"
+          label="Giro del negocio *"
+          hide-details="auto"
+          :rules="[v => !!v || 'Requerido']"
         />
-      </VCol>
-      <VCol cols="12">
         <VTextField
           v-model="description"
           variant="outlined"
-          prepend-icon="tabler-text-plus"
+          density="comfortable"
+          prepend-inner-icon="tabler-text-plus"
           label="Descripción"
-          placeholder="..."
+          placeholder="Ej: Cafetería de especialidad en el centro"
+          hide-details
         />
-      </VCol>
-      <VCol cols="12">
+      </VCardText>
+    </VCard>
+
+    <!-- ─── Contacto y ubicación ───────────────────────────── -->
+    <div class="section-label mb-3">
+      <VIcon
+        icon="tabler-map-pin"
+        size="15"
+      />
+      Contacto y ubicación
+    </div>
+    <VCard
+      rounded="xl"
+      class="mb-5"
+    >
+      <VCardText class="pa-4 d-flex flex-column gap-4">
         <VTextField
           v-model="address"
           variant="outlined"
-          prepend-icon="tabler-map-pin"
+          density="comfortable"
+          prepend-inner-icon="tabler-map-pin"
           label="Dirección"
-          placeholder="..."
+          placeholder="Ej: Av. Reforma 100, CDMX"
+          hide-details
         />
-      </VCol>
-      <VCol cols="12">
         <VTextField
           v-model="phone"
           variant="outlined"
-          prepend-icon="tabler-phone"
+          density="comfortable"
+          class="phone-field"
           label="Teléfono"
-          placeholder="..."
-        />
-      </VCol>
-
-      <VCol cols="12">
+          type="tel"
+          placeholder="1234567890"
+          hide-details
+        >
+          <template #prepend-inner>
+            <span class="text-body-2 text-medium-emphasis ps-1" style="white-space: nowrap;">🇲🇽 +52</span>
+            <VDivider
+              vertical
+              class="mx-2 my-1"
+            />
+          </template>
+        </VTextField>
         <VTextField
           v-model="openingHours"
           variant="outlined"
-          prepend-icon="tabler-clock"
+          density="comfortable"
+          prepend-inner-icon="tabler-clock"
           label="Horario de atención"
-          placeholder="..."
+          placeholder="Ej: Lun-Vie 9:00–18:00"
+          hide-details
         />
-      </VCol>
-      <VCol cols="12">
+      </VCardText>
+    </VCard>
+
+    <!-- ─── Logo ───────────────────────────────────────────── -->
+    <div class="section-label mb-3">
+      <VIcon
+        icon="tabler-photo"
+        size="15"
+      />
+      Logo
+    </div>
+    <VCard
+      rounded="xl"
+      class="mb-6"
+    >
+      <VCardText class="pa-4">
         <VFileInput
           v-model="logo"
-          chips
-          show-size
+          variant="outlined"
+          density="comfortable"
           accept="image/*"
-          placeholder="..."
-          prepend-icon="tabler-photo-up"
-          label="Logo"
+          label="Sube tu logo (opcional)"
+          prepend-inner-icon="tabler-photo-up"
+          prepend-icon=""
+          hide-details
         />
-      </VCol>
-      <VCol cols="12">
-        <VBtn
-          type="submit"
-          color="primary"
-          class="mt-3"
-        >
-          Crear
-        </VBtn>
-      </VCol>
-    </VForm>
-  </div>
+      </VCardText>
+    </VCard>
+
+    <!-- ─── Error ───────────────────────────────────────────── -->
+    <VAlert
+      v-if="errorMsg"
+      color="error"
+      variant="tonal"
+      rounded="xl"
+      density="compact"
+      icon="tabler-alert-triangle"
+      class="mb-4"
+    >
+      {{ errorMsg }}
+    </VAlert>
+
+    <!-- ─── Submit ─────────────────────────────────────────── -->
+    <VBtn
+      type="submit"
+      block
+      size="large"
+      color="primary"
+      rounded="lg"
+      :loading="isSubmitting"
+    >
+      <VIcon
+        icon="tabler-arrow-right"
+        end
+      />
+      Crear negocio
+    </VBtn>
+
+    <p class="legal-note">
+      Al continuar serás redirigido a Stripe para activar tu suscripción.
+    </p>
+  </VForm>
 </template>
+
+<style scoped>
+.section-label {
+  display: flex;
+  align-items: center;
+  color: rgb(var(--v-theme-primary));
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.legal-note {
+  color: rgba(var(--v-theme-on-surface), 0.4);
+  font-size: 0.78rem;
+  margin-block-start: 12px;
+  text-align: center;
+}
+</style>
+
+<style>
+.phone-field .v-field__prepend-inner {
+  align-items: center;
+  padding-inline-end: 0;
+}
+</style>

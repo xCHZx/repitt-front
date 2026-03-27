@@ -23,48 +23,50 @@ const loginUser = async (credentials: any) => {
     })
 }
 
-const dualRegisterUser = async (userPayload: any) => {
-  return await authAxios.post(`${baseUrl}/register`, userPayload)
+const onboardingUser = async (userPayload: any) => {
+  return await authAxios.post(`${baseUrl}/onboarding`, userPayload)
     .then(response => {
-      // console.log('Registration successful')
-
       authStore.deleteAuthData()
       companyStore.deleteCompanyData()
 
       authStore.populateAuthData(response.data)
 
-      // if (businessPayload.name !== '') // Fix: Changed the comparison operator from '===' to '!=='.
-      //   createBusinessAsCompany(businessPayload)
+      // If business was created during onboarding, pre-populate the company store
+      if (response.data?.data?.business) {
+        companyStore.selectCompany({
+          id: response.data.data.business.id,
+          name: response.data.data.business.name,
+          isActive: response.data.data.business.isActive,
+          category: { id: response.data.data.business.categoryId, name: null },
+          stampCards: response.data.data.stampCard ? [response.data.data.stampCard] : [],
+        })
+      }
 
       return response.data
     })
-
-    // .then(() => {
-    //   if (businessPayload.name !== '') // Fix: Changed the comparison operator from '===' to '!=='.
-    //     createBusinessAsCompany(businessPayload)
-    // })
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 
 const logoutUser = async () => {
-  return await authAxios.post(`${baseUrl}/logout`)
-    .then(response => {
-      // console.log('Logout successful')
-
-      authStore.deleteAuthData()
-      companyStore.deleteCompanyData()
-
-      return response.data
-    })
-    .catch(error => {
-      throw error.response.data.message
-    })
+  try {
+    // Notify server to invalidate token (optional for stateless, but polite)
+    await authAxios.post(`${baseUrl}/logout`)
+  }
+  catch (error) {
+    // If the server fails or token is already expired, we intentionally ignore
+    // as we are discarding the session client-side anyway.
+  }
+  finally {
+    // ALWAYS clear local state afterward
+    authStore.deleteAuthData()
+    companyStore.deleteCompanyData()
+  }
 }
 
 const sendRecoveryEmail = async (email: any) => {
-  return await authAxios.post(`${baseUrl}/send-password-recovery-mail`, { email })
+  return await authAxios.post(`${baseUrl}/forgot-password`, { email })
     .then(response => {
       // console.log('Recovery Email sent successfully', response.data)
 
@@ -76,7 +78,7 @@ const sendRecoveryEmail = async (email: any) => {
 }
 
 const recoverPassword = async (payload: any) => {
-  return await authAxios.post(`${baseUrl}/password-recover`, payload)
+  return await authAxios.post(`${baseUrl}/reset-password`, payload)
     .then(response => {
       // console.log('Password recovered successfully', response.data)
 
@@ -87,4 +89,32 @@ const recoverPassword = async (payload: any) => {
     })
 }
 
-export { dualRegisterUser, loginUser, logoutUser, recoverPassword, sendRecoveryEmail }
+const loginVisitor = async (phone: string) => {
+  return await authAxios.post(`${baseUrl}/visitor/login`, { phone })
+    .then(response => {
+      authStore.deleteAuthData()
+      companyStore.deleteCompanyData()
+      authStore.populateAuthData(response.data)
+
+      return response.data
+    })
+    .catch(error => {
+      throw error.response?.data?.message || error.message
+    })
+}
+
+const registerVisitor = async (payload: { firstName: string; lastName: string; phone: string }) => {
+  return await authAxios.post(`${baseUrl}/visitor/register`, payload)
+    .then(response => {
+      authStore.deleteAuthData()
+      companyStore.deleteCompanyData()
+      authStore.populateAuthData(response.data)
+
+      return response.data
+    })
+    .catch(error => {
+      throw error.response?.data?.message || error.message
+    })
+}
+
+export { loginUser, loginVisitor, logoutUser, onboardingUser, recoverPassword, registerVisitor, sendRecoveryEmail }

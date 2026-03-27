@@ -1,116 +1,85 @@
 <script setup lang="ts">
-import Swal from 'sweetalert2'
-import { getBusinessByIdAsCurrentCompany, publishBusiness, unpublishBusiness } from '@/services/company/businesses'
+import { getBusinessByRepittCodeAsCurrentCompany, updateBusinessAsCurrentCompany } from '@/services/company/businesses'
 import { useCompanyStore } from '@/stores/company'
 
 definePage({
   meta: {
     requiresAuth: true,
     requiredRole: ['Owner'],
+    layout: 'company',
   },
 })
 
 const companyStore = useCompanyStore()
 const router = useRouter()
 
-const data: any = ref({})
-const businessId = companyStore.selectedCompany.id
+const data: any = ref(null)
+const isLoading = ref(true)
+const error = ref<string | null>(null)
+const businessRepittCode = companyStore.selectedCompany.businessRepittCode
 
 const getData = async () => {
+  isLoading.value = true
+  error.value = null
   try {
-    data.value = await getBusinessByIdAsCurrentCompany(businessId ?? 0)
+    data.value = await getBusinessByRepittCodeAsCurrentCompany(businessRepittCode ?? '')
   }
-  catch (error: any) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    })
+  catch (e: any) {
+    error.value = Array.isArray(e) ? e.join('\n') : String(e)
+  }
+  finally {
+    isLoading.value = false
   }
 }
 
-const goToEditBusiness = () => {
-  // console.log('goToEditBusiness')
+// --- Toggle activo ---
+const toggleDialog = ref(false)
+const toggleTarget = ref(false)
+const isToggling = ref(false)
+const toggleError = ref<string | null>(null)
 
-  router.push('/empresa/editar')
+const confirmToggle = (activate: boolean) => {
+  toggleTarget.value = activate
+  toggleError.value = null
+  toggleDialog.value = true
 }
 
-const goToPublishBusiness = async (id: number) => {
-  // console.log('goToPublishBusiness')
-
+const doToggle = async () => {
+  isToggling.value = true
+  toggleError.value = null
   try {
-    await publishBusiness(id)
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Negocio activado',
-      text: 'Tu negocio ha sido activado correctamente.',
-    }).then(async result => {
-      if (result.isConfirmed || result.isDismissed) {
-        await router.push('/empresa')
-        location.reload()
-      }
-    })
+    await updateBusinessAsCurrentCompany(data.value.id, { isActive: toggleTarget.value })
+    await companyStore.refreshCompany(businessRepittCode ?? '')
+    await getData()
+    toggleDialog.value = false
   }
-  catch (error: any) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    })
+  catch (e: any) {
+    toggleError.value = Array.isArray(e) ? e.join('\n') : String(e)
+  }
+  finally {
+    isToggling.value = false
   }
 }
 
-const goToUnpublishBusiness = async (id: number) => {
-  // console.log('goToUnpublishBusiness')
-  try {
-    await unpublishBusiness(id)
-
-    Swal.fire({
-      icon: 'success',
-      title: 'Negocio desactivado',
-      text: 'Tu negocio ha sido desactivado correctamente.',
-    }).then(async result => {
-      if (result.isConfirmed || result.isDismissed) {
-        await router.push('/empresa')
-        location.reload()
-      }
-    })
-  }
-  catch (error: any) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    })
-  }
-}
-
-const goToDownloadFlyer = async () => {
-  // console.log('goToDownloadFlyer')
-  if (data.value?.flyer_path) {
-    const url = data.value.flyer_path
-
-    window.open(url, '_blank')
-  }
-}
-
-const goToPublicPage = (businessRepittCode: string) => {
-  const url = `/visitante/negocios/${businessRepittCode}`
-
-  window.open(url, '_blank')
-}
+// --- Acciones ---
+const snackbar = ref(false)
+const snackbarText = ref('')
 
 const copyPublicLink = () => {
-  const url = `${window.location.origin}/visitante/negocios/${data.value?.business_repitt_code}`
-
+  const url = `${window.location.origin}/visitante/negocios/${data.value?.businessRepittCode}`
   navigator.clipboard.writeText(url).then(() => {
-    Swal.fire({
-      icon: 'success',
-      title: 'Link copiado',
-      text: 'El link de tu negocio ha sido copiado correctamente.',
-    })
+    snackbarText.value = 'Link copiado al portapapeles'
+    snackbar.value = true
   })
+}
+
+const goToPublicPage = () => {
+  window.open(`/visitante/negocios/${data.value?.businessRepittCode}`, '_blank')
+}
+
+const goToDownloadFlyer = () => {
+  if (data.value?.flyerPath)
+    window.open(data.value.flyerPath, '_blank')
 }
 
 onMounted(() => {
@@ -119,146 +88,190 @@ onMounted(() => {
 </script>
 
 <template>
-  <VRow>
-    <VCol cols="12">
-      <BusinessDetails
-        :name="data?.name"
-        :description="data?.description"
-        :address="data?.address"
-        :phone="data?.phone"
-        :segment="data?.segment?.name"
-        :business-repitt-code="data?.business_repitt_code"
-        :opening-hours="data?.opening_hours"
-        :logo-path="data?.logo_path"
-        :created-at="data?.created_at"
+  <!-- Error -->
+  <VAlert
+    v-if="error"
+    color="error"
+    variant="tonal"
+    rounded="xl"
+    icon="tabler-alert-triangle"
+    class="mb-4"
+  >
+    {{ error }}
+  </VAlert>
+
+  <!-- Skeleton -->
+  <template v-if="isLoading">
+    <VSkeletonLoader
+      type="card"
+      rounded="xl"
+      class="mb-4"
+    />
+    <VSkeletonLoader
+      type="list-item-three-line"
+      rounded="xl"
+      class="mb-4"
+    />
+  </template>
+
+  <template v-else-if="data">
+    <!-- Info del negocio -->
+    <BusinessDetails
+      :name="data.name"
+      :description="data.description"
+      :address="data.address"
+      :phone="data.phone"
+      :segment="data.category?.name"
+      :business-repitt-code="data.businessRepittCode"
+      :opening-hours="data.openingHours"
+      :logo-path="data.logoPath"
+      :created-at="data.createdAt"
+      :is-active="data.isActive"
+    />
+
+    <!-- Acciones principales -->
+    <VBtn
+      block
+      size="large"
+      prepend-icon="tabler-edit"
+      color="primary"
+      class="mb-3"
+      @click="router.push('/empresa/editar')"
+    >
+      Editar información
+    </VBtn>
+
+    <!-- Compartir -->
+    <div class="section-label mb-3">
+      <VIcon
+        icon="tabler-share"
+        size="15"
       />
-      <div v-if="data?.is_active">
-        <VAlert
-          color="success"
-          icon="tabler-eye"
+      Compartir
+    </div>
+    <VCard
+      rounded="xl"
+      class="mb-4"
+    >
+      <VCardText class="pa-4 d-flex flex-column gap-3">
+        <VBtn
+          block
           variant="tonal"
-          density="compact"
-          style="white-space: normal;"
-          class="pb-2 text-left mb-6 mt-2"
+          color="primary"
+          prepend-icon="tabler-world"
+          @click="goToPublicPage"
         >
-          <p class="mb-0">
-            Tu negocio está <strong>ACTIVO.</strong>
-          </p>
-        </VAlert>
-      </div>
-      <div v-else>
-        <VAlert
-          color="error"
-          icon="tabler-alert-triangle"
+          Ver página pública
+        </VBtn>
+        <VBtn
+          block
           variant="tonal"
-          density="compact"
-          style="white-space: normal;"
-          class="pb-2 text-left mb-6 mt-2"
+          color="primary"
+          prepend-icon="tabler-copy"
+          @click="copyPublicLink"
         >
-          <p class="mb-0">
-            Tu negocio está <strong>INACTIVO.</strong>
-          </p>
-        </VAlert>
-      </div>
-      <div class="mt-4">
-        <VBtn
-          block
-          size="small"
-          @click="goToEditBusiness"
-        >
-          Editar
-          <VIcon
-            end
-            icon="tabler-edit"
-          />
+          Copiar link
         </VBtn>
-      </div>
-      <div
-        v-if="data?.is_active"
-        class="mt-4"
-      >
         <VBtn
+          v-if="data.flyerPath"
           block
-          size="small"
-          color="error"
-          @click="goToUnpublishBusiness(data?.id)"
-        >
-          Desactivar Negocio
-          <VIcon
-            end
-            icon="tabler-circle-x"
-          />
-        </VBtn>
-      </div>
-      <div
-        v-else
-        class="mt-4"
-      >
-        <VBtn
-          block
-          size="small"
-          color="success"
-          @click="goToPublishBusiness(data?.id)"
-        >
-          Activar Negocio
-          <VIcon
-            end
-            icon="tabler-circle-check"
-          />
-        </VBtn>
-      </div>
-      <div class="mt-4">
-        <VRow>
-          <VCol cols="8">
-            <VBtn
-              block
-              size="small"
-              color="info"
-              @click="goToPublicPage(data?.business_repitt_code)"
-            >
-              Página pública
-              <!--
-                <VIcon
-                end
-                icon="tabler-photo-star"
-                />
-              -->
-              <VIcon
-                end
-                icon="tabler-world"
-              />
-            </VBtn>
-          </VCol>
-          <VCol cols="4">
-            <VBtn
-              block
-              size="small"
-              color="info"
-              @click="copyPublicLink"
-            >
-              Copiar link
-              <VIcon
-                end
-                icon="tabler-copy"
-              />
-            </VBtn>
-          </VCol>
-        </VRow>
-      </div>
-      <div class="mt-4">
-        <VBtn
-          block
-          size="small"
-          color="warning"
+          variant="tonal"
+          color="secondary"
+          prepend-icon="tabler-download"
           @click="goToDownloadFlyer"
         >
           Descargar flyer promocional
-          <VIcon
-            end
-            icon="tabler-download"
-          />
         </VBtn>
-      </div>
-    </VCol>
-  </VRow>
+      </VCardText>
+    </VCard>
+
+    <!-- Zona de peligro -->
+    <VDivider class="mb-4" />
+    <VBtn
+      block
+      variant="outlined"
+      :color="data.isActive ? 'error' : 'success'"
+      :prepend-icon="data.isActive ? 'tabler-circle-x' : 'tabler-circle-check'"
+      @click="confirmToggle(!data.isActive)"
+    >
+      {{ data.isActive ? 'Desactivar negocio' : 'Activar negocio' }}
+    </VBtn>
+  </template>
+
+  <!-- Dialog confirmación toggle -->
+  <VDialog
+    v-model="toggleDialog"
+    max-width="340"
+  >
+    <VCard rounded="xl">
+      <VCardText class="pa-6 text-center">
+        <VIcon
+          :icon="toggleTarget ? 'tabler-circle-check' : 'tabler-circle-x'"
+          :color="toggleTarget ? 'success' : 'error'"
+          size="48"
+          class="mb-3"
+        />
+        <div class="text-h6 font-weight-bold mb-2">
+          {{ toggleTarget ? '¿Activar negocio?' : '¿Desactivar negocio?' }}
+        </div>
+        <div class="text-body-2 text-medium-emphasis mb-4">
+          {{ toggleTarget
+            ? 'Tu negocio será visible para los visitantes.'
+            : 'Tu negocio dejará de ser visible para los visitantes.' }}
+        </div>
+        <VAlert
+          v-if="toggleError"
+          color="error"
+          variant="tonal"
+          density="compact"
+          rounded="lg"
+          class="mb-4 text-start"
+        >
+          {{ toggleError }}
+        </VAlert>
+        <div class="d-flex gap-3">
+          <VBtn
+            block
+            variant="tonal"
+            color="secondary"
+            :disabled="isToggling"
+            @click="toggleDialog = false"
+          >
+            Cancelar
+          </VBtn>
+          <VBtn
+            block
+            :color="toggleTarget ? 'success' : 'error'"
+            :loading="isToggling"
+            @click="doToggle"
+          >
+            {{ toggleTarget ? 'Activar' : 'Desactivar' }}
+          </VBtn>
+        </div>
+      </VCardText>
+    </VCard>
+  </VDialog>
+
+  <!-- Snackbar -->
+  <VSnackbar
+    v-model="snackbar"
+    :timeout="2500"
+    color="success"
+    location="bottom"
+  >
+    {{ snackbarText }}
+  </VSnackbar>
 </template>
+
+<style scoped>
+.section-label {
+  display: flex;
+  align-items: center;
+  color: rgb(var(--v-theme-primary));
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+</style>

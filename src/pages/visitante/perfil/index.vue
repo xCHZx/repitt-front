@@ -6,22 +6,18 @@ definePage({
   meta: {
     requiresAuth: true,
     requiredRole: ['Visitor', 'Owner'],
+    layout: 'visitor',
   },
 })
 
-const data: any = ref({})
+const data = ref<any>(null)
 
 const getData = async () => {
   try {
     data.value = await getCurrentVisitorData()
   }
   catch (error: any) {
-    console.error('Error getting data:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    })
+    Swal.fire({ icon: 'error', title: 'Error', text: String(error) })
   }
 }
 
@@ -31,19 +27,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <VRow>
-    <VCol cols="12">
-      <ProfileDetails
-        :first-name="data?.first_name"
-        :last-name="data?.last_name"
-        :email="data?.email"
-        :phone="data?.phone"
-        :repitt-code="data?.repitt_code"
-        :visits-count="data?.visits_count"
-        :account-status="data?.account_status?.name"
-        :has-verified-email="data?.has_verified_email"
-        :qr-path="data?.qr_path"
-      />
-    </VCol>
-  </VRow>
+  <ProfileDetails
+    :first-name="data?.firstName"
+    :last-name="data?.lastName"
+    :email="data?.email"
+    :phone="data?.phone"
+    :repitt-code="data?.repittCode"
+    :visits-count="data?.visitsCount"
+    :account-status="data?.accountStatus?.name"
+    :has-verified-email="data?.hasVerifiedEmail"
+    :qr-path="data?.qrPath"
+    @updated="getData"
+  />
 </template>

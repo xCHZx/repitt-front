@@ -9,83 +9,120 @@ interface Props {
   logoPath?: string
   createdAt?: string
   businessRepittCode?: string
+  isActive?: boolean
 }
 
 const props = defineProps<Props>()
+
+const initial = computed(() =>
+  String(props.name || 'R').charAt(0).toUpperCase(),
+)
+
+const formatDate = (iso?: string) => {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+}
 </script>
 
 <template>
-  <VCard>
-    <VCardText class="text-center pt-10">
-      <!-- 👉 Avatar -->
+  <!-- Status banner -->
+  <VCard
+    rounded="xl"
+    class="mb-4"
+    :color="isActive ? 'success' : 'error'"
+    variant="tonal"
+  >
+    <VCardText class="pa-3 d-flex align-center gap-2">
+      <VIcon
+        :icon="isActive ? 'tabler-circle-check' : 'tabler-circle-x'"
+        size="18"
+      />
+      <span class="text-body-2 font-weight-bold">
+        Negocio {{ isActive ? 'activo' : 'inactivo' }}
+      </span>
+    </VCardText>
+  </VCard>
+
+  <!-- Header -->
+  <VCard
+    rounded="xl"
+    class="mb-4"
+  >
+    <VCardText class="pa-5 text-center">
       <VAvatar
-        rounded
-        :size="120"
-        color="white"
+        rounded="lg"
+        size="80"
+        color="primary"
         variant="tonal"
+        class="mb-3"
       >
         <VImg
-          :src="props.logoPath"
-          class="text-5xl font-weight-medium"
+          v-if="logoPath"
+          :src="logoPath"
         />
+        <span
+          v-else
+          class="text-h3 font-weight-bold"
+        >{{ initial }}</span>
       </VAvatar>
 
-      <!-- 👉 Customer fullName -->
-      <h5 class="text-h4 mt-3  text-weight font-weight-bold">
-        {{ props.name }}
-      </h5>
+      <div class="text-h6 font-weight-bold mb-2">
+        {{ name || 'Sin nombre' }}
+      </div>
 
-      <span
-        class="font-weight-medium text-white rounded pa-1 text-xs mt-5"
-        style="background-color: #493599;"
-      >
-        {{ props.segment }}
-      </span>
-
-      <div class="d-flex flex-wrap justify-center gap-x-5 mb-0 mt-3 align">
+      <div class="d-flex flex-wrap justify-center gap-2 mb-3">
         <VChip
+          v-if="segment"
           color="primary"
-          size="x-small"
+          size="small"
+          variant="tonal"
+        >
+          {{ segment }}
+        </VChip>
+        <VChip
+          v-if="businessRepittCode"
+          size="small"
+          variant="outlined"
         >
           <VIcon
             start
             icon="tabler-barcode"
-            size="x-small"
+            size="13"
           />
-          <div>{{ props.businessRepittCode }}</div>
+          {{ businessRepittCode }}
         </VChip>
       </div>
 
-      <h5 class="text-h5 mt-3 text-weight font-weight-bold">
-        {{ props.description }}
-      </h5>
-      <h5 class="text-h5 mt-4">
-        <VIcon
-          start
-          icon="tabler-map-pin"
-          size="small"
-          color="primary"
-        />
-        {{ props.address || 'No disponible' }}
-      </h5>
-      <h5 class="text-h5 mt-4">
-        <VIcon
-          start
-          icon="tabler-phone"
-          size="small"
-          color="primary"
-        />
-        {{ props.phone || 'No disponible' }}
-      </h5>
-      <h5 class="text-h5 mt-4">
-        <VIcon
-          start
-          icon="tabler-clock"
-          size="small"
-          color="primary"
-        />
-        {{ props.openingHours || 'No disponible' }}
-      </h5>
+      <div
+        v-if="description"
+        class="text-body-2 text-medium-emphasis"
+      >
+        {{ description }}
+      </div>
     </VCardText>
+
+    <VDivider />
+
+    <VList density="compact">
+      <VListItem
+        prepend-icon="tabler-map-pin"
+        :title="address || 'Dirección no disponible'"
+      />
+      <VDivider />
+      <VListItem
+        prepend-icon="tabler-phone"
+        :title="phone || 'Teléfono no disponible'"
+      />
+      <VDivider />
+      <VListItem
+        prepend-icon="tabler-clock"
+        :title="openingHours || 'Horario no disponible'"
+      />
+      <VDivider />
+      <VListItem
+        prepend-icon="tabler-calendar"
+        :title="`Miembro desde ${formatDate(createdAt)}`"
+      />
+    </VList>
   </VCard>
 </template>

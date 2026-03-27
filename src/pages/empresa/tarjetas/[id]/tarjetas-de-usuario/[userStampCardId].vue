@@ -2,27 +2,29 @@
 import Swal from 'sweetalert2'
 import { useRoute } from 'vue-router'
 import { getUserStampCardByIdAsCurrentCompany, redeemRewardAsCompany } from '@/services/company/userStampCards'
+import { useCompanyStore } from '@/stores/company'
 
 definePage({
   meta: {
     requiresAuth: true,
     requiredRole: ['Owner'],
+    layout: 'company',
   },
 })
 
 const route: any = useRoute()
 const router = useRouter()
-
-// const router = useRouter()
+const companyStore = useCompanyStore()
 
 const data: any = ref({})
 
 const getData = async () => {
+  if (!companyStore.selectedCompany?.id)
+    return
   try {
-    data.value = await getUserStampCardByIdAsCurrentCompany(route.params.userStampCardId)
+    data.value = await getUserStampCardByIdAsCurrentCompany(companyStore.selectedCompany.id, route.params.userStampCardId)
   }
   catch (error: any) {
-    console.error('Error getting data:', error)
     Swal.fire({
       icon: 'error',
       title: 'Error',
@@ -33,11 +35,7 @@ const getData = async () => {
 
 const redeemReward = async () => {
   try {
-    const payload = {
-      user_stamp_card_id: route.params.userStampCardId,
-    }
-
-    await redeemRewardAsCompany(payload)
+    await redeemRewardAsCompany(companyStore.selectedCompany.id, route.params.userStampCardId)
 
     Swal.fire({
       icon: 'success',
@@ -49,7 +47,6 @@ const redeemReward = async () => {
     })
   }
   catch (error: any) {
-    console.error('Error redeeming reward:', error)
     Swal.fire({
       icon: 'error',
       title: 'Error',
@@ -84,9 +81,9 @@ onMounted(() => {
       </div>
 
       <VCardText class="text-center text-h4 font-weight-bold ma-0 pa-0">
-        {{ data?.user?.first_name }} {{ data?.user?.last_name }}
+        {{ data?.customer?.firstName }} {{ data?.customer?.lastName }}
       </VCardText>
-      <div v-if="!data?.is_reward_redeemed && data?.is_completed">
+      <div v-if="data?.isCompleted && !data?.isRewardRedeemed">
         <VCardText class="text-center">
           <VBtn
             prepend-icon="tabler-gift"
@@ -100,34 +97,25 @@ onMounted(() => {
       </div>
 
       <StampCardDetailsAsVisitor
-        v-if="data?.stamp_card"
-        :business-name="data?.stamp_card?.business.name"
-        :reward="data?.stamp_card?.reward"
-        :description="data?.stamp_card?.description"
-        :required-stamps="data?.stamp_card?.required_stamps"
-        :visits-count="data?.visits_count"
-        :business-image="data?.stamp_card?.business?.logo_path"
-        :start-date="data?.stamp_card?.start_date"
-        :end-date="data?.stamp_card?.end_date"
-        :stamp-icon="data?.stamp_card?.stamp_icon_path"
+        v-if="data?.stampCard"
+        :business-name="data?.business?.name"
+        :reward="data?.stampCard?.reward ?? null"
+        :description="data?.stampCard?.description ?? null"
+        :required-stamps="data?.stampCard?.requiredStamps"
+        :visits-count="data?.visitsCount"
+        :business-image="data?.business?.logoPath"
+        :start-date="data?.stampCard?.startDate ?? null"
+        :end-date="data?.stampCard?.endDate ?? null"
+        :stamp-icon="data?.stampCard?.stampIconPath"
+        :primary-color="data?.stampCard?.primaryColor ?? null"
+        :is-active="data?.stampCard?.isActive"
+        :is-completed="data?.isCompleted"
+        :is-reward-redeemed="data?.isRewardRedeemed"
         :visits="data?.visits"
+        company-view
       />
     </VCol>
   </VRow>
   <!-- 👉 Fin de StampCard Details  -->
 
-  <!-- 👉 Visitas  -->
-  <div v-if="data?.visits">
-    <VRow>
-      <VCol cols="12">
-        <VCardText class="text-center pt-5">
-          <h5 class="text-h5">
-            Visitas
-          </h5>
-        </VCardText>
-        <VisitListSimple :visits="data?.visits" />
-      </VCol>
-    </VRow>
-  </div>
-  <!-- Fin de Visitas  -->
 </template>

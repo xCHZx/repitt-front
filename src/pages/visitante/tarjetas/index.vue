@@ -1,71 +1,168 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import { getAllUserStampCardsByCurrentVisitor } from '@/services/visitor/userStampCards'
 
 definePage({
   meta: {
     requiresAuth: true,
     requiredRole: ['Visitor', 'Owner'],
+    layout: 'visitor',
   },
 })
 
-const router = useRouter()
-
-const data: any = ref({})
+const data = ref<any[]>([])
 
 const getData = async () => {
   try {
-    data.value = await getAllUserStampCardsByCurrentVisitor()
+    data.value = await getAllUserStampCardsByCurrentVisitor() || []
   }
   catch (error: any) {
     console.error('Error getting data:', error)
-
-    // Swal.fire({
-    //   icon: 'error',
-    //   title: 'Error',
-    //   text: Array.isArray(error) ? error.join('\n') : error,
-    // })
   }
 }
+
+const redeemable = computed(() =>
+  data.value.filter((c: any) => c.isCompleted && !c.isRewardRedeemed),
+)
+
+const active = computed(() =>
+  data.value.filter((c: any) => !c.isCompleted && !c.isRewardRedeemed && c.isActive && c.stampCard?.isActive),
+)
+
+const redeemed = computed(() =>
+  data.value.filter((c: any) => c.isRewardRedeemed),
+)
 
 onMounted(() => {
   getData()
 })
-
-const goToCard = (id: number) => {
-  router.push(`/visitante/tarjetas/${id}`)
-}
 </script>
 
 <template>
   <div>
-    <div v-if="data && data.length > 0">
-      <div
-        v-for="stampCard in data"
-        :key="stampCard"
-        class="mb-6"
-      >
-        <!-- 👉 VCard Rewards -->
-        <StampCardListItem
-          :business-name="stampCard.stamp_card.business.name"
-          :segment="stampCard.stamp_card.business.segment.name"
-          :reward="stampCard.stamp_card.reward"
-          :visits-count="stampCard.visits_count"
-          :required-stamps="stampCard.stamp_card.required_stamps"
-          :image="stampCard.stamp_card.business.logo_path"
-          :disabled="!stampCard.stamp_card.is_active || !stampCard.is_active"
-          :is-completed="stampCard.is_completed"
-          :is-redeemed="stampCard.is_reward_redeemed"
-          @click="goToCard(stampCard.id)"
-        />
+    <!-- Empty state -->
+    <div
+      v-if="data.length === 0"
+      class="text-center py-12"
+    >
+      <VIcon
+        icon="tabler-cards"
+        size="56"
+        color="medium-emphasis"
+        class="mb-4"
+        style="opacity: 0.35;"
+      />
+      <div class="text-h6 font-weight-bold mb-1">
+        Aún no tienes tarjetas
       </div>
+      <div class="text-body-2 text-medium-emphasis mb-5">
+        Visita un negocio y pide que sellen tu tarjeta
+      </div>
+      <VBtn
+        to="/visitante/negocios"
+        variant="tonal"
+        color="primary"
+        prepend-icon="tabler-map-pin"
+      >
+        Explorar negocios
+      </VBtn>
     </div>
-    <div v-else>
-      <VCardText class="text-center pt-2">
-        <h5 class="text-h5">
-          No hay tarjetas para mostrar
-        </h5>
-      </VCardText>
-    </div>
+
+    <template v-else>
+      <!-- Canjeables -->
+      <template v-if="redeemable.length">
+        <div class="section-label text-warning">
+          <VIcon icon="tabler-gift" size="15" />
+          ¡Listas para canjear!
+        </div>
+        <div
+          v-for="card in redeemable"
+          :key="card.id"
+          class="mb-3"
+        >
+          <StampCardListItem
+            :business-name="card.business.name"
+            :segment="card.business.categoryName"
+            :reward="card.stampCard.reward"
+            :visits-count="card.visitsCount"
+            :required-stamps="card.stampCard.requiredStamps"
+            :image="card.business.logoPath"
+            :primary-color="card.stampCard.primaryColor"
+            :is-completed="card.isCompleted"
+            :is-redeemed="card.isRewardRedeemed"
+            :to="`/visitante/tarjetas/${card.id}`"
+          />
+        </div>
+      </template>
+
+      <!-- En progreso -->
+      <template v-if="active.length">
+        <div class="section-label">
+          <VIcon icon="tabler-rosette-discount" size="15" />
+          En progreso
+        </div>
+        <div
+          v-for="card in active"
+          :key="card.id"
+          class="mb-3"
+        >
+          <StampCardListItem
+            :business-name="card.business.name"
+            :segment="card.business.categoryName"
+            :reward="card.stampCard.reward"
+            :visits-count="card.visitsCount"
+            :required-stamps="card.stampCard.requiredStamps"
+            :image="card.business.logoPath"
+            :primary-color="card.stampCard.primaryColor"
+            :is-completed="card.isCompleted"
+            :is-redeemed="card.isRewardRedeemed"
+            :to="`/visitante/tarjetas/${card.id}`"
+          />
+        </div>
+      </template>
+
+      <!-- Canjeadas -->
+      <template v-if="redeemed.length">
+        <div class="section-label text-medium-emphasis">
+          <VIcon icon="tabler-check" size="15" />
+          Canjeadas
+        </div>
+        <div
+          v-for="card in redeemed"
+          :key="card.id"
+          class="mb-3"
+        >
+          <StampCardListItem
+            :business-name="card.business.name"
+            :segment="card.business.categoryName"
+            :reward="card.stampCard.reward"
+            :visits-count="card.visitsCount"
+            :required-stamps="card.stampCard.requiredStamps"
+            :image="card.business.logoPath"
+            :primary-color="card.stampCard.primaryColor"
+            :is-completed="card.isCompleted"
+            :is-redeemed="card.isRewardRedeemed"
+            :disabled="true"
+            :to="`/visitante/tarjetas/${card.id}`"
+          />
+        </div>
+      </template>
+    </template>
   </div>
 </template>
+
+<style scoped>
+.section-label {
+  display: flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 5px;
+  letter-spacing: 0.04em;
+  margin-block-end: 10px;
+  text-transform: uppercase;
+}
+
+.section-label:not(:first-child) {
+  margin-block-start: 24px;
+}
+</style>

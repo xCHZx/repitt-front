@@ -6,75 +6,72 @@ definePage({
   meta: {
     requiresAuth: true,
     requiredRole: ['Visitor', 'Owner'],
+    layout: 'visitor',
   },
 })
 
-const route: any = useRoute()
-const router: any = useRouter()
-const data: any = ref({})
-const stampCard: any = ref()
+const route = useRoute()
+const router = useRouter()
+const data = ref<any>(null)
+
+const stampCardContext = computed(() => route.query.sc as string | undefined)
 
 const getData = async () => {
   try {
     data.value = await getCurrentVisitorData()
   }
   catch (error: any) {
-    console.error('Error getting data:', error)
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    })
-  }
-}
-
-const getStampCardByQueryParams = async () => {
-  try {
-    stampCard.value = route.query.sc
-  }
-  catch (error) {
-    console.error('Error getting data:', error)
+    Swal.fire({ icon: 'error', title: 'Error', text: String(error) })
   }
 }
 
 onMounted(() => {
   getData()
-  getStampCardByQueryParams()
 })
 </script>
 
 <template>
-  <VRow>
-    <VCol cols="12">
-      <UserQrCard
-        :first-name="data?.first_name"
-        :last-name="data?.last_name"
-        :qr-path="data?.qr_path"
-        :repitt-code="data?.repitt_code"
-      />
-    </VCol>
-  </VRow>
-  <VRow v-if="$route.query.sc">
-    <VCol cols="12">
-      <VCard>
-        <VCardText class="text-center pt-5">
-          <h6 class="text-h6">
-            Tarjeta a sellar:
-          </h6>
-          <h4 class="text-h4">
-            {{ stampCard }}
-          </h4>
-          <VBtn
-            block
-            size="small"
-            color="success"
-            prepend-icon="tabler-arrow-left"
-            @click="router.back()"
-          >
-            Regresar
-          </VBtn>
-        </VCardText>
-      </VCard>
-    </VCol>
-  </VRow>
+  <div>
+    <!-- Banner contextual cuando viene de un negocio -->
+    <VCard
+      v-if="stampCardContext"
+      rounded="xl"
+      color="primary"
+      variant="tonal"
+      class="mb-4"
+    >
+      <VCardText class="pa-3 d-flex align-center justify-space-between">
+        <div class="d-flex align-center gap-2">
+          <VIcon
+            icon="tabler-rosette-discount"
+            size="18"
+            color="primary"
+          />
+          <div>
+            <div class="text-caption text-medium-emphasis">
+              Sellando tarjeta
+            </div>
+            <div class="text-body-2 font-weight-bold">
+              {{ stampCardContext }}
+            </div>
+          </div>
+        </div>
+        <VBtn
+          icon
+          variant="text"
+          size="small"
+          @click="router.back()"
+        >
+          <VIcon icon="tabler-x" size="18" />
+        </VBtn>
+      </VCardText>
+    </VCard>
+
+    <UserQrCard
+      :first-name="data?.firstName"
+      :last-name="data?.lastName"
+      :qr-path="data?.qrPath"
+      :repitt-code="data?.repittCode"
+    />
+  </div>
 </template>

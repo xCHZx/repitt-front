@@ -4,7 +4,7 @@ interface Props {
   segment?: string
   description?: string
   image?: string
-  isActive?: number
+  isActive?: boolean | number
 }
 
 const props = defineProps<Props>()
@@ -14,12 +14,24 @@ const props = defineProps<Props>()
   <VCard height="100">
     <VRow no-gutters>
       <VCol cols="3">
-        <div class="ma-auto pa-3">
-          <VImg
-            height="80"
-            :src="props.image"
-            class="vertical-align-middle"
-          />
+        <div class="ma-auto pa-3 d-flex align-center justify-center h-100">
+          <VAvatar
+            rounded
+            :size="70"
+            color="primary"
+            variant="tonal"
+          >
+            <VImg
+              v-if="props.image"
+              :src="props.image"
+            />
+            <span
+              v-else
+              class="text-h4 font-weight-medium"
+            >
+              {{ String(props.businessName || 'R').charAt(0).toUpperCase() }}
+            </span>
+          </VAvatar>
         </div>
       </VCol>
       <VCol cols="9">

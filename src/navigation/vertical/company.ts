@@ -14,19 +14,24 @@ export default [
     icon: { icon: 'tabler-building-store' },
   },
   {
+    title: 'Clientes',
+    to: { name: 'empresa-clientes' },
+    icon: { icon: 'tabler-users' },
+  },
+  {
     title: 'Métricas',
     to: { name: 'empresa-metricas' },
     icon: { icon: 'tabler-chart-histogram' },
   },
   {
-    title: 'Planes',
-    to: { name: 'empresa-planes' },
-    icon: { icon: 'tabler-premium-rights' },
-  },
-  {
     title: 'Tarjetas de Lealtad',
     to: { name: 'empresa-tarjetas' },
     icon: { icon: 'tabler-cards' },
+  },
+  {
+    title: 'Clientes',
+    to: { name: 'empresa-clientes' },
+    icon: { icon: 'tabler-users' },
   },
   {
     title: 'Visitas',

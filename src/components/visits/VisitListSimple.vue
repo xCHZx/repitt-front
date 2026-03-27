@@ -31,7 +31,7 @@ const formatDate = (date: string, options: any) => {
                 icon="tabler-calendar"
                 color="primary"
               />
-              {{ formatDate(visit?.created_at) }}
+              {{ formatDate(visit?.createdAt) }}
             </h5>
           </div>
         </div>

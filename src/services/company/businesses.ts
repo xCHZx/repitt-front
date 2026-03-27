@@ -1,107 +1,112 @@
 import { authAxios } from '../axios'
 import { useCompanyStore } from '@/stores/company'
 
-const baseUrl = '/company/business'
+const baseUrl = '/businesses'
 
-const getAllBusinessAsCurrentCompany = async () => {
-  return await authAxios.get(`${baseUrl}/logged-user`)
+/**
+ * Helper to normalize business data from API (handles snake_case fallback)
+ */
+const mapBusinessData = (data: any) => {
+  if (!data)
+    return null
+
+  return {
+    ...data,
+    id: data.id,
+    name: data.name,
+    description: data.description,
+    address: data.address,
+    phone: data.phone,
+    businessRepittCode: data.businessRepittCode || data.business_repitt_code,
+    openingHours: data.openingHours || data.opening_hours,
+    logoPath: data.logoPath || data.logo_path,
+    isActive: typeof data.isActive !== 'undefined' ? data.isActive : data.is_active,
+    category: data.category || data.segment,
+    stampCards: data.stampCards || data.stamp_cards || [],
+  }
+}
+
+const getAllBusinessesMe = async () => {
+  return await authAxios.get(`${baseUrl}/me`)
     .then(response => {
-      // console.log('get All Business As Current Company', response.data.data[0])
+      const data = response.data.data
+      if (Array.isArray(data))
+        return data.map(mapBusinessData)
 
-      return response.data.data[0]
+      return data ? [mapBusinessData(data)] : []
     })
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 
-const getBusinessByIdAsCurrentCompany = async (id: number) => {
-  return await authAxios.get(`${baseUrl}/${id}/logged-user`)
-    .then(response => {
-      // console.log('get Business By Id As Current Company', response.data.data[0])
+const getAllBusinessAsCurrentCompany = getAllBusinessesMe
 
-      return response.data.data[0]
+const getBusinessByRepittCodeAsCurrentCompany = async (repittCode: string) => {
+  return await authAxios.get(`${baseUrl}/${repittCode}`)
+    .then(response => {
+      return mapBusinessData(response.data.data)
     })
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 
 const createBusinessAsCompany = async (data: any) => {
   const companyStore = useCompanyStore()
 
-  return await authAxios.post(`${baseUrl}`, data, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  })
+  return await authAxios.post(`${baseUrl}`, data)
     .then(response => {
-      // console.log('Business creation successful', response.data.data[0])
+      const business = mapBusinessData(response.data.data)
 
-      companyStore.refreshCompany(response.data.data[0].id)
+      if (business && business.businessRepittCode)
+        companyStore.refreshCompany(business.businessRepittCode)
 
-      return response.data.data[0]
+      return business
     })
     .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 
 const updateBusinessAsCurrentCompany = async (id: number, data: any) => {
-  // console.log('Payload', data)
+  return await authAxios.patch(`${baseUrl}/${id}`, data)
+    .then(response => {
+      return mapBusinessData(response.data.data)
+    })
+    .catch(error => {
+      throw error.response.data.message
+    })
+}
 
-  return await authAxios.post(`${baseUrl}/${id}/logged-user`, data, {
+const uploadBusinessLogo = async (id: number, file: File) => {
+  const companyStore = useCompanyStore()
+  const formData = new FormData()
+  formData.append('file', file)
+
+  return await authAxios.post(`${baseUrl}/${id}/logo`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   })
     .then(response => {
-      // console.log('Business update successful', response.data)
+      const business = mapBusinessData(response.data.data)
 
-      return response.data.data[0]
+      if (business && business.businessRepittCode)
+        companyStore.refreshCompany(business.businessRepittCode)
+
+      return business
     })
     .catch(error => {
-      throw error.response.data.message
-    })
-}
-
-const publishBusiness = async (id: any) => {
-  const companyStore = useCompanyStore()
-
-  return await authAxios.post(`${baseUrl}/${id}/publish`)
-    .then(response => {
-      // console.log('Business publish success', response.data.data)
-
-      companyStore.refreshCompany(response.data.data.id)
-
-      return response.data.data
-    })
-    .catch(error => {
-      throw error.response.data.message
-    })
-}
-
-const unpublishBusiness = async (id: any) => {
-  const companyStore = useCompanyStore()
-
-  return await authAxios.post(`${baseUrl}/${id}/unpublish`)
-    .then(response => {
-      // console.log('Business unpublish success', response.data.data)
-
-      companyStore.refreshCompany(response.data.data.id)
-
-      return response.data.data[0]
-    })
-    .catch(error => {
-      throw error.response.data.message
+      throw error.response?.data?.message || error.message
     })
 }
 
 export {
   createBusinessAsCompany,
   getAllBusinessAsCurrentCompany,
-  getBusinessByIdAsCurrentCompany,
-  publishBusiness,
-  unpublishBusiness,
+  getAllBusinessesMe,
+  getBusinessByRepittCodeAsCurrentCompany,
   updateBusinessAsCurrentCompany,
+  uploadBusinessLogo,
 }
