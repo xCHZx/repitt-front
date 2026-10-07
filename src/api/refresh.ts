@@ -19,7 +19,10 @@ let inflight: Promise<RefreshOutcome> | null = null
 
 async function doRefresh(baseURL: string, retried = false): Promise<RefreshOutcome> {
   try {
-    const { data } = await axios.post<{ data: AccessToken }>(`${baseURL}/auth/refresh`, undefined, { withCredentials: true })
+    const { data } = await axios.post<{ data: AccessToken }>(`${baseURL}/auth/refresh`, undefined, {
+      withCredentials: true,
+      headers: { 'Content-Type': false },
+    })
 
     return { ok: true, token: data.data }
   }

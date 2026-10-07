@@ -9,7 +9,7 @@
 //   §2.13 one automatic retry on `409 CONFLICT retry` (except OTP verify flows),
 //   §1.10 short `Retry-After` waits on safe reads.
 // The app wires session/router/dialog behaviour through `configureApiClient` (see stores/session.ts).
-import axios from 'axios'
+import axios, { AxiosHeaders } from 'axios'
 import type { AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
 import { ApiError, toApiError } from './errors'
 import { refreshAccessToken } from './refresh'
@@ -96,6 +96,10 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const MAX_AUTO_RATE_WAIT_MS = 5000
 
 http.interceptors.response.use(undefined, async (raw: unknown) => {
+  // AbortController cancellations keep axios' CanceledError (callers check axios.isCancel)
+  if (axios.isCancel(raw))
+    throw raw
+
   const err = toApiError(raw)
   const cfg = (raw as { config?: InternalConfig })?.config
   if (!cfg)
@@ -250,12 +254,19 @@ export function request<M extends HttpMethod, P extends PathsFor<M>>(
 export async function request(method: HttpMethod, path: string, ...args: unknown[]): Promise<unknown> {
   const o = (args[0] ?? {}) as LooseOptions
 
+  const headers = new AxiosHeaders(o.headers)
+
+  // Body-less routes are called with no body and no Content-Type (§1.7). Axios would otherwise
+  // default POST/PATCH to x-www-form-urlencoded on some adapters, which /v1/auth/* rejects (jsonRequired).
+  if (o.body === undefined)
+    headers.set('Content-Type', false)
+
   const config: AxiosRequestConfig & { meta?: ApiRequestMeta } = {
     method,
     url: buildUrl(path, o.path),
     params: o.query,
     data: o.body,
-    headers: o.headers,
+    headers,
     signal: o.signal,
     meta: o.meta,
   }

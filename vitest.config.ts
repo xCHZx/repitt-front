@@ -11,6 +11,7 @@ export default defineConfig({
   },
   test: {
     include: ['src/**/*.spec.ts'],
+    exclude: ['src/**/*.int.spec.ts', 'node_modules/**'],
     environment: 'node',
     env: {
       VITE_API_URL: 'http://api.test/v1',

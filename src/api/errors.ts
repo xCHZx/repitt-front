@@ -1,9 +1,16 @@
 // Typed API error (guide §1.13). Every rejected API call in the app is an ApiError:
 // decide by `code` / `detailCode`, never by `message` text.
+import axios from 'axios'
 import type { AxiosError } from 'axios'
 import type { ApiErrorDto, ErrorCode } from './types'
 
-export type ApiErrorCode = ErrorCode | 'NETWORK'
+/**
+ * Backend codes plus three client-side ones:
+ * - NETWORK: the request got no response (offline, timeout, CORS, connection cut on 413…). Retriable.
+ * - CANCELED: aborted with an AbortController (not an error for the UI).
+ * - CLIENT: an exception that is not an HTTP error (a bug in the front). Never retried.
+ */
+export type ApiErrorCode = ErrorCode | 'NETWORK' | 'CANCELED' | 'CLIENT'
 
 export interface ApiErrorDetailObject {
   reason?: string
@@ -16,7 +23,7 @@ export interface ApiErrorDetailObject {
 const NETWORK_MESSAGE = 'No pudimos conectar con el servidor'
 
 export class ApiError extends Error {
-  /** HTTP status; 0 = network error / no response. */
+  /** HTTP status; 0 = no HTTP response (network, canceled or client-side error). */
   readonly status: number
   readonly code: ApiErrorCode
   readonly requestId?: string
@@ -48,7 +55,7 @@ export class ApiError extends Error {
     this.fieldErrors = init.fieldErrors ?? {}
     this.detailObj = init.detailObj
     this.retryAfterMs = init.retryAfterMs
-    this.isNetwork = init.status === 0
+    this.isNetwork = init.code === 'NETWORK'
   }
 
   /** True for `409 CONFLICT` with `details[0].code === 'retry'` (guide §2.13). */
@@ -74,12 +81,17 @@ export function toApiError(e: unknown): ApiError {
   if (e instanceof ApiError)
     return e
 
-  const ax = e as AxiosError<{ error?: ApiErrorDto }>
-  const response = ax?.response
+  if (axios.isCancel(e))
+    return new ApiError({ status: 0, code: 'CANCELED', message: 'Solicitud cancelada' })
 
-  if (!response) {
+  if (!axios.isAxiosError(e))
+    return new ApiError({ status: 0, code: 'CLIENT', message: e instanceof Error ? e.message : String(e) })
+
+  const ax = e as AxiosError<{ error?: ApiErrorDto }>
+  const response = ax.response
+
+  if (!response)
     return new ApiError({ status: 0, code: 'NETWORK', message: NETWORK_MESSAGE })
-  }
 
   const env = response.data?.error
   const details = env?.details as unknown

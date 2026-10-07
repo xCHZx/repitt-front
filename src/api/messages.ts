@@ -10,6 +10,8 @@ const BUG_TEXT = 'Algo salió mal de nuestro lado. Intenta de nuevo.'
 const BY_CODE: Partial<Record<ApiErrorCode, string>> = {
   NETWORK: 'No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo.',
   INTERNAL_ERROR: 'Ocurrió un error inesperado. Intenta de nuevo en un momento.',
+  CLIENT: 'Ocurrió un error inesperado. Recarga la página e intenta de nuevo.',
+  CANCELED: '',
   IDEMPOTENCY_KEY_REQUIRED: BUG_TEXT,
   IDEMPOTENCY_MISMATCH: BUG_TEXT,
   NOT_IMPLEMENTED: BUG_TEXT,

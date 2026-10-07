@@ -68,6 +68,14 @@ describe('request()', () => {
     expect(calls[0].data).toBe('{}')
   })
 
+  it('sends body-less routes without body and without Content-Type (§1.7)', async () => {
+    const calls = useApi(() => ({ status: 204 }))
+
+    await request('post', '/v1/auth/logout')
+    expect(calls[0].data).toBeUndefined()
+    expect(calls[0].headers['Content-Type']).toBeUndefined()
+  })
+
   it('omits the Authorization header without a session', async () => {
     token = null
     const calls = useApi(() => ({ status: 200, data: { data: [] } }))

@@ -1,4 +1,4 @@
-import { AxiosError, AxiosHeaders } from 'axios'
+import { AxiosError, AxiosHeaders, CanceledError } from 'axios'
 import type { AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { describe, expect, it } from 'vitest'
 import { ApiError, toApiError } from '../errors'
@@ -54,6 +54,20 @@ describe('toApiError', () => {
     expect(err.status).toBe(0)
     expect(err.code).toBe('NETWORK')
     expect(err.isNetwork).toBe(true)
+  })
+
+  it('classifies non-HTTP exceptions as CLIENT (never retriable)', () => {
+    const err = toApiError(new TypeError('Cannot read properties of undefined'))
+
+    expect(err.code).toBe('CLIENT')
+    expect(err.isNetwork).toBe(false)
+  })
+
+  it('classifies aborted requests as CANCELED', () => {
+    const err = toApiError(new CanceledError())
+
+    expect(err.code).toBe('CANCELED')
+    expect(err.isNetwork).toBe(false)
   })
 
   it('treats a 5xx without envelope as INTERNAL_ERROR', () => {

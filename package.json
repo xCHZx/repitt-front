@@ -14,7 +14,8 @@
     "postinstall": "npm run build:icons && npm run msw:init",
     "api:types": "node scripts/gen-api-types.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:integration": "vitest run -c vitest.integration.config.ts"
   },
   "dependencies": {
     "@casl/ability": "6.7.0",
