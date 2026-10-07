@@ -1,124 +1,183 @@
 <script lang="ts" setup>
-import { getUserStampCardReadyToRedeemAsCurrentCompany } from '@/services/company/userStampCards'
-import { useCompanyStore } from '@/stores/company'
+import { computed, ref, watch } from 'vue'
+import { listCards } from '@/api/endpoints/cards'
+import { listPendingRedemptions } from '@/api/endpoints/loyalty'
+import type { PendingRedemption, StampCard } from '@/api/types'
+import ApiErrorAlert from '@/components/common/ApiErrorAlert.vue'
+import CounterRedeemDialog from '@/components/counter/CounterRedeemDialog.vue'
+import { redeemSummaryOf } from '@/components/counter/counter'
+import UserStampCardWaitingRedeemListAsCompany from '@/components/stampCards/UserStampCardWaitingRedeemListAsCompany.vue'
+import { useCursorList } from '@/composables/useCursorList'
+import { useBusinessStore } from '@/stores/business'
+
+// Pending redemptions (§4.B.5): completed cycles, newest first. It is the only way to redeem when
+// the card is paused, archived or expired. Redeem from here goes without code.
 
 definePage({
   meta: {
-    requiresAuth: true,
-    requiredRole: ['Owner'],
     layout: 'company',
+    area: 'business',
   },
 })
 
-const router = useRouter()
+const business = useBusinessStore()
 
-const data: any = ref([])
-const isLoading = ref(true)
-const error = ref<string | null>(null)
+const list = useCursorList<PendingRedemption>(cursor =>
+  listPendingRedemptions(business.activeId as string, { cursor, limit: 25 }),
+)
 
-const companyStore = useCompanyStore()
-const businessId = companyStore.selectedCompany.id
+const { items, loading, loaded, error, hasMore, isEmpty: listEmpty } = list
 
-const getData = async () => {
-  if (!businessId)
+// Remember which load failed so "Reintentar" repeats it (a failed reload must not turn into
+// appending page 2 to stale data).
+let lastLoad: 'reload' | 'more' = 'reload'
+
+function reload() {
+  lastLoad = 'reload'
+
+  return list.reload()
+}
+
+function loadMore() {
+  lastLoad = 'more'
+
+  return list.loadMore()
+}
+
+function retry() {
+  return lastLoad === 'more' ? list.loadMore() : list.reload()
+}
+
+// Card style: cross card.id with the business cards (default style if archived / missing)
+const cardsById = ref(new Map<string, StampCard>())
+
+async function loadCardStyles() {
+  if (!business.activeId)
     return
-  isLoading.value = true
-  error.value = null
   try {
-    data.value = await getUserStampCardReadyToRedeemAsCurrentCompany(businessId)
+    const cards = await listCards(business.activeId)
+
+    cardsById.value = new Map(cards.map(c => [c.id, c]))
   }
-  catch (e: any) {
-    error.value = Array.isArray(e) ? e.join('\n') : String(e)
-  }
-  finally {
-    isLoading.value = false
+  catch {
+    // Only cosmetic: keep the default style
   }
 }
 
-const goToCard = (stampCardId: string, userStampCardId: string) => {
-  router.push(`/empresa/tarjetas/${stampCardId}/tarjetas-de-usuario/${userStampCardId}`)
-}
+watch(() => business.activeId, id => {
+  if (!id)
+    return
+  reload()
+  loadCardStyles()
+}, { immediate: true })
 
-onMounted(() => {
-  getData()
-})
+const initialLoading = computed(() => loading.value && !loaded.value)
+
+// Redeem from the list
+const redeemOpen = ref(false)
+const target = ref<PendingRedemption | null>(null)
+
+const summary = computed(() => (target.value ? redeemSummaryOf(target.value) : null))
+
+function openRedeem(item: PendingRedemption) {
+  target.value = item
+  redeemOpen.value = true
+}
 </script>
 
 <template>
-  <!-- Error -->
-  <VAlert
-    v-if="error"
-    color="error"
-    variant="tonal"
-    rounded="xl"
-    class="mb-4"
-    icon="tabler-alert-triangle"
-  >
-    {{ error }}
-  </VAlert>
-
-  <!-- Skeleton -->
-  <template v-if="isLoading">
-    <VSkeletonLoader
-      v-for="n in 3"
-      :key="n"
-      type="list-item-avatar"
-      rounded="xl"
-      class="mb-3"
-    />
-  </template>
-
-  <!-- Empty state -->
-  <div
-    v-else-if="!error && data.length === 0"
-    class="d-flex flex-column align-center justify-center text-center pa-8"
-  >
-    <VIcon
-      icon="tabler-gift-off"
-      size="52"
-      color="medium-emphasis"
-      class="mb-3"
-    />
-    <div class="text-body-1 font-weight-bold mb-1">
-      Sin recompensas pendientes
-    </div>
-    <div class="text-body-2 text-medium-emphasis">
-      Aquí aparecerán los visitantes con tarjetas completas listas para canjear
-    </div>
-  </div>
-
-  <!-- List -->
-  <template v-else-if="!isLoading">
-    <div class="section-label mb-3">
-      <VIcon
-        icon="tabler-gift"
-        size="15"
-      />
-      Listas para canjear
-      <VChip
-        size="x-small"
-        color="success"
-        variant="flat"
-        class="ms-1"
+  <div>
+    <ApiErrorAlert
+      :error="error"
+      class="mb-4"
+    >
+      <VBtn
+        size="small"
+        variant="tonal"
+        color="error"
+        class="mt-2"
+        :loading="loading"
+        @click="retry"
       >
-        {{ data.length }}
-      </VChip>
+        Reintentar
+      </VBtn>
+    </ApiErrorAlert>
+
+    <!-- Skeleton -->
+    <template v-if="initialLoading">
+      <VSkeletonLoader
+        v-for="n in 3"
+        :key="n"
+        type="list-item-avatar-two-line"
+        rounded="xl"
+        class="mb-3"
+      />
+    </template>
+
+    <!-- Empty -->
+    <div
+      v-else-if="listEmpty && !error"
+      class="d-flex flex-column align-center justify-center text-center pa-8"
+    >
+      <VIcon
+        icon="tabler-gift-off"
+        size="52"
+        color="medium-emphasis"
+        class="mb-3"
+      />
+      <div class="text-body-1 font-weight-bold mb-1">
+        Sin recompensas pendientes
+      </div>
+      <div class="text-body-2 text-medium-emphasis">
+        Aquí aparecerán los clientes con tarjetas completas listas para canjear.
+      </div>
     </div>
 
-    <UserStampCardWaitingRedeemListAsCompany
-      v-for="item in data"
-      :key="item.id"
-      :reward="item.stampCard.reward"
-      :stamp-card-name="item.stampCard.name"
-      :customer-name="`${item.customer.firstName} ${item.customer.lastName}`"
-      :completed-date="item.completedAt"
-      :primary-color="item.stampCard.primaryColor"
-      :stamp-icon="item.stampCard.stampIcon"
-      class="mb-3"
-      style="cursor: pointer;"
-      @click="goToCard(item.stampCard.id, item.id)"
+    <!-- List -->
+    <template v-else-if="items.length">
+      <div class="section-label mb-3">
+        <VIcon
+          icon="tabler-gift"
+          size="15"
+        />
+        Listas para canjear
+      </div>
+
+      <UserStampCardWaitingRedeemListAsCompany
+        v-for="item in items"
+        :key="item.cycle.id"
+        :item="item"
+        :time-zone="business.timezone"
+        :primary-color="cardsById.get(item.card.id)?.primaryColor"
+        :icon-url="cardsById.get(item.card.id)?.iconUrl"
+        class="mb-3"
+        @redeem="openRedeem(item)"
+      />
+
+      <div
+        v-if="hasMore"
+        class="text-center mt-2"
+      >
+        <VBtn
+          variant="tonal"
+          rounded="xl"
+          :loading="loading"
+          @click="loadMore"
+        >
+          Ver más
+        </VBtn>
+      </div>
+    </template>
+
+    <CounterRedeemDialog
+      v-model="redeemOpen"
+      :cycle-id="target?.cycle.id ?? null"
+      :summary="summary"
+      headline="list"
+      @redeemed="reload"
+      @changed="reload"
     />
-  </template>
+  </div>
 </template>
 
 <style scoped>

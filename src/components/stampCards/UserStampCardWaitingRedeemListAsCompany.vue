@@ -1,26 +1,27 @@
 <script lang="ts" setup>
-interface Props {
-  reward?: string | null
-  stampCardName?: string | null
-  customerName?: string | null
-  completedDate?: string | null
+import { computed } from 'vue'
+import type { PendingRedemption } from '@/api/types'
+import { DEFAULT_CARD_COLOR } from '@/components/counter/counter'
+import { formatInstant } from '@/utils/dates'
+
+// One pending redemption (§4.B.5): reward, card, customer and completion date. The body links to
+// the cycle detail; "Canjear" redeems from the list (no code).
+
+const props = defineProps<{
+  item: PendingRedemption
+  timeZone: string
+
+  /** From GET …/cards; null when the card is archived or not listed (default style). */
   primaryColor?: string | null
-  stampIcon?: string | null
-}
+  iconUrl?: string | null
+}>()
 
-const props = defineProps<Props>()
+const emit = defineEmits<{
+  redeem: []
+}>()
 
-const accentColor = computed(() => props.primaryColor || '#6C3CE1')
-
-const formatDate = (date?: string | null) => {
-  if (!date)
-    return '—'
-  return new Date(date).toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
+const accentColor = computed(() => props.primaryColor || DEFAULT_CARD_COLOR)
+const completed = computed(() => formatInstant(props.item.cycle.completedAt, props.timeZone))
 </script>
 
 <template>
@@ -33,64 +34,83 @@ const formatDate = (date?: string | null) => {
   >
     <VCardText class="pa-4">
       <div class="d-flex align-center gap-3">
-        <!-- Icon -->
-        <VAvatar
-          rounded="lg"
-          size="44"
-          :style="{ background: `${accentColor}20` }"
+        <RouterLink
+          :to="`/empresa/ciclos/${props.item.cycle.id}`"
+          class="pending-item__link d-flex align-center gap-3 flex-grow-1 overflow-hidden"
         >
-          <VImg
-            v-if="stampIcon"
-            :src="stampIcon"
-          />
-          <VIcon
-            v-else
-            icon="tabler-gift"
-            size="22"
-            :style="{ color: accentColor }"
-          />
-        </VAvatar>
-
-        <!-- Info -->
-        <div class="flex-grow-1 overflow-hidden">
-          <div
-            class="text-body-1 font-weight-bold text-truncate"
-            :style="{ color: accentColor }"
+          <VAvatar
+            rounded="lg"
+            size="44"
+            :style="{ background: `${accentColor}20` }"
           >
-            {{ reward || 'Sin recompensa definida' }}
-          </div>
-          <div class="text-caption text-medium-emphasis text-truncate mt-1">
-            {{ stampCardName || '—' }}
-          </div>
-          <div class="d-flex align-center gap-3 mt-1">
-            <div class="d-flex align-center gap-1 text-caption text-medium-emphasis">
-              <VIcon
-                icon="tabler-user"
-                size="13"
-              />
-              {{ customerName || '—' }}
-            </div>
-            <div class="d-flex align-center gap-1 text-caption text-medium-emphasis">
-              <VIcon
-                icon="tabler-calendar"
-                size="13"
-              />
-              {{ formatDate(completedDate) }}
-            </div>
-          </div>
-        </div>
+            <VImg
+              v-if="props.iconUrl"
+              :src="props.iconUrl"
+            />
+            <VIcon
+              v-else
+              icon="tabler-gift"
+              size="22"
+              :style="{ color: accentColor }"
+            />
+          </VAvatar>
 
-        <!-- Badge -->
-        <VChip
+          <div class="flex-grow-1 overflow-hidden">
+            <div
+              class="text-body-1 font-weight-bold text-truncate"
+              :style="{ color: accentColor }"
+            >
+              {{ props.item.card.reward }}
+            </div>
+            <div class="text-caption text-medium-emphasis text-truncate mt-1">
+              {{ props.item.card.name }}
+            </div>
+            <div class="d-flex flex-wrap align-center column-gap-3 mt-1">
+              <div class="d-flex align-center gap-1 text-caption text-high-emphasis text-truncate">
+                <VIcon
+                  icon="tabler-user"
+                  size="13"
+                />
+                {{ props.item.customer.displayName }}
+              </div>
+              <div class="d-flex align-center gap-1 text-caption text-medium-emphasis">
+                <VIcon
+                  icon="tabler-calendar"
+                  size="13"
+                />
+                {{ completed }}
+              </div>
+              <VChip
+                v-if="props.item.cycle.isTest"
+                size="x-small"
+                color="info"
+                variant="tonal"
+              >
+                Prueba
+              </VChip>
+            </div>
+          </div>
+        </RouterLink>
+
+        <VBtn
           size="small"
           variant="flat"
           color="success"
+          rounded="xl"
           prepend-icon="tabler-gift"
           class="font-weight-bold flex-shrink-0"
+          @click="emit('redeem')"
         >
           Canjear
-        </VChip>
+        </VBtn>
       </div>
     </VCardText>
   </VCard>
 </template>
+
+<style scoped>
+.pending-item__link {
+  color: inherit;
+  text-decoration: none;
+}
+</style>
