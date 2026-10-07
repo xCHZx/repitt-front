@@ -1,307 +1,145 @@
+<!--
+  Login (guide §2.5, §2.7): "Continuar con teléfono" (visitors and cashiers, OTP) or
+  "Tengo un negocio" (email + password).
+-->
 <script setup lang="ts">
-import { loginUser, loginVisitor } from '@/services/auth/auth'
-import { useAuthStore } from '@/stores/auth'
+import type { OtpSession } from '@/api/types'
+import AuthShell from '@/components/auth/AuthShell.vue'
+import OwnerLoginForm from '@/components/auth/OwnerLoginForm.vue'
+import PhoneOtpFlow from '@/components/auth/PhoneOtpFlow.vue'
+import ProfileNameForm from '@/components/auth/ProfileNameForm.vue'
+import { useSessionStore } from '@/stores/session'
+import { afterLoginRoute } from '@/utils/home'
 
 definePage({
   meta: {
     layout: 'blank',
-    requiresAuth: false,
-    requiredRole: null,
+    public: true,
+    guestOnly: true,
   },
 })
 
-const authStore = useAuthStore()
+const route = useRoute()
 const router = useRouter()
+const session = useSessionStore()
 
-const selectedUserType = ref<'visitor' | 'owner'>('visitor')
-const ownerForm = ref({ email: '', password: '' })
-const visitorPhone = ref('')
-const isPasswordVisible = ref(false)
-const isLoading = ref(false)
-const error = ref<string | null>(null)
-const redirecting = ref(false)
-const redirectAfterLogin = async () => {
-  redirecting.value = true
-  // Forzar escritura síncrona a localStorage antes del reload
-  // El plugin de persistencia de Pinia escribe async (via watch), lo que causa
-  // que location.reload() recargue antes de que el token esté persistido.
-  localStorage.setItem('auth', JSON.stringify(authStore.$state))
+type Mode = 'phone' | 'owner'
 
-  await new Promise(resolve => setTimeout(resolve, 900))
+const passwordWasReset = route.query.reset === '1'
+const mode = ref<Mode>(passwordWasReset || route.query.modo === 'negocio' ? 'owner' : 'phone')
+const phoneStep = ref<'phone' | 'code'>('phone')
+const askName = ref(false)
 
-  if (authStore.authRole === 'Owner')
-    await router.push('/empresa')
-  else if (authStore.authRole === 'Visitor')
-    await router.push('/visitante')
-  else
-    await router.push('/404')
+const modes: { value: Mode; icon: string; title: string; subtitle: string }[] = [
+  { value: 'phone', icon: 'tabler-device-mobile', title: 'Continuar con teléfono', subtitle: 'Clientes y cajeros' },
+  { value: 'owner', icon: 'tabler-building-store', title: 'Tengo un negocio', subtitle: 'Entra con tu correo' },
+]
 
-  location.reload()
+function goHome() {
+  router.replace(afterLoginRoute(route.query.redirect))
 }
 
-const onSubmit = async () => {
-  error.value = null
-  isLoading.value = true
-  try {
-    if (selectedUserType.value === 'visitor')
-      await loginVisitor('+52' + visitorPhone.value)
-    else
-      await loginUser(ownerForm.value)
+function onPhoneVerified(result: OtpSession) {
+  session.applySession(result)
 
-    await redirectAfterLogin()
-  }
-  catch (e: any) {
-    error.value = Array.isArray(e) ? e.join('\n') : String(e)
-  }
-  finally {
-    isLoading.value = false
-  }
+  // New phone without a name yet: ask for it before going home (§2.5)
+  if (result.isNew && !result.user.firstName)
+    askName.value = true
+  else
+    goHome()
 }
 </script>
 
 <template>
-  <div class="auth-page">
-    <!-- Brand -->
-    <div class="auth-brand">
-      <img
-        src="@/assets/images/logo-v2.png"
-        alt="Repitt"
-        class="brand-logo"
-      >
-    </div>
+  <AuthShell>
+    <ProfileNameForm
+      v-if="askName"
+      @done="goHome"
+    />
 
-    <!-- Card -->
-    <VCard
-      rounded="xl"
-      class="auth-card"
-      elevation="2"
-    >
-      <VCardText class="pa-6">
-        <!-- Redirecting state -->
-        <template v-if="redirecting">
-          <div class="text-center py-8">
-            <div class="success-icon mb-4">
+    <template v-else>
+      <div
+        v-if="phoneStep === 'phone'"
+        class="type-cards mb-6"
+      >
+        <VCard
+          v-for="m in modes"
+          :key="m.value"
+          rounded="xl"
+          class="type-card"
+          :class="{ 'type-card--active': mode === m.value }"
+          role="button"
+          :aria-pressed="mode === m.value"
+          @click="mode = m.value"
+        >
+          <VIcon
+            v-if="mode === m.value"
+            icon="tabler-circle-check-filled"
+            color="primary"
+            size="28"
+            class="type-card__check"
+          />
+          <VCardText class="pa-4 text-center">
+            <div
+              class="type-card__icon mb-3"
+              :class="{ 'type-card__icon--active': mode === m.value }"
+            >
               <VIcon
-                icon="tabler-circle-check-filled"
-                size="48"
-                color="success"
+                :icon="m.icon"
+                size="28"
+                color="primary"
               />
             </div>
-            <div class="text-h6 font-weight-bold mb-1">
-              ¡Bienvenido/a!
+            <div class="text-body-2 font-weight-bold mb-1">
+              {{ m.title }}
             </div>
-            <p class="text-body-2 text-medium-emphasis">
-              Iniciando sesión...
-            </p>
-          </div>
-        </template>
-
-        <!-- Type selector -->
-        <template v-else>
-        <div class="type-cards mb-6">
-          <VCard
-            rounded="xl"
-            class="type-card"
-            :class="{ 'type-card--active': selectedUserType === 'visitor' }"
-            :style="selectedUserType === 'visitor' ? { boxShadow: '0 0 0 3px rgba(var(--v-theme-primary), 0.15), 0 4px 20px rgba(var(--v-theme-primary), 0.3)' } : {}"
-            @click="selectedUserType = 'visitor'"
-          >
-            <VIcon
-              v-if="selectedUserType === 'visitor'"
-              icon="tabler-circle-check-filled"
-              color="primary"
-              size="36"
-              class="type-card__check"
-            />
-            <VCardText class="pa-4 text-center">
-              <div
-                class="type-card__icon mb-3"
-                :class="{ 'type-card__icon--active': selectedUserType === 'visitor' }"
-              >
-                <VIcon
-                  icon="tabler-user-heart"
-                  size="28"
-                  color="primary"
-                />
-              </div>
-              <div class="text-body-2 font-weight-bold mb-1">
-                Soy visitante
-              </div>
-              <div class="text-caption text-medium-emphasis">
-                Accede con tu teléfono
-              </div>
-            </VCardText>
-          </VCard>
-
-          <VCard
-            rounded="xl"
-            class="type-card"
-            :class="{ 'type-card--active': selectedUserType === 'owner' }"
-            :style="selectedUserType === 'owner' ? { boxShadow: '0 0 0 3px rgba(var(--v-theme-primary), 0.15), 0 4px 20px rgba(var(--v-theme-primary), 0.3)' } : {}"
-            @click="selectedUserType = 'owner'"
-          >
-            <VIcon
-              v-if="selectedUserType === 'owner'"
-              icon="tabler-circle-check-filled"
-              color="primary"
-              size="36"
-              class="type-card__check"
-            />
-            <VCardText class="pa-4 text-center">
-              <div
-                class="type-card__icon mb-3"
-                :class="{ 'type-card__icon--active': selectedUserType === 'owner' }"
-              >
-                <VIcon
-                  icon="tabler-building-store"
-                  size="28"
-                  color="primary"
-                />
-              </div>
-              <div class="text-body-2 font-weight-bold mb-1">
-                Tengo un negocio
-              </div>
-              <div class="text-caption text-medium-emphasis">
-                Accede con tu email
-              </div>
-            </VCardText>
-          </VCard>
-        </div>
-
-        <!-- Error -->
-        <VAlert
-          v-if="error"
-          color="error"
-          variant="tonal"
-          rounded="lg"
-          density="compact"
-          icon="tabler-alert-triangle"
-          class="mb-4"
-        >
-          {{ error }}
-        </VAlert>
-
-        <VForm @submit.prevent="onSubmit">
-          <!-- Visitor: teléfono -->
-          <template v-if="selectedUserType === 'visitor'">
-            <VTextField
-              v-model="visitorPhone"
-              autofocus
-              label="Teléfono"
-              type="tel"
-              placeholder="1234567890"
-              variant="outlined"
-              hide-details
-              class="phone-field mb-2"
-            >
-              <template #prepend-inner>
-                <span class="text-body-2 text-medium-emphasis ps-1" style="white-space: nowrap;">🇲🇽 +52</span>
-                <VDivider
-                  vertical
-                  class="mx-2 my-1"
-                />
-              </template>
-            </VTextField>
-            <p class="text-caption text-medium-emphasis mb-5">
-              ¿Tienes un negocio en Repitt?
-              <span
-                class="text-primary font-weight-medium"
-                style="cursor: pointer;"
-                @click="selectedUserType = 'owner'"
-              >Accede con tu email</span>
-            </p>
-          </template>
-
-          <!-- Owner: email + contraseña -->
-          <template v-else>
-            <AppTextField
-              v-model="ownerForm.email"
-              autofocus
-              label="Email"
-              type="email"
-              placeholder="hola@negocio.com"
-              prepend-inner-icon="tabler-mail"
-              class="mb-4"
-            />
-            <AppTextField
-              v-model="ownerForm.password"
-              label="Contraseña"
-              placeholder="············"
-              :type="isPasswordVisible ? 'text' : 'password'"
-              :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
-              class="mb-3"
-              @click:append-inner="isPasswordVisible = !isPasswordVisible"
-            />
-            <div class="text-end mb-5">
-              <RouterLink
-                to="/auth/recuperar-contrasena"
-                class="text-primary text-body-2 font-weight-medium"
-              >
-                ¿Olvidaste tu contraseña?
-              </RouterLink>
+            <div class="text-caption text-medium-emphasis">
+              {{ m.subtitle }}
             </div>
-          </template>
+          </VCardText>
+        </VCard>
+      </div>
 
-          <VBtn
-            type="submit"
-            block
-            size="large"
-            color="primary"
-            rounded="xl"
-            :loading="isLoading"
-          >
-            Entrar
-          </VBtn>
-        </VForm>
+      <VAlert
+        v-if="passwordWasReset && mode === 'owner'"
+        color="success"
+        variant="tonal"
+        rounded="lg"
+        density="compact"
+        icon="tabler-lock-check"
+        class="mb-4"
+      >
+        Tu contraseña se actualizó. Inicia sesión con la nueva.
+      </VAlert>
 
+      <PhoneOtpFlow
+        v-if="mode === 'phone'"
+        @step="phoneStep = $event"
+        @verified="onPhoneVerified"
+      />
+      <OwnerLoginForm
+        v-else
+        @success="goHome"
+      />
+
+      <template v-if="phoneStep === 'phone'">
         <VDivider class="my-5" />
 
         <div class="text-center text-body-2">
-          ¿No tienes cuenta?
+          ¿Tienes un negocio y aún no tienes cuenta?
           <RouterLink
-            to="/auth/registro"
+            to="/auth/registro/negocio"
             class="text-primary font-weight-bold ms-1"
           >
-            Regístrate
+            Regístralo
           </RouterLink>
         </div>
-        </template>
-      </VCardText>
-    </VCard>
-
-    <div class="text-center mt-6">
-      <span class="text-caption text-disabled">Repitt © 2026</span>
-    </div>
-  </div>
+      </template>
+    </template>
+  </AuthShell>
 </template>
 
-<style scoped>
-.auth-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(160deg, rgba(var(--v-theme-primary), 0.07) 0%, rgb(var(--v-theme-background)) 45%);
-  min-block-size: 100vh;
-  padding-block: 32px;
-  padding-inline: 16px;
-}
-
-.auth-brand {
-  margin-block-end: 28px;
-  text-align: center;
-}
-
-.brand-logo {
-  block-size: auto;
-  inline-size: 160px;
-}
-
-.auth-card {
-  inline-size: 100%;
-  max-inline-size: 420px;
-}
-
+<style scoped lang="scss">
 .type-cards {
   display: grid;
   gap: 12px;
@@ -322,8 +160,8 @@ const onSubmit = async () => {
 
   &__check {
     position: absolute;
-    inset-block-start: -12px;
-    inset-inline-end: -12px;
+    inset-block-start: -10px;
+    inset-inline-end: -10px;
   }
 }
 
@@ -340,22 +178,5 @@ const onSubmit = async () => {
   &--active {
     background: rgba(var(--v-theme-primary), 0.15);
   }
-}
-
-.success-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(var(--v-theme-success), 0.1);
-  block-size: 88px;
-  inline-size: 88px;
-}
-</style>
-
-<style>
-.phone-field .v-field__prepend-inner {
-  align-items: center;
-  padding-inline-end: 0;
 }
 </style>

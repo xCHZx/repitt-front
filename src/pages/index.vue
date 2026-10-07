@@ -1,20 +1,17 @@
+<!--
+  "/" never renders in practice: the router guard sends anonymous users to login and signed-in
+  users home. This is only a fallback.
+-->
 <script setup lang="ts">
+import { homeRoute } from '@/utils/home'
+
 const router = useRouter()
 
-definePage({
-  meta: {
-    requiresAuth: true,
-  },
-})
-
-onBeforeMount(async () => {
-  await router.push('/visitante/')
-  location.reload()
+onBeforeMount(() => {
+  router.replace(homeRoute())
 })
 </script>
 
 <template>
-  <div>
-    Repitt
-  </div>
+  <div />
 </template>

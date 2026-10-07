@@ -1,8 +1,10 @@
+<!--
+  Global step-up / reauthentication dialog (guide §2.8–§2.9), mounted once in App.vue.
+  Opened by the API interceptor (PASSWORD_REQUIRED, REAUTH_REQUIRED) or by ensureReauthenticated().
+  - password: POST /v1/auth/step-up → new access token (amr=pwd), reauthenticated 10 min.
+  - otp (account without password): step-up/otp/request → code → step-up/otp/verify (204).
+-->
 <script setup lang="ts">
-// Global step-up / reauthentication dialog (guide §2.8–§2.9), mounted once in App.vue.
-// Opened by the API interceptor (PASSWORD_REQUIRED, REAUTH_REQUIRED) or by ensureReauthenticated().
-// - password: POST /v1/auth/step-up → new access token (amr=pwd), reauthenticated 10 min.
-// - otp (account without password): step-up/otp/request → code → step-up/otp/verify (204).
 import { stepUp, stepUpOtpRequest, stepUpOtpVerify } from '@/api/endpoints/auth'
 import { toApiError } from '@/api/errors'
 import type { Challenge } from '@/api/types'
@@ -59,6 +61,7 @@ async function submitPassword() {
   reset()
   try {
     const token = await stepUp({ password: password.value })
+
     session.setAccess(token)
     session.markReauthenticated()
     settleReauth(true)

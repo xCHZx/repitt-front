@@ -2,8 +2,8 @@
 definePage({
   meta: {
     layout: 'blank',
-    requiresAuth: false,
-    requiredRole: null,
+    public: true,
+    guestOnly: true,
   },
 })
 </script>
@@ -14,7 +14,7 @@ definePage({
       <!-- Logo -->
       <div class="d-flex justify-center mb-8">
         <img
-          src="@/assets/images/logo-v2.png"
+          src="@images/logo-v2.png"
           alt="Repitt"
           style="block-size: auto; inline-size: 160px;"
         >
@@ -37,13 +37,17 @@ definePage({
         >
           <VCardText class="pa-6 text-center">
             <div class="selector-card__icon-wrap mb-4">
-              <VIcon icon="tabler-user-heart" size="36" color="primary" />
+              <VIcon
+                icon="tabler-user-heart"
+                size="36"
+                color="primary"
+              />
             </div>
             <div class="text-h6 font-weight-bold mb-1">
-              Soy visitante
+              Soy cliente
             </div>
             <div class="text-body-2 text-medium-emphasis">
-              Acumulo sellos y canjeo recompensas en mis negocios favoritos
+              Acumulo sellos y canjeo recompensas en mis negocios favoritos, solo con mi teléfono
             </div>
           </VCardText>
         </VCard>
@@ -56,7 +60,11 @@ definePage({
         >
           <VCardText class="pa-6 text-center">
             <div class="selector-card__icon-wrap selector-card__icon-wrap--secondary mb-4">
-              <VIcon icon="tabler-building-store" size="36" color="secondary" />
+              <VIcon
+                icon="tabler-building-store"
+                size="36"
+                color="secondary"
+              />
             </div>
             <div class="text-h6 font-weight-bold mb-1">
               Tengo un negocio
@@ -70,10 +78,12 @@ definePage({
 
       <div class="text-center mt-8">
         <span class="text-medium-emphasis text-body-2">¿Ya tienes una cuenta?</span>
-        <a
+        <RouterLink
           class="text-primary ms-1 text-body-2 font-weight-medium"
-          href="/auth/login"
-        >Inicia sesión</a>
+          to="/auth/login"
+        >
+          Inicia sesión
+        </RouterLink>
       </div>
     </div>
   </div>

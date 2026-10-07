@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ErrorHeader from '@/components/ErrorHeader.vue'
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
 import misc404 from '@images/pages/404.png'
 import miscMaskDark from '@images/pages/misc-mask-dark.png'
@@ -11,8 +12,6 @@ definePage({
   meta: {
     layout: 'blank',
     public: true,
-    requiresAuth: false,
-    requiredRole: null,
   },
 })
 </script>
@@ -21,22 +20,21 @@ definePage({
   <div class="misc-wrapper">
     <ErrorHeader
       status-code="404"
-      title="Page Not Found ⚠️"
-      description="We couldn't find the page you are looking for."
+      title="Página no encontrada"
+      description="No encontramos la página que buscas. Revisa el enlace o vuelve al inicio."
     />
 
     <VBtn
       to="/"
       class="mb-11"
     >
-      Back to Home
+      Ir al inicio
     </VBtn>
 
-    <!-- 👉 Image -->
     <div class="misc-avatar w-100 text-center">
       <VImg
         :src="misc404"
-        alt="error 404"
+        alt="Página no encontrada"
         :max-height="$vuetify.display.smAndDown ? 350 : 500"
         class="mx-auto"
       />
@@ -45,7 +43,7 @@ definePage({
     <img
       class="misc-footer-img d-none d-md-block"
       :src="authThemeMask"
-      alt="misc-footer-img"
+      alt=""
       height="320"
     >
   </div>

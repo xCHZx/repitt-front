@@ -1,405 +1,282 @@
+<!--
+  Owner registration in two steps (guide §2.6):
+  POST /v1/auth/owner/register (202 challenge) → code → POST /v1/auth/owner/register/verify (201 session + business).
+  Creating the business no longer opens Checkout: the trial starts when the first card is published.
+-->
 <script setup lang="ts">
-import { emailValidator, requiredValidator } from '@/@core/utils/validators'
-import { onboardingUser } from '@/services/auth/auth'
-import { getAllCategories } from '@/services/catalog/categories'
-import { useAuthStore } from '@/stores/auth'
-import { useCompanyStore } from '@/stores/company'
+import { authApi, publicApi } from '@/api'
+import type { Category, Challenge } from '@/api/types'
+import AuthHeroLayout from '@/components/auth/AuthHeroLayout.vue'
+import OtpCodeForm from '@/components/auth/OtpCodeForm.vue'
+import OwnerRegisterForm from '@/components/auth/OwnerRegisterForm.vue'
+import { emptyOwnerRegisterForm, toOwnerRegisterBody } from '@/components/auth/ownerRegister'
+import ApiErrorAlert from '@/components/common/ApiErrorAlert.vue'
+import { useApiError } from '@/composables/useApiError'
+import { useBusinessStore } from '@/stores/business'
+import { useSessionStore } from '@/stores/session'
+import { homeRoute } from '@/utils/home'
 
 definePage({
   meta: {
     layout: 'blank',
-    requiresAuth: false,
-    requiredRole: null,
+    public: true,
+    guestOnly: true,
   },
 })
 
 const router = useRouter()
-const authStore = useAuthStore()
-const companyStore = useCompanyStore()
+const session = useSessionStore()
+const business = useBusinessStore()
 
-const categoriesList = ref([{ title: 'Cargando categorías...', value: null as any }])
+const VISIBLE_FIELDS = ['firstName', 'lastName', 'phone', 'email', 'password', 'business.name', 'business.categoryId', 'business.timezone']
 
-const ownerForm = ref({ firstName: '', lastName: '', phone: '', email: '', password: '' })
-const businessForm = ref({ businessName: '', categories: null as any })
-const isPasswordVisible = ref(false)
-const isLoading = ref(false)
-const error = ref<string | null>(null)
+const step = ref<'form' | 'code'>('form')
+const form = ref(emptyOwnerRegisterForm())
+const challenge = ref<Challenge | null>(null)
+const submitting = ref(false)
+const verifying = ref(false)
+const otpForm = ref<InstanceType<typeof OtpCodeForm> | null>(null)
+const restartNotice = ref<string | null>(null)
 
-const getCategories = async () => {
+const categories = ref<Category[]>([])
+const categoriesLoading = ref(false)
+
+const formError = useApiError()
+const codeError = useApiError()
+const categoriesError = useApiError()
+
+const fieldMessages = computed<Record<string, string | undefined>>(() => {
+  const e = formError.error.value
+  if (!e)
+    return {}
+
+  const out: Record<string, string | undefined> = { ...e.fieldErrors }
+  if (e.error.code === 'EMAIL_TAKEN')
+    out.email = e.message
+  if (e.error.code === 'PHONE_TAKEN' || e.error.code === 'INVALID_PHONE')
+    out.phone = e.message
+
+  return out
+})
+
+const showFormAlert = computed(() =>
+  !!formError.error.value
+  && formError.error.value.error.code !== 'ACCOUNT_SUSPENDED'
+  && !Object.keys(fieldMessages.value).some(k => VISIBLE_FIELDS.includes(k)))
+
+async function loadCategories() {
+  categoriesError.reset()
+  categoriesLoading.value = true
   try {
-    const response = await getAllCategories()
-
-    categoriesList.value = response.map((c: any) => ({
-      title: c.name,
-      value: { id: c.id, name: c.name },
-    }))
+    categories.value = await publicApi.listCategories()
   }
-  catch {
-    // silently ignore
-  }
-}
-
-const isSuccess = ref(false)
-
-const onFormSubmit = async () => {
-  error.value = null
-  isLoading.value = true
-  try {
-    await onboardingUser({
-      firstName: ownerForm.value.firstName,
-      lastName: ownerForm.value.lastName,
-      email: ownerForm.value.email,
-      password: ownerForm.value.password,
-      phone: '+52' + ownerForm.value.phone,
-      businessName: businessForm.value.businessName,
-      categoryId: businessForm.value.categories?.id || null,
-    })
-    isSuccess.value = true
-    localStorage.setItem('auth', JSON.stringify(authStore.$state))
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    router.push({ path: '/empresa/planes', query: { welcome: 'true' } })
-  }
-  catch (e: any) {
-    error.value = Array.isArray(e) ? e.join('\n') : String(e)
+  catch (e) {
+    categoriesError.capture(e)
   }
   finally {
-    isLoading.value = false
+    categoriesLoading.value = false
   }
 }
 
-onMounted(() => {
-  getCategories()
-})
+/** Step 1, also used to "resend" (a new register call issues a new challenge). */
+async function register(): Promise<boolean> {
+  try {
+    challenge.value = await authApi.ownerRegister(toOwnerRegisterBody(form.value))
+
+    return true
+  }
+  catch (e) {
+    const err = formError.capture(e).error
+    if (err.detailCode === 'categoryUnavailable') {
+      form.value.categoryId = null
+      loadCategories()
+    }
+    step.value = 'form'
+
+    return false
+  }
+}
+
+async function onSubmitForm() {
+  formError.reset()
+  codeError.reset()
+  restartNotice.value = null
+  submitting.value = true
+  if (await register())
+    step.value = 'code'
+  submitting.value = false
+}
+
+async function onResend() {
+  codeError.reset()
+  submitting.value = true
+  try {
+    challenge.value = await authApi.ownerRegister(toOwnerRegisterBody(form.value))
+
+    // Drop the stale digits so they are not sent against the new challenge
+    otpForm.value?.reset()
+  }
+  catch (e) {
+    // RATE_LIMITED → the code screen shows a countdown
+    codeError.capture(e)
+  }
+  finally {
+    submitting.value = false
+  }
+}
+
+async function onVerify(code: string) {
+  if (!challenge.value)
+    return
+
+  codeError.reset()
+  verifying.value = true
+  try {
+    const res = await authApi.ownerRegisterVerify({ challengeId: challenge.value.challengeId, code })
+
+    session.applySession(res)
+    if (res.business) {
+      business.upsert(res.business)
+      business.select(res.business.id)
+      await router.replace('/empresa')
+    }
+    else {
+      await router.replace(homeRoute())
+    }
+  }
+  catch (e) {
+    const described = codeError.capture(e)
+    const err = described.error
+
+    if (err.isConflictRetry) {
+      // The code is spent: start over from step 1 with a new code (§2.13)
+      codeError.reset()
+      challenge.value = null
+      step.value = 'form'
+      restartNotice.value = 'No pudimos confirmar tu registro. Revisa tus datos y vuelve a enviarlos para recibir un código nuevo.'
+    }
+    else if (err.code === 'EMAIL_TAKEN' || err.code === 'PHONE_TAKEN') {
+      codeError.reset()
+      formError.capture(e)
+      challenge.value = null
+      step.value = 'form'
+    }
+  }
+  finally {
+    verifying.value = false
+  }
+}
+
+function backToForm() {
+  codeError.reset()
+  challenge.value = null
+  step.value = 'form'
+}
+
+onMounted(loadCategories)
 </script>
 
 <template>
-  <div class="nr-page">
-    <!-- Hero -->
-    <div class="nr-hero">
-      <div class="nr-hero__content">
-        <div class="nr-hero__icons" aria-hidden="true">
-          <VIcon
-            icon="tabler-star-filled"
-            size="18"
-            class="nr-hero__star nr-hero__star--1"
-          />
-          <div class="nr-hero__badge">
-            <VIcon icon="tabler-building-store" size="48" />
-          </div>
-          <VIcon
-            icon="tabler-star-filled"
-            size="14"
-            class="nr-hero__star nr-hero__star--2"
-          />
-        </div>
+  <AuthHeroLayout
+    icon="tabler-building-store"
+    subtitle="Crea tu programa de fidelización y mantén a tus clientes volviendo"
+    :benefits="['Fácil de usar', 'Sin límite de clientes', 'Listo en minutos']"
+  >
+    <template #title>
+      ¡Haz crecer<br>tu negocio!
+    </template>
 
-        <h1 class="nr-hero__title">
-          ¡Haz crecer<br>tu negocio!
-        </h1>
-        <p class="nr-hero__subtitle">
-          Crea tu programa de fidelización y mantén a tus clientes volviendo
-        </p>
-
-        <div class="nr-hero__benefits">
-          <div class="nr-benefit">
-            <VIcon icon="tabler-check" size="13" />
-            Fácil de usar
-          </div>
-          <div class="nr-benefit">
-            <VIcon icon="tabler-check" size="13" />
-            Sin límite de clientes
-          </div>
-          <div class="nr-benefit">
-            <VIcon icon="tabler-check" size="13" />
-            Listo en minutos
-          </div>
-        </div>
+    <template v-if="step === 'form'">
+      <div class="text-h5 font-weight-bold mb-1">
+        Registra tu negocio
       </div>
-    </div>
+      <p class="text-body-2 text-medium-emphasis mb-5">
+        Con tu cuenta también podrás acumular sellos como cliente.
+      </p>
 
-    <!-- Formulario -->
-    <div class="nr-form-section">
-      <div class="nr-form-inner">
-        <div class="text-h5 font-weight-bold mb-1">
-          Registra tu negocio
-        </div>
-        <p class="text-body-2 text-medium-emphasis mb-5">
-          Al registrar tu negocio también se crea tu perfil de visitante
-        </p>
+      <VAlert
+        v-if="restartNotice"
+        color="warning"
+        variant="tonal"
+        rounded="lg"
+        density="compact"
+        icon="tabler-refresh-alert"
+        class="mb-5"
+      >
+        {{ restartNotice }}
+      </VAlert>
 
-        <VAlert
-          v-if="error"
-          color="error"
-          variant="tonal"
-          rounded="lg"
-          density="compact"
-          icon="tabler-alert-triangle"
-          class="mb-5"
+      <ApiErrorAlert
+        v-if="showFormAlert"
+        :error="formError.error.value"
+        class="mb-5"
+      />
+
+      <ApiErrorAlert
+        :error="categoriesError.error.value"
+        class="mb-5"
+      >
+        <VBtn
+          variant="text"
+          size="small"
+          class="mt-1"
+          @click="loadCategories"
         >
-          {{ error }}
-        </VAlert>
+          Reintentar
+        </VBtn>
+      </ApiErrorAlert>
 
-        <VForm @submit.prevent="onFormSubmit">
-          <!-- Datos personales -->
-          <div class="text-overline text-medium-emphasis mb-3">
-            Tus datos
-          </div>
+      <OwnerRegisterForm
+        v-model="form"
+        :categories="categories"
+        :categories-loading="categoriesLoading"
+        :loading="submitting"
+        :errors="fieldMessages"
+        @submit="onSubmitForm"
+      />
 
-          <div class="d-flex flex-column" style="gap: 16px;">
-            <VRow>
-              <VCol
-                cols="12"
-                md="6"
-                class="pb-0"
-              >
-                <VTextField
-                  v-model="ownerForm.firstName"
-                  placeholder="Juan"
-                  label="Nombre(s) *"
-                  variant="outlined"
-                  prepend-inner-icon="tabler-user"
-                  hide-details="auto"
-                  :rules="[requiredValidator]"
-                  autofocus
-                />
-              </VCol>
-
-              <VCol
-                cols="12"
-                md="6"
-                class="pb-0"
-              >
-                <VTextField
-                  v-model="ownerForm.lastName"
-                  placeholder="Pérez"
-                  label="Apellido(s) *"
-                  variant="outlined"
-                  prepend-inner-icon="tabler-user"
-                  hide-details="auto"
-                  :rules="[requiredValidator]"
-                />
-              </VCol>
-            </VRow>
-
-            <VTextField
-              v-model="ownerForm.phone"
-              placeholder="1234567890"
-              label="Teléfono *"
-              variant="outlined"
-              class="phone-field"
-              type="tel"
-              hide-details="auto"
-              :rules="[requiredValidator]"
-            >
-              <template #prepend-inner>
-                <span class="text-body-2 text-medium-emphasis ps-1" style="white-space: nowrap;">🇲🇽 +52</span>
-                <VDivider vertical class="mx-2 my-1" />
-              </template>
-            </VTextField>
-
-            <VTextField
-              v-model="ownerForm.email"
-              type="email"
-              variant="outlined"
-              label="Email *"
-              placeholder="tucorreo@ejemplo.com"
-              prepend-inner-icon="tabler-mail"
-              hide-details="auto"
-              :rules="[requiredValidator, emailValidator]"
-            />
-
-            <VTextField
-              v-model="ownerForm.password"
-              autocomplete="on"
-              variant="outlined"
-              label="Contraseña *"
-              placeholder="············"
-              prepend-inner-icon="tabler-lock"
-              hide-details="auto"
-              :rules="[requiredValidator]"
-              :type="isPasswordVisible ? 'text' : 'password'"
-              :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
-              @click:append-inner="isPasswordVisible = !isPasswordVisible"
-            />
-          </div>
-
-          <VDivider class="my-6" />
-
-          <!-- Datos del negocio -->
-          <div class="text-overline text-medium-emphasis mb-3">
-            Tu negocio
-          </div>
-
-          <div class="d-flex flex-column" style="gap: 16px;">
-            <VTextField
-              v-model="businessForm.businessName"
-              prepend-inner-icon="tabler-building-store"
-              variant="outlined"
-              label="Nombre del Negocio *"
-              placeholder="Mi Café"
-              hide-details="auto"
-              :rules="[requiredValidator]"
-            />
-
-            <VSelect
-              v-model="businessForm.categories"
-              :items="categoriesList"
-              label="Giro del Negocio *"
-              prepend-inner-icon="tabler-tag"
-              variant="outlined"
-              hide-details="auto"
-              :rules="[requiredValidator]"
-            />
-          </div>
-
-          <VBtn
-            type="submit"
-            block
-            size="large"
-            :color="isSuccess ? 'success' : 'primary'"
-            rounded="xl"
-            :loading="isLoading"
-            :disabled="isSuccess"
-            class="mt-6"
-          >
-            <VIcon
-              v-if="isSuccess"
-              icon="tabler-check"
-              start
-            />
-            {{ isSuccess ? '¡Cuenta creada!' : 'Crear cuenta' }}
-          </VBtn>
-        </VForm>
-
-        <div class="text-center mt-6">
-          <span class="text-medium-emphasis text-body-2">¿Ya tienes una cuenta?</span>
-          <a
-            class="text-primary ms-1 text-body-2 font-weight-medium"
-            href="/auth/login"
-          >Inicia sesión</a>
-        </div>
-
-        <VDivider class="my-5" />
-
-        <div class="text-center">
-          <a
-            class="text-medium-emphasis text-caption"
-            href="/auth/registro/visitante"
-          >¿Solo quieres acumular recompensas? Regístrate como visitante →</a>
-        </div>
+      <div class="text-center mt-6">
+        <span class="text-medium-emphasis text-body-2">¿Ya tienes una cuenta?</span>
+        <RouterLink
+          class="text-primary ms-1 text-body-2 font-weight-medium"
+          to="/auth/login?modo=negocio"
+        >
+          Inicia sesión
+        </RouterLink>
       </div>
-    </div>
-  </div>
+
+      <VDivider class="my-5" />
+
+      <div class="text-center">
+        <RouterLink
+          class="text-medium-emphasis text-caption"
+          to="/auth/registro/visitante"
+        >
+          ¿Solo quieres acumular recompensas? Regístrate como cliente →
+        </RouterLink>
+      </div>
+    </template>
+
+    <template v-else>
+      <div class="text-h5 font-weight-bold mb-1">
+        Confirma tu teléfono
+      </div>
+      <p class="text-body-2 text-medium-emphasis mb-5">
+        Es el último paso para crear tu cuenta y tu negocio.
+      </p>
+
+      <OtpCodeForm
+        ref="otpForm"
+        :expires-at="challenge?.expiresAt"
+        :destination="form.phone"
+        :loading="verifying"
+        :resending="submitting"
+        :error="codeError.error.value"
+        submit-label="Crear cuenta"
+        @submit="onVerify"
+        @resend="onResend"
+        @back="backToForm"
+      />
+    </template>
+  </AuthHeroLayout>
 </template>
-
-<style lang="scss" scoped>
-.nr-page {
-  display: flex;
-  flex-direction: column;
-  background: rgb(var(--v-theme-background));
-  min-block-size: 100dvh;
-}
-
-// ─── Hero ───────────────────────────────────────────────────
-.nr-hero {
-  flex-shrink: 0;
-  background: linear-gradient(150deg, rgb(var(--v-theme-primary)) 0%, rgb(var(--v-theme-primary-darken-1)) 100%);
-  padding-block: 48px 80px;
-  padding-inline: 24px;
-  text-align: center;
-}
-
-.nr-hero__content {
-  margin-inline: auto;
-  max-inline-size: 400px;
-}
-
-.nr-hero__icons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-block-end: 20px;
-}
-
-.nr-hero__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(255 255 255 / 20%);
-  block-size: 80px;
-  color: white;
-  inline-size: 80px;
-}
-
-.nr-hero__star {
-  color: rgba(255 255 255 / 70%);
-
-  &--1 {
-    transform: translateY(-6px);
-  }
-
-  &--2 {
-    transform: translateY(6px);
-  }
-}
-
-.nr-hero__title {
-  color: white;
-  font-size: 1.65rem;
-  font-weight: 800;
-  line-height: 1.25;
-  margin-block-end: 12px;
-}
-
-.nr-hero__subtitle {
-  color: rgba(255 255 255 / 85%);
-  font-size: 0.95rem;
-  line-height: 1.5;
-  margin-block-end: 24px;
-}
-
-.nr-hero__benefits {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-}
-
-.nr-benefit {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  background: rgba(255 255 255 / 18%);
-  color: white;
-  font-size: 0.8rem;
-  font-weight: 500;
-  gap: 4px;
-  padding-block: 4px;
-  padding-inline: 12px;
-}
-
-// ─── Formulario ─────────────────────────────────────────────
-.nr-form-section {
-  flex: 1;
-  border-radius: 28px 28px 0 0;
-  background: rgb(var(--v-theme-surface));
-  margin-block-start: -32px;
-  padding-block: 8px 48px;
-  padding-inline: 16px;
-}
-
-.nr-form-inner {
-  margin-inline: auto;
-  max-inline-size: 480px;
-  padding-block-start: 32px;
-}
-</style>
-
-<style>
-.phone-field .v-field__prepend-inner {
-  align-items: center;
-  padding-inline-end: 0;
-}
-</style>

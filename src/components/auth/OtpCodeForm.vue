@@ -1,14 +1,18 @@
+<!--
+  Code screen shared by the six OTP flows (guide §2.14).
+  The parent owns the API calls; this component shows the input, the expiry countdown and the
+  resend button, and interprets OTP errors through `error`:
+  400 OTP_INVALID (details.attemptsLeft) · 410 OTP_EXPIRED · 429 OTP_MAX_ATTEMPTS → enable resend
+  404 NOT_FOUND → challenge gone: ask for a new code · 429 RATE_LIMITED on resend → countdown
+-->
 <script setup lang="ts">
-// Code screen shared by the six OTP flows (guide §2.14).
-// The parent owns the API calls; this component shows the input, the expiry countdown and the
-// resend button, and interprets OTP errors through `error`:
-//   400 OTP_INVALID (details.attemptsLeft) · 410 OTP_EXPIRED · 429 OTP_MAX_ATTEMPTS → enable resend
-//   404 NOT_FOUND → challenge gone: ask for a new code · 429 RATE_LIMITED on resend → countdown
 import type { DescribedError } from '@/api/messages'
 
 const props = withDefaults(defineProps<{
+
   /** ISO instant when the current code expires (ChallengeDto.expiresAt). */
   expiresAt: string | null | undefined
+
   /** Where the code was sent, already masked or formatted for display. */
   destination?: string
   loading?: boolean
@@ -53,6 +57,11 @@ const countdown = computed(() => {
   const s = secondsLeft.value
 
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+})
+
+// A new challenge (resend) invalidates whatever was typed
+watch(() => props.expiresAt, () => {
+  code.value = ''
 })
 
 const resendBlockedUntil = ref(0)
