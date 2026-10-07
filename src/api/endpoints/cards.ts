@@ -31,6 +31,7 @@ export const archiveCard = (businessId: string, cardId: string) =>
 /** PNG/JPEG/WebP ≤ 2 MiB, field `file`. */
 export const uploadCardIcon = (businessId: string, cardId: string, file: File | Blob) => {
   const body = new FormData()
+
   body.append('file', file)
 
   return request('post', '/v1/businesses/{businessId}/cards/{cardId}/icon', { path: { businessId, cardId }, body }).then(unwrap)

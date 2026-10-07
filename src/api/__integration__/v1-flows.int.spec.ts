@@ -21,7 +21,7 @@ import { withIdempotency } from '../idempotency'
 import type { Business, MeDto, StampCard } from '../types'
 
 const LOG = process.env.BACKEND_LOG ?? ''
-const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 async function otpFor(challengeId: string): Promise<string> {
   for (let i = 0; i < 40; i++) {
@@ -48,6 +48,7 @@ async function expectApiError(p: Promise<unknown>, code: string, detailCode?: st
 const rnd = () => Math.floor(Math.random() * 1e8).toString().padStart(8, '0')
 
 let token: string | null = null
+
 const as = (t: string | null) => {
   token = t
 }
@@ -156,6 +157,7 @@ describe('v1 contract flows (local backend)', () => {
 
   it('signs a new visitor in by OTP (§2.5)', async () => {
     as(null)
+
     const phone = `55${rnd()}`
     const challenge = await auth.otpRequest({ phone })
     const session = await auth.otpVerify({ challengeId: challenge.challengeId, code: await otpFor(challenge.challengeId), firstName: 'Beto' })

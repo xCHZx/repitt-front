@@ -1,6 +1,8 @@
+<!--
+  Sanitized Markdown (privacy notice `bodyMd`): raw HTML is disabled, so it is escaped, and
+  links are restricted to http(s)/mailto by markdown-it's validateLink.
+-->
 <script setup lang="ts">
-// Sanitized Markdown (privacy notice `bodyMd`): raw HTML is disabled, so it is escaped, and
-// links are restricted to http(s)/mailto by markdown-it's validateLink.
 import MarkdownIt from 'markdown-it'
 
 const props = defineProps<{
@@ -23,8 +25,12 @@ const html = computed(() => md.render(props.source ?? ''))
 </script>
 
 <template>
-  <!-- eslint-disable-next-line vue/no-v-html -->
-  <div class="markdown-content" v-html="html" />
+  <!-- Safe: markdown-it with html disabled escapes raw HTML -->
+  <!-- eslint-disable vue/no-v-html -->
+  <div
+    class="markdown-content"
+    v-html="html"
+  />
 </template>
 
 <style lang="scss">

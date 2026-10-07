@@ -9,6 +9,7 @@ describe('withIdempotency', () => {
     vi.useFakeTimers()
 
     const keys: string[] = []
+
     const failures = [
       err({ status: 0, code: 'NETWORK', message: 'n' }),
       err({ status: 409, code: 'CONFLICT', message: 'c', detailCode: 'retry' }),
@@ -16,6 +17,7 @@ describe('withIdempotency', () => {
 
     const p = withIdempotency(async key => {
       keys.push(key)
+
       const f = failures.shift()
       if (f)
         throw f
@@ -28,7 +30,7 @@ describe('withIdempotency', () => {
     await expect(p).resolves.toBe('ok')
     expect(keys).toHaveLength(3)
     expect(new Set(keys).size).toBe(1)
-    expect(keys[0]).toMatch(/^[0-9a-f-]{36}$/)
+    expect(keys[0]).toMatch(/^[\da-f-]{36}$/)
 
     vi.useRealTimers()
   })

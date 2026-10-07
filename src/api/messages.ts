@@ -65,10 +65,13 @@ const BY_DETAIL: Record<string, string> = {
 }
 
 export interface DescribedError {
+
   /** Text for an inline alert / toast. */
   message: string
+
   /** Show it next to the message so support can trace the request. */
   requestId?: string
+
   /** Per-field messages from `details[]` (validation). */
   fieldErrors: Record<string, string>
   error: ApiError

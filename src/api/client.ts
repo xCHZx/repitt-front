@@ -9,7 +9,7 @@
 //   §2.13 one automatic retry on `409 CONFLICT retry` (except OTP verify flows),
 //   §1.10 short `Retry-After` waits on safe reads.
 // The app wires session/router/dialog behaviour through `configureApiClient` (see stores/session.ts).
-import axios, { AxiosHeaders } from 'axios'
+import axios, { AxiosHeaders, isCancel } from 'axios'
 import type { AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
 import { ApiError, toApiError } from './errors'
 import { refreshAccessToken } from './refresh'
@@ -97,7 +97,7 @@ const MAX_AUTO_RATE_WAIT_MS = 5000
 
 http.interceptors.response.use(undefined, async (raw: unknown) => {
   // AbortController cancellations keep axios' CanceledError (callers check axios.isCancel)
-  if (axios.isCancel(raw))
+  if (isCancel(raw))
     throw raw
 
   const err = toApiError(raw)
@@ -157,7 +157,7 @@ http.interceptors.response.use(undefined, async (raw: unknown) => {
       break
 
     case 'CONFLICT':
-      // "Nothing was applied": retry the very same request once (same body, same Idempotency-Key)
+    // "Nothing was applied": retry the very same request once (same body, same Idempotency-Key)
       if (err.isConflictRetry && !meta.noConflictRetry && !cfg._conflictRetried) {
         cfg._conflictRetried = true
         await sleep(150)
@@ -167,8 +167,8 @@ http.interceptors.response.use(undefined, async (raw: unknown) => {
       break
 
     case 'RATE_LIMITED':
-      // Only safe reads wait automatically; writes surface the error so the UI can show a countdown
-      if (cfg.method === 'get' && !cfg._rateRetried && (err.retryAfterMs ?? Infinity) <= MAX_AUTO_RATE_WAIT_MS) {
+    // Only safe reads wait automatically; writes surface the error so the UI can show a countdown
+      if (cfg.method === 'get' && !cfg._rateRetried && (err.retryAfterMs ?? Number.POSITIVE_INFINITY) <= MAX_AUTO_RATE_WAIT_MS) {
         cfg._rateRetried = true
         await sleep(err.retryAfterMs ?? 1000)
 

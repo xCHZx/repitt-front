@@ -1,6 +1,8 @@
+<!--
+  Simplified privacy notice (guide §4.C.5): shown before sending an OTP to a new phone, in owner
+  registration and in counter enroll. Texts come from the API (pending legal review): never copy them.
+-->
 <script setup lang="ts">
-// Simplified privacy notice (guide §4.C.5): shown before sending an OTP to a new phone, in owner
-// registration and in counter enroll. Texts come from the API (pending legal review): never copy them.
 import { getPrivacyNotice } from '@/api/endpoints/public'
 import type { PrivacyNotice } from '@/api/types'
 import MarkdownContent from '@/components/common/MarkdownContent.vue'

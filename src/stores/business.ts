@@ -89,6 +89,7 @@ export const useBusinessStore = defineStore('business', () => {
       return null
     try {
       const fresh = await getBusiness(id)
+
       upsert(fresh)
 
       return fresh

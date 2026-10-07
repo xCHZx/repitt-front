@@ -19,6 +19,7 @@ export function useCursorList<T>(fetchPage: (cursor: string | undefined) => Prom
 
   async function run(cursor: string | undefined, append: boolean) {
     const gen = ++generation
+
     loading.value = true
     error.value = null
     try {

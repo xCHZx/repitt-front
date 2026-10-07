@@ -25,6 +25,7 @@ export const unpublishBusiness = (businessId: string) =>
 /** PNG/JPEG/WebP ≤ 2 MiB, single field `file`. Returns BusinessAssetsDto (not the business). */
 export const uploadBusinessLogo = (businessId: string, file: File | Blob) => {
   const body = new FormData()
+
   body.append('file', file)
 
   return request('post', '/v1/businesses/{businessId}/logo', { path: { businessId }, body }).then(unwrap)

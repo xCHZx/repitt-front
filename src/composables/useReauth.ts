@@ -18,12 +18,13 @@ export function requestReauth(method: ReauthMethod): Promise<boolean> {
   if (pending)
     return pending.promise
 
-  let resolve!: (ok: boolean) => void
-  const promise = new Promise<boolean>(r => {
-    resolve = r
+  let settle!: (ok: boolean) => void
+
+  const promise = new Promise<boolean>(resolve => {
+    settle = resolve
   })
 
-  pending = { promise, resolve }
+  pending = { promise, resolve: settle }
   state.method = method
   state.open = true
 

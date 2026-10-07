@@ -1,5 +1,5 @@
+<!-- Renders a QR from a payload string (`MeDto.qrPayload`, `MeCardDto.qrPayload`): v1 sends text, not images. -->
 <script setup lang="ts">
-// Renders a QR from a payload string (`MeDto.qrPayload`, `MeCardDto.qrPayload`): v1 sends text, not images.
 import QRCode from 'qrcode'
 
 const props = withDefaults(defineProps<{

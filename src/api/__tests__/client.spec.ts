@@ -16,6 +16,7 @@ let hooks: { [K in keyof ApiClientHooks]: ReturnType<typeof vi.fn> }
 
 function useApi(reply: (cfg: InternalAxiosRequestConfig, n: number) => FakeReply | Error) {
   const fake = fakeAdapter(reply)
+
   http.defaults.adapter = fake.adapter
 
   return fake.calls
@@ -23,6 +24,7 @@ function useApi(reply: (cfg: InternalAxiosRequestConfig, n: number) => FakeReply
 
 function useRefresh(reply: (cfg: InternalAxiosRequestConfig, n: number) => FakeReply | Error) {
   const fake = fakeAdapter(reply)
+
   axios.defaults.adapter = fake.adapter
 
   return fake.calls
@@ -78,6 +80,7 @@ describe('request()', () => {
 
   it('omits the Authorization header without a session', async () => {
     token = null
+
     const calls = useApi(() => ({ status: 200, data: { data: [] } }))
 
     await request('get', '/v1/public/categories')
@@ -104,11 +107,13 @@ describe('refresh on TOKEN_EXPIRED', () => {
       : { status: 200, data: meBody })
 
     let resolveRefresh!: () => void
+
     const gate = new Promise<void>(resolve => {
       resolveRefresh = resolve
     })
 
     const refreshCalls: number[] = []
+
     axios.defaults.adapter = async cfg => {
       refreshCalls.push(1)
       await gate
@@ -118,7 +123,7 @@ describe('refresh on TOKEN_EXPIRED', () => {
 
     const all = Promise.all([me.getMe(), me.getMe(), me.getMe()])
 
-    await new Promise(r => setTimeout(r, 10))
+    await new Promise(resolve => setTimeout(resolve, 10))
     resolveRefresh()
 
     await expect(all).resolves.toHaveLength(3)
@@ -127,6 +132,7 @@ describe('refresh on TOKEN_EXPIRED', () => {
 
   it('retries the refresh once after 409 (another tab rotating)', async () => {
     useApi((cfg, n) => n === 0 ? { status: 401, data: errorBody('TOKEN_EXPIRED') } : { status: 200, data: meBody })
+
     const refreshCalls = useRefresh((cfg, n) => n === 0
       ? { status: 409, data: errorBody('CONFLICT') }
       : { status: 200, data: { data: { accessToken: 'new-token', expiresIn: 900, amr: 'otp' } } })
@@ -145,6 +151,7 @@ describe('refresh on TOKEN_EXPIRED', () => {
 
   it('never refreshes on INVALID_CREDENTIALS', async () => {
     useApi(() => ({ status: 401, data: errorBody('INVALID_CREDENTIALS') }))
+
     const refreshCalls = useRefresh(() => ({ status: 200, data: {} }))
 
     await expect(me.changePassword({ currentPassword: 'a', newPassword: 'b' })).rejects.toMatchObject({ code: 'INVALID_CREDENTIALS' })

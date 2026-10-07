@@ -1,6 +1,6 @@
 // Typed API error (guide §1.13). Every rejected API call in the app is an ApiError:
 // decide by `code` / `detailCode`, never by `message` text.
-import axios from 'axios'
+import { isAxiosError, isCancel } from 'axios'
 import type { AxiosError } from 'axios'
 import type { ApiErrorDto, ErrorCode } from './types'
 
@@ -27,10 +27,13 @@ export class ApiError extends Error {
   readonly status: number
   readonly code: ApiErrorCode
   readonly requestId?: string
+
   /** `details[0].code` when details is an array. */
   readonly detailCode?: string
+
   /** `details[]` → `{ field: message }`. */
   readonly fieldErrors: Record<string, string>
+
   /** `details` when it is an object (`{ reason }`, `{ method }`, `{ retryAt }`, `{ cycleId }`, `{ attemptsLeft }`). */
   readonly detailObj?: ApiErrorDetailObject
   readonly retryAfterMs?: number
@@ -81,10 +84,10 @@ export function toApiError(e: unknown): ApiError {
   if (e instanceof ApiError)
     return e
 
-  if (axios.isCancel(e))
+  if (isCancel(e))
     return new ApiError({ status: 0, code: 'CANCELED', message: 'Solicitud cancelada' })
 
-  if (!axios.isAxiosError(e))
+  if (!isAxiosError(e))
     return new ApiError({ status: 0, code: 'CLIENT', message: e instanceof Error ? e.message : String(e) })
 
   const ax = e as AxiosError<{ error?: ApiErrorDto }>

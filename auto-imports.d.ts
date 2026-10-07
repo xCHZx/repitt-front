@@ -12,7 +12,9 @@ declare global {
   const EffectScope: typeof import('vue')['EffectScope']
   const LOCALE: typeof import('./src/utils/dates')['LOCALE']
   const MEXICO_TIMEZONES: typeof import('./src/utils/dates')['MEXICO_TIMEZONES']
+  const VOID_WINDOW_MS: typeof import('./src/composables/useCounterRecents')['VOID_WINDOW_MS']
   const acceptHMRUpdate: typeof import('pinia')['acceptHMRUpdate']
+  const addCounterRecent: typeof import('./src/composables/useCounterRecents')['addCounterRecent']
   const afterLoginRoute: typeof import('./src/utils/home')['afterLoginRoute']
   const alphaDashValidator: typeof import('./src/@core/utils/validators')['alphaDashValidator']
   const alphaValidator: typeof import('./src/@core/utils/validators')['alphaValidator']
@@ -92,6 +94,7 @@ declare global {
   const mapState: typeof import('pinia')['mapState']
   const mapStores: typeof import('pinia')['mapStores']
   const mapWritableState: typeof import('pinia')['mapWritableState']
+  const markCounterRecentVoided: typeof import('./src/composables/useCounterRecents')['markCounterRecentVoided']
   const markRaw: typeof import('vue')['markRaw']
   const nextTick: typeof import('vue')['nextTick']
   const onActivated: typeof import('vue')['onActivated']
@@ -209,6 +212,7 @@ declare global {
   const useConfirmDialog: typeof import('@vueuse/core')['useConfirmDialog']
   const useCookie: typeof import('./src/@core/composable/useCookie')['useCookie']
   const useCounter: typeof import('@vueuse/core')['useCounter']
+  const useCounterRecents: typeof import('./src/composables/useCounterRecents')['useCounterRecents']
   const useCssModule: typeof import('vue')['useCssModule']
   const useCssVar: typeof import('@vueuse/core')['useCssVar']
   const useCssVars: typeof import('vue')['useCssVars']
@@ -374,6 +378,7 @@ declare global {
   const watchTriggerable: typeof import('@vueuse/core')['watchTriggerable']
   const watchWithFilter: typeof import('@vueuse/core')['watchWithFilter']
   const whenever: typeof import('@vueuse/core')['whenever']
+  const withinVoidWindow: typeof import('./src/composables/useCounterRecents')['withinVoidWindow']
 }
 // for type re-export
 declare global {
@@ -386,13 +391,14 @@ import { UnwrapRef } from 'vue'
 declare module 'vue' {
   interface GlobalComponents {}
   interface ComponentCustomProperties {
-    readonly $api: UnwrapRef<typeof import('./src/utils/api')['$api']>
     readonly COOKIE_MAX_AGE_1_YEAR: UnwrapRef<typeof import('./src/utils/constants')['COOKIE_MAX_AGE_1_YEAR']>
     readonly DEFAULT_TIMEZONE: UnwrapRef<typeof import('./src/utils/dates')['DEFAULT_TIMEZONE']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly LOCALE: UnwrapRef<typeof import('./src/utils/dates')['LOCALE']>
     readonly MEXICO_TIMEZONES: UnwrapRef<typeof import('./src/utils/dates')['MEXICO_TIMEZONES']>
+    readonly VOID_WINDOW_MS: UnwrapRef<typeof import('./src/composables/useCounterRecents')['VOID_WINDOW_MS']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
+    readonly addCounterRecent: UnwrapRef<typeof import('./src/composables/useCounterRecents')['addCounterRecent']>
     readonly afterLoginRoute: UnwrapRef<typeof import('./src/utils/home')['afterLoginRoute']>
     readonly alphaDashValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['alphaDashValidator']>
     readonly alphaValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['alphaValidator']>
@@ -471,6 +477,7 @@ declare module 'vue' {
     readonly mapState: UnwrapRef<typeof import('pinia')['mapState']>
     readonly mapStores: UnwrapRef<typeof import('pinia')['mapStores']>
     readonly mapWritableState: UnwrapRef<typeof import('pinia')['mapWritableState']>
+    readonly markCounterRecentVoided: UnwrapRef<typeof import('./src/composables/useCounterRecents')['markCounterRecentVoided']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
@@ -552,7 +559,6 @@ declare module 'vue' {
     readonly useAbs: UnwrapRef<typeof import('@vueuse/math')['useAbs']>
     readonly useActiveElement: UnwrapRef<typeof import('@vueuse/core')['useActiveElement']>
     readonly useAnimate: UnwrapRef<typeof import('@vueuse/core')['useAnimate']>
-    readonly useApi: UnwrapRef<typeof import('./src/composables/useApi')['useApi']>
     readonly useApiError: UnwrapRef<typeof import('./src/composables/useApiError')['useApiError']>
     readonly useArrayDifference: UnwrapRef<typeof import('@vueuse/core')['useArrayDifference']>
     readonly useArrayEvery: UnwrapRef<typeof import('@vueuse/core')['useArrayEvery']>
@@ -586,6 +592,7 @@ declare module 'vue' {
     readonly useConfirmDialog: UnwrapRef<typeof import('@vueuse/core')['useConfirmDialog']>
     readonly useCookie: UnwrapRef<typeof import('./src/@core/composable/useCookie')['useCookie']>
     readonly useCounter: UnwrapRef<typeof import('@vueuse/core')['useCounter']>
+    readonly useCounterRecents: UnwrapRef<typeof import('./src/composables/useCounterRecents')['useCounterRecents']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVar: UnwrapRef<typeof import('@vueuse/core')['useCssVar']>
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
@@ -746,18 +753,20 @@ declare module 'vue' {
     readonly watchTriggerable: UnwrapRef<typeof import('@vueuse/core')['watchTriggerable']>
     readonly watchWithFilter: UnwrapRef<typeof import('@vueuse/core')['watchWithFilter']>
     readonly whenever: UnwrapRef<typeof import('@vueuse/core')['whenever']>
+    readonly withinVoidWindow: UnwrapRef<typeof import('./src/composables/useCounterRecents')['withinVoidWindow']>
   }
 }
 declare module '@vue/runtime-core' {
   interface GlobalComponents {}
   interface ComponentCustomProperties {
-    readonly $api: UnwrapRef<typeof import('./src/utils/api')['$api']>
     readonly COOKIE_MAX_AGE_1_YEAR: UnwrapRef<typeof import('./src/utils/constants')['COOKIE_MAX_AGE_1_YEAR']>
     readonly DEFAULT_TIMEZONE: UnwrapRef<typeof import('./src/utils/dates')['DEFAULT_TIMEZONE']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly LOCALE: UnwrapRef<typeof import('./src/utils/dates')['LOCALE']>
     readonly MEXICO_TIMEZONES: UnwrapRef<typeof import('./src/utils/dates')['MEXICO_TIMEZONES']>
+    readonly VOID_WINDOW_MS: UnwrapRef<typeof import('./src/composables/useCounterRecents')['VOID_WINDOW_MS']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
+    readonly addCounterRecent: UnwrapRef<typeof import('./src/composables/useCounterRecents')['addCounterRecent']>
     readonly afterLoginRoute: UnwrapRef<typeof import('./src/utils/home')['afterLoginRoute']>
     readonly alphaDashValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['alphaDashValidator']>
     readonly alphaValidator: UnwrapRef<typeof import('./src/@core/utils/validators')['alphaValidator']>
@@ -836,6 +845,7 @@ declare module '@vue/runtime-core' {
     readonly mapState: UnwrapRef<typeof import('pinia')['mapState']>
     readonly mapStores: UnwrapRef<typeof import('pinia')['mapStores']>
     readonly mapWritableState: UnwrapRef<typeof import('pinia')['mapWritableState']>
+    readonly markCounterRecentVoided: UnwrapRef<typeof import('./src/composables/useCounterRecents')['markCounterRecentVoided']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
@@ -917,7 +927,6 @@ declare module '@vue/runtime-core' {
     readonly useAbs: UnwrapRef<typeof import('@vueuse/math')['useAbs']>
     readonly useActiveElement: UnwrapRef<typeof import('@vueuse/core')['useActiveElement']>
     readonly useAnimate: UnwrapRef<typeof import('@vueuse/core')['useAnimate']>
-    readonly useApi: UnwrapRef<typeof import('./src/composables/useApi')['useApi']>
     readonly useApiError: UnwrapRef<typeof import('./src/composables/useApiError')['useApiError']>
     readonly useArrayDifference: UnwrapRef<typeof import('@vueuse/core')['useArrayDifference']>
     readonly useArrayEvery: UnwrapRef<typeof import('@vueuse/core')['useArrayEvery']>
@@ -951,6 +960,7 @@ declare module '@vue/runtime-core' {
     readonly useConfirmDialog: UnwrapRef<typeof import('@vueuse/core')['useConfirmDialog']>
     readonly useCookie: UnwrapRef<typeof import('./src/@core/composable/useCookie')['useCookie']>
     readonly useCounter: UnwrapRef<typeof import('@vueuse/core')['useCounter']>
+    readonly useCounterRecents: UnwrapRef<typeof import('./src/composables/useCounterRecents')['useCounterRecents']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVar: UnwrapRef<typeof import('@vueuse/core')['useCssVar']>
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
@@ -1111,5 +1121,6 @@ declare module '@vue/runtime-core' {
     readonly watchTriggerable: UnwrapRef<typeof import('@vueuse/core')['watchTriggerable']>
     readonly watchWithFilter: UnwrapRef<typeof import('@vueuse/core')['watchWithFilter']>
     readonly whenever: UnwrapRef<typeof import('@vueuse/core')['whenever']>
+    readonly withinVoidWindow: UnwrapRef<typeof import('./src/composables/useCounterRecents')['withinVoidWindow']>
   }
 }

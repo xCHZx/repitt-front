@@ -20,6 +20,7 @@ export function fakeAdapter(reply: (cfg: InternalAxiosRequestConfig, n: number) 
 
   const adapter: AxiosAdapter = async cfg => {
     const n = calls.length
+
     calls.push({
       method: cfg.method,
       url: cfg.url,

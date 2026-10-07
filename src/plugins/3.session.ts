@@ -7,7 +7,7 @@ import { router } from '@/plugins/1.router'
 import { useBusinessStore } from '@/stores/business'
 import { useSessionStore } from '@/stores/session'
 
-export default function (_app: App) {
+export default function (_: App) {
   configureApiClient({
     getAccessToken: () => useSessionStore().accessToken,
 
