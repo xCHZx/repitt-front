@@ -68,8 +68,9 @@ router.beforeEach(async to => {
   if (to.meta.area !== 'business')
     return true
 
+  // Without memberships only an account with a password may open the create-business screens
   if (!session.hasMemberships)
-    return { path: '/visitante' }
+    return to.meta.needsBusiness === false && session.hasPassword ? true : { path: '/visitante' }
 
   const business = useBusinessStore()
 

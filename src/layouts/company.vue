@@ -1,16 +1,18 @@
 <script lang="ts" setup>
+import { RouterLink } from 'vue-router'
+import EntitlementBanner from '@/components/business/EntitlementBanner.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
-import { useCompanyStore } from '@/stores/company'
+import { useBusinessStore } from '@/stores/business'
+
+// Business area shell (guide §3): active business, role-based bottom nav, entitlement banner.
 
 const { injectSkinClasses } = useSkins()
 
 injectSkinClasses()
 
-const companyStore = useCompanyStore()
+const business = useBusinessStore()
 const router = useRouter()
 const route = useRoute()
-
-const isPastDue = computed(() => companyStore.isPastDue)
 
 const isFallbackStateActive = ref(false)
 const refLoadingIndicator = ref<any>(null)
@@ -22,46 +24,57 @@ watch([isFallbackStateActive, refLoadingIndicator], () => {
     refLoadingIndicator.value.resolveHandle()
 }, { immediate: true })
 
-const bottomNavRoots = ['empresa', 'empresa-tarjetas', 'empresa-clientes', 'empresa-visitas']
+const path = computed(() => route.path.replace(/\/+$/, '') || '/')
 
-const showBackButton = computed(() => !bottomNavRoots.includes(String(route.name)))
+const OWNER_ROOTS = ['/empresa', '/empresa/tarjetas', '/empresa/clientes', '/empresa/visitas']
+const CASHIER_ROOTS = ['/empresa', '/empresa/recompensas']
 
-const pageTitle = computed(() => {
-  const name = String(route.name)
-  if (name === 'empresa') return ''
-  if (name === 'empresa-tarjetas-crear') return 'Nueva Tarjeta'
-  if (name.startsWith('empresa-tarjetas-id-tarjetas-de-usuario')) return 'Tarjeta de Cliente'
-  if (name === 'empresa-tarjetas-id-editar') return 'Editar Tarjeta'
-  if (name === 'empresa-tarjetas-id-visitas') return 'Visitas de Tarjeta'
-  if (name.startsWith('empresa-tarjetas-id')) return 'Detalle de Tarjeta'
-  if (name.startsWith('empresa-tarjetas')) return 'Tarjetas'
-  if (name === 'empresa-clientes-customerid') return 'Perfil de Cliente'
-  if (name.startsWith('empresa-clientes')) return 'Clientes'
-  if (name.startsWith('empresa-planes')) return 'Plan'
-  if (name.startsWith('empresa-metricas')) return 'Métricas'
-  if (name === 'empresa-visitas-registrar') return 'Registrar Visita'
-  if (name.startsWith('empresa-visitas')) return 'Visitas'
-  if (name.startsWith('empresa-recompensas')) return 'Recompensas'
-  if (name.startsWith('empresa-informacion')) return 'Información'
-  if (name === 'empresa-editar') return 'Editar Negocio'
-  return 'Repitt'
-})
+const showBackButton = computed(() =>
+  !(business.isCashier ? CASHIER_ROOTS : OWNER_ROOTS).includes(path.value))
 
-const isTabActive = (tab: string) => {
-  const name = String(route.name)
-  switch (tab) {
-    case 'inicio': return name === 'empresa'
-    case 'tarjetas': return name.startsWith('empresa-tarjetas')
-    case 'registrar': return name === 'empresa-visitas-registrar'
-    case 'clientes': return name.startsWith('empresa-clientes')
-    case 'visitas': return name.startsWith('empresa-visitas') && name !== 'empresa-visitas-registrar'
-    default: return false
-  }
+const PAGE_TITLES: [RegExp, string][] = [
+  [/^\/empresa$/, ''],
+  [/^\/empresa\/tarjetas\/crear$/, 'Nueva tarjeta'],
+  [/^\/empresa\/tarjetas\/[^/]+\/tarjetas-de-usuario/, 'Tarjeta de cliente'],
+  [/^\/empresa\/tarjetas\/[^/]+\/editar$/, 'Editar tarjeta'],
+  [/^\/empresa\/tarjetas\/[^/]+\/visitas$/, 'Movimientos de la tarjeta'],
+  [/^\/empresa\/tarjetas\/[^/]+$/, 'Detalle de tarjeta'],
+  [/^\/empresa\/tarjetas$/, 'Tarjetas'],
+  [/^\/empresa\/clientes\/[^/]+$/, 'Cliente'],
+  [/^\/empresa\/clientes$/, 'Clientes'],
+  [/^\/empresa\/ciclos\/[^/]+/, 'Detalle de ciclo'],
+  [/^\/empresa\/planes/, 'Plan'],
+  [/^\/empresa\/metricas/, 'Métricas'],
+  [/^\/empresa\/visitas\/registrar$/, 'Registrar visita'],
+  [/^\/empresa\/visitas/, 'Movimientos'],
+  [/^\/empresa\/recompensas/, 'Recompensas'],
+  [/^\/empresa\/cajeros/, 'Cajeros'],
+  [/^\/empresa\/informacion/, 'Mi negocio'],
+  [/^\/empresa\/editar$/, 'Editar negocio'],
+  [/^\/empresa\/crear$/, 'Nuevo negocio'],
+]
+
+const pageTitle = computed(() => PAGE_TITLES.find(([re]) => re.test(path.value))?.[1] ?? 'Repitt')
+
+const canSwitchBusiness = computed(() => business.businesses.length > 1)
+
+const TAB_MATCHERS: Record<string, (p: string) => boolean> = {
+  inicio: p => p === '/empresa',
+  tarjetas: p => p.startsWith('/empresa/tarjetas'),
+  registrar: p => p === '/empresa/visitas/registrar',
+  clientes: p => p.startsWith('/empresa/clientes'),
+  visitas: p => p.startsWith('/empresa/visitas') && p !== '/empresa/visitas/registrar',
+  recompensas: p => p.startsWith('/empresa/recompensas'),
 }
 
-const businessInitial = computed(() =>
-  String(companyStore.selectedCompany?.name || 'R').charAt(0).toUpperCase(),
-)
+const isTabActive = (tab: string) => !!TAB_MATCHERS[tab]?.(path.value)
+
+const goBack = () => {
+  if (window.history.length > 1)
+    router.back()
+  else
+    router.push('/empresa')
+}
 </script>
 
 <template>
@@ -77,65 +90,92 @@ const businessInitial = computed(() =>
             icon
             variant="text"
             size="small"
-            @click="router.go(-1)"
+            aria-label="Regresar"
+            @click="goBack"
           >
-            <VIcon icon="tabler-arrow-left" size="20" />
+            <VIcon
+              icon="tabler-arrow-left"
+              size="20"
+            />
           </VBtn>
           <img
             v-else
-            src="@/assets/images/logo-v2.png"
+            src="@images/logo-v2.png"
             alt="Repitt"
             class="topbar-logo"
             height="28"
-          />
+          >
         </div>
 
+        <!-- Page title on sub-pages; active business (switcher when there are several) on root tabs -->
         <div
-          v-if="pageTitle"
+          v-if="showBackButton"
           class="topbar-title"
         >
           {{ pageTitle }}
         </div>
+
+        <component
+          :is="canSwitchBusiness ? RouterLink : 'div'"
+          v-else-if="business.active"
+          v-bind="canSwitchBusiness ? { to: '/empresa/seleccionar' } : {}"
+          class="topbar-business"
+          :class="{ 'topbar-business--link': canSwitchBusiness }"
+        >
+          <span class="topbar-business__name">{{ business.active.name }}</span>
+          <VChip
+            v-if="business.isCashier"
+            size="x-small"
+            color="secondary"
+            variant="tonal"
+            class="flex-shrink-0"
+          >
+            Cajero
+          </VChip>
+          <VIcon
+            v-if="canSwitchBusiness"
+            icon="tabler-selector"
+            size="16"
+            class="flex-shrink-0"
+          />
+        </component>
 
         <div class="topbar-right">
           <VBtn
             icon
             variant="text"
             size="small"
-            title="Vista de visitante"
-            to="/visitante/"
+            title="Mi cartera"
+            aria-label="Mi cartera"
+            to="/visitante"
           >
-            <VIcon icon="tabler-user" size="20" />
+            <VIcon
+              icon="tabler-wallet"
+              size="20"
+            />
+          </VBtn>
+          <VBtn
+            icon
+            variant="text"
+            size="small"
+            title="Mi cuenta"
+            aria-label="Mi cuenta"
+            to="/visitante/perfil"
+          >
+            <VIcon
+              icon="tabler-user-circle"
+              size="20"
+            />
           </VBtn>
           <NavbarThemeSwitcher />
         </div>
       </div>
     </header>
 
-    <!-- Banner past_due -->
-    <div
-      v-if="isPastDue"
-      class="company-pastdue-banner"
-    >
-      <VIcon
-        icon="tabler-alert-triangle"
-        size="16"
-        class="flex-shrink-0"
-      />
-      <span>Problema con tu pago.</span>
-      <RouterLink
-        to="/empresa/planes"
-        class="pastdue-link"
-      >
-        Actualizar tarjeta
-      </RouterLink>
-    </div>
-
     <!-- Main Content -->
-    <main
-      class="company-main"
-      :class="{ 'company-main--with-banner': isPastDue }"
-    >
+    <main class="company-main">
+      <EntitlementBanner class="mb-4" />
+
       <RouterView v-slot="{ Component }">
         <Suspense
           :timeout="0"
@@ -151,7 +191,7 @@ const businessInitial = computed(() =>
     <nav class="company-bottom-nav">
       <div class="bottom-nav-inner">
         <RouterLink
-          to="/empresa/"
+          to="/empresa"
           class="nav-tab"
           :class="{ 'nav-tab--active': isTabActive('inicio') }"
         >
@@ -163,15 +203,19 @@ const businessInitial = computed(() =>
         </RouterLink>
 
         <RouterLink
+          v-if="business.isOwner"
           to="/empresa/tarjetas"
           class="nav-tab"
           :class="{ 'nav-tab--active': isTabActive('tarjetas') }"
         >
-          <VIcon icon="tabler-cards" size="22" />
+          <VIcon
+            icon="tabler-cards"
+            size="22"
+          />
           <span>Tarjetas</span>
         </RouterLink>
 
-        <!-- Center FAB: Registrar Visita -->
+        <!-- Center FAB: Registrar -->
         <RouterLink
           to="/empresa/visitas/registrar"
           class="nav-fab"
@@ -189,25 +233,43 @@ const businessInitial = computed(() =>
           <span class="nav-fab-label">Registrar</span>
         </RouterLink>
 
-        <RouterLink
-          to="/empresa/clientes"
-          class="nav-tab"
-          :class="{ 'nav-tab--active': isTabActive('clientes') }"
-        >
-          <VIcon
-            :icon="isTabActive('clientes') ? 'tabler-users-group' : 'tabler-users'"
-            size="22"
-          />
-          <span>Clientes</span>
-        </RouterLink>
+        <template v-if="business.isOwner">
+          <RouterLink
+            to="/empresa/clientes"
+            class="nav-tab"
+            :class="{ 'nav-tab--active': isTabActive('clientes') }"
+          >
+            <VIcon
+              :icon="isTabActive('clientes') ? 'tabler-users-group' : 'tabler-users'"
+              size="22"
+            />
+            <span>Clientes</span>
+          </RouterLink>
+
+          <RouterLink
+            to="/empresa/visitas"
+            class="nav-tab"
+            :class="{ 'nav-tab--active': isTabActive('visitas') }"
+          >
+            <VIcon
+              icon="tabler-list-details"
+              size="22"
+            />
+            <span>Movimientos</span>
+          </RouterLink>
+        </template>
 
         <RouterLink
-          to="/empresa/visitas"
+          v-else
+          to="/empresa/recompensas"
           class="nav-tab"
-          :class="{ 'nav-tab--active': isTabActive('visitas') }"
+          :class="{ 'nav-tab--active': isTabActive('recompensas') }"
         >
-          <VIcon icon="tabler-walk" size="22" />
-          <span>Visitas</span>
+          <VIcon
+            icon="tabler-gift"
+            size="22"
+          />
+          <span>Recompensas</span>
         </RouterLink>
       </div>
     </nav>
@@ -236,13 +298,15 @@ const businessInitial = computed(() =>
   display: flex;
   align-items: center;
   block-size: 100%;
+  gap: 4px;
   margin-inline: auto;
   max-inline-size: 600px;
   padding-inline: 8px;
 }
 
 .topbar-left {
-  min-inline-size: 48px;
+  flex-shrink: 0;
+  min-inline-size: 40px;
 }
 
 .topbar-logo {
@@ -250,41 +314,52 @@ const businessInitial = computed(() =>
 }
 
 .topbar-title {
+  overflow: hidden;
   flex: 1;
   color: rgb(var(--v-theme-on-surface));
   font-size: 1rem;
   font-weight: 700;
   text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-business {
+  display: flex;
+  overflow: hidden;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  color: rgb(var(--v-theme-on-surface));
+  gap: 4px;
+  min-inline-size: 0;
+  text-decoration: none;
+
+  &--link {
+    border-radius: 8px;
+    padding-block: 4px;
+    padding-inline: 6px;
+
+    &:hover {
+      background: rgba(var(--v-theme-on-surface), 0.04);
+    }
+  }
+}
+
+.topbar-business__name {
+  overflow: hidden;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topbar-right {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: 2px;
+  gap: 0;
   margin-inline-start: auto;
-}
-
-// ─── Past Due Banner ─────────────────────────────────────
-.company-pastdue-banner {
-  position: fixed;
-  z-index: 199;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgb(var(--v-theme-warning));
-  block-size: 36px;
-  color: white;
-  font-size: 0.8rem;
-  font-weight: 600;
-  gap: 6px;
-  inset-block-start: 56px;
-  inset-inline: 0;
-}
-
-.pastdue-link {
-  color: white;
-  font-weight: 700;
-  text-decoration: underline;
 }
 
 // ─── Main Content ────────────────────────────────────────
@@ -293,10 +368,6 @@ const businessInitial = computed(() =>
   max-inline-size: 600px;
   padding-block: 72px calc(80px + env(safe-area-inset-bottom, 0px));
   padding-inline: 16px;
-
-  &--with-banner {
-    padding-block-start: 108px; // 72px + 36px banner
-  }
 }
 
 // ─── Bottom Navigation ───────────────────────────────────
