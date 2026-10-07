@@ -1,5 +1,5 @@
+<!-- Paywall / trial / grace banner for the active business (guide §3.2). -->
 <script setup lang="ts">
-// Paywall / trial / grace banner for the active business (guide §3.2).
 import { useBusinessStore } from '@/stores/business'
 import { entitlementNotice } from '@/utils/entitlement'
 

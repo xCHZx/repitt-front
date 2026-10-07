@@ -1,206 +1,208 @@
 <script lang="ts" setup>
-import { logoutUser } from '@/services/auth/auth'
-import { getAllBusinessesMe } from '@/services/company/businesses'
-import { getSubscriptionStatus } from '@/services/subscription/subscription'
-import { refreshUserData } from '@/services/utils/utils'
-import { useCompanyStore } from '@/stores/company'
+import { roleLabel } from '@/components/business/businessForm'
+import ApiErrorAlert from '@/components/common/ApiErrorAlert.vue'
+import HeroCTACard from '@/components/general/HeroCTACard.vue'
+import QuickActionCard from '@/components/general/QuickActionCard.vue'
+import { useApiError } from '@/composables/useApiError'
+import { useBusinessStore } from '@/stores/business'
+import { useSessionStore } from '@/stores/session'
+import { paywallMessage } from '@/utils/entitlement'
+
+// Business home (guide §3.4): owner sees every area; cashier only the counter.
 
 definePage({
   meta: {
-    requiresAuth: true,
-    requiredRole: ['Owner'],
     layout: 'company',
+    area: 'business',
   },
 })
 
-const companyStore = useCompanyStore()
 const router = useRouter()
+const business = useBusinessStore()
+const session = useSessionStore()
+const { error, capture } = useApiError()
 
-const planStatusLabel = computed(() => {
-  const sub = companyStore.businessSubscription
-  if (!sub) return 'Sin plan'
-  if (sub.cancelAtPeriodEnd && sub.cancelAt) {
-    const date = new Date(sub.cancelAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
-    return `Cancela el ${date}`
-  }
-  if (sub.status === 'active') return 'Activo'
-  if (sub.status === 'trialing') return 'Prueba'
-  if (sub.status === 'past_due') return 'Pago pendiente'
-  if (sub.status === 'canceled') return 'Cancelado'
-  if (sub.status === 'paused') return 'Pausado'
-  return 'Sin plan'
-})
-
-const planStatusColor = computed(() => {
-  const sub = companyStore.businessSubscription
-  if (!sub) return 'error'
-  if (sub.cancelAtPeriodEnd) return 'warning'
-  if (sub.status === 'active') return 'success'
-  if (sub.status === 'trialing') return 'info'
-  if (sub.status === 'past_due') return 'warning'
-  return 'error'
-})
-const isDialogVisible = ref(false)
-const businesses: any = ref([])
-const user: any = ref(null)
-
-const quickActions = [
+const ownerActions = [
   { icon: 'tabler-cards', label: 'Tarjetas', caption: 'De lealtad', to: '/empresa/tarjetas' },
-  { icon: 'tabler-walk', label: 'Visitas', caption: 'Historial', to: '/empresa/visitas' },
+  { icon: 'tabler-users', label: 'Clientes', caption: 'Tu cartera', to: '/empresa/clientes' },
+  { icon: 'tabler-list-details', label: 'Movimientos', caption: 'Bitácora', to: '/empresa/visitas' },
   { icon: 'tabler-chart-histogram', label: 'Métricas', caption: 'Actividad', to: '/empresa/metricas' },
-  { icon: 'tabler-gift', label: 'Recompensas', caption: 'Canjear', to: '/empresa/recompensas' },
+  { icon: 'tabler-gift', label: 'Recompensas', caption: 'Por canjear', to: '/empresa/recompensas' },
+  { icon: 'tabler-users-group', label: 'Cajeros', caption: 'Tu equipo', to: '/empresa/cajeros' },
+  { icon: 'tabler-building-store', label: 'Mi negocio', caption: 'Datos y QR', to: '/empresa/informacion' },
+  { icon: 'tabler-crown', label: 'Plan', caption: 'Suscripción', to: '/empresa/planes' },
 ]
 
-const getData = async () => {
-  try {
-    const businessId = companyStore.selectedCompany?.id as number
-    const [businessList, userData, subscriptionData] = await Promise.all([
-      getAllBusinessesMe(),
-      refreshUserData(),
-      getSubscriptionStatus(businessId),
-    ])
-    businesses.value = businessList
-    user.value = userData.data
-    companyStore.setBusinessSubscription(subscriptionData)
-  }
-  catch {
-    // silently ignore
-  }
-}
+const active = computed(() => business.active)
+const initial = computed(() => String(active.value?.name || 'R').charAt(0).toUpperCase())
+const isPublished = computed(() => !!active.value?.isPublished)
+const canRegister = computed(() => business.canOperate && isPublished.value)
 
-onMounted(async () => {
-  const currentCode = companyStore.selectedCompany.businessRepittCode
-  if (!companyStore.selectedCompany.name || !currentCode) {
-    router.push('/empresa/seleccionar')
-    return
-  }
-  await companyStore.refreshCompany(currentCode)
-  getData()
+const registerSubtitle = computed(() => {
+  if (!business.canOperate)
+    return paywallMessage(business.entitlement?.reason, business.role)
+  if (!isPublished.value)
+    return business.isOwner ? 'Publica tu negocio para registrar visitas' : 'El negocio está en pausa. Avísale al dueño.'
+
+  return 'Escanea el código QR de tu cliente'
 })
 
-const logout = async () => {
-  await logoutUser()
+const hasSeveralBusinesses = computed(() => business.businesses.length > 1)
+const isLoggingOut = ref(false)
+
+async function logout() {
+  isLoggingOut.value = true
+  await session.logout()
+  isLoggingOut.value = false
   await router.push('/auth/login')
 }
 
-const isActive = computed(() => companyStore.selectedCompany.isActive)
+onMounted(async () => {
+  // Entitlement may have changed since the list was loaded
+  try {
+    await business.refreshActive()
+    if (!business.active)
+      await router.push('/empresa/seleccionar')
+  }
+  catch (e) {
+    capture(e)
+  }
+})
 </script>
 
 <template>
-  <div class="pa-0">
-    <!-- Business Header -->
+  <div v-if="active">
+    <!-- Business header -->
     <div class="d-flex align-center gap-3 mb-4">
       <VAvatar
         color="primary"
         variant="tonal"
         size="44"
+        rounded="lg"
       >
         <VImg
-          v-if="companyStore.selectedCompany.logoPath"
-          :src="companyStore.selectedCompany.logoPath"
+          v-if="active.logoUrl"
+          :src="active.logoUrl"
+          cover
         />
         <span
           v-else
           class="text-h6 font-weight-bold"
-        >
-          {{ String(companyStore.selectedCompany?.name || 'R').charAt(0).toUpperCase() }}
-        </span>
+        >{{ initial }}</span>
       </VAvatar>
       <div class="flex-grow-1 overflow-hidden">
         <p class="text-h6 font-weight-bold mb-0 text-truncate">
-          {{ companyStore.selectedCompany?.name || 'Mi Negocio' }}
+          {{ active.name }}
         </p>
-        <VChip
-          :color="isActive ? 'success' : 'error'"
-          size="x-small"
-          variant="tonal"
-        >
-          {{ isActive ? 'Activo' : 'Inactivo' }}
-        </VChip>
+        <div class="d-flex gap-1">
+          <VChip
+            :color="business.isOwner ? 'primary' : 'secondary'"
+            size="x-small"
+            variant="tonal"
+          >
+            {{ roleLabel(business.role) }}
+          </VChip>
+          <VChip
+            v-if="!isPublished"
+            size="x-small"
+            variant="tonal"
+          >
+            En pausa
+          </VChip>
+        </div>
       </div>
     </div>
 
-    <!-- Primary CTA: Registrar Visita -->
-    <HeroCTACard
-      icon="tabler-qrcode"
-      title="Registrar Visita"
-      :subtitle="isActive ? 'Escanea el código QR de tu cliente' : 'Negocio inactivo'"
-      to="/empresa/visitas/registrar"
-      :disabled="!isActive"
+    <ApiErrorAlert
+      :error="error"
       class="mb-4"
     />
 
-    <!-- Quick Actions Grid -->
-    <VRow dense class="mb-2">
+    <VAlert
+      v-if="business.isOwner && !isPublished"
+      color="warning"
+      variant="tonal"
+      rounded="lg"
+      density="compact"
+      class="mb-4"
+    >
+      <div class="d-flex flex-wrap align-center gap-2">
+        <span class="flex-grow-1">Tu negocio está en pausa: tu página pública está oculta y no se puede sellar.</span>
+        <VBtn
+          size="small"
+          variant="flat"
+          color="warning"
+          to="/empresa/informacion"
+        >
+          Publicar
+        </VBtn>
+      </div>
+    </VAlert>
+
+    <!-- Primary CTA -->
+    <HeroCTACard
+      icon="tabler-qrcode"
+      title="Registrar visita"
+      :subtitle="registerSubtitle"
+      to="/empresa/visitas/registrar"
+      :disabled="!canRegister"
+      class="mb-4"
+    />
+
+    <!-- Owner: every area -->
+    <VRow
+      v-if="business.isOwner"
+      dense
+      class="mb-2"
+    >
       <VCol
-        v-for="action in quickActions"
+        v-for="action in ownerActions"
         :key="action.to"
         cols="6"
+        sm="3"
       >
         <QuickActionCard v-bind="action" />
       </VCol>
     </VRow>
 
-    <!-- Secondary Actions List -->
+    <!-- Cashier: counter only -->
     <VCard
+      v-else
       rounded="xl"
       class="mb-4"
     >
       <VList>
         <VListItem
-          prepend-icon="tabler-building-store"
-          title="Información del Negocio"
-          subtitle="Edita los datos de tu negocio"
+          prepend-icon="tabler-gift"
+          title="Recompensas pendientes"
+          subtitle="Canjea las recompensas de tus clientes"
           append-icon="tabler-chevron-right"
-          to="/empresa/informacion"
+          to="/empresa/recompensas"
         />
-        <VDivider />
-        <VListItem
-          prepend-icon="tabler-crown"
-          title="Mi Plan"
-          append-icon="tabler-chevron-right"
-          to="/empresa/planes"
-        >
-          <template #subtitle>
-            <VChip
-              :color="planStatusColor"
-              size="x-small"
-              variant="tonal"
-              class="mt-1"
-            >
-              {{ planStatusLabel }}
-            </VChip>
-          </template>
-        </VListItem>
       </VList>
     </VCard>
 
     <!-- Footer -->
-    <div class="d-flex justify-center gap-4 mt-2">
+    <div class="d-flex justify-center flex-wrap gap-4 mt-4">
       <VBtn
+        v-if="hasSeveralBusinesses"
         variant="text"
         size="small"
-        prepend-icon="tabler-refresh"
-        @click="isDialogVisible = true"
+        prepend-icon="tabler-switch-horizontal"
+        to="/empresa/seleccionar"
       >
-        Cambiar Perfil
+        Cambiar de negocio
       </VBtn>
       <VBtn
         color="secondary"
         variant="text"
         size="small"
         prepend-icon="tabler-logout"
+        :loading="isLoggingOut"
         @click="logout"
       >
-        Cerrar Sesión
+        Cerrar sesión
       </VBtn>
     </div>
   </div>
-
-  <!-- Cambiar Perfil Dialog -->
-  <CambiarPerfilDialog
-    v-model="isDialogVisible"
-    :businesses="businesses"
-    :user="user"
-  />
 </template>

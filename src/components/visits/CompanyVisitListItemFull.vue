@@ -1,34 +1,34 @@
 <script setup lang="ts">
+import type { LoyaltyEvent } from '@/api/types'
+import { EVENT_TYPES, actorLabel, isDeletedCustomer } from '@/components/crm/eventLabels'
+import { formatInstant, formatTime } from '@/utils/dates'
+
+// Owner event log rows (guide §4.A.8): LoyaltyEventDto[] rendered in the business time zone.
+
 interface Props {
-  visits: any[]
-  stampCardId?: string | number
+  events: LoyaltyEvent[]
+
+  /** stampCardId → card name (cards + archived cards, or the cards of a customer detail). */
+  cardNames: Record<string, string>
+  timezone: string
+
+  /** Hide the link to the customer (e.g. inside the customer detail). */
+  hideCustomerLink?: boolean
 }
 
 const props = defineProps<Props>()
 const router = useRouter()
 
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
+const cardName = (event: LoyaltyEvent) => props.cardNames[event.stampCardId] ?? 'Tarjeta'
 
-const formatTime = (date: string) => {
-  return new Date(date).toLocaleTimeString('es-ES', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
+const customerName = (event: LoyaltyEvent) =>
+  isDeletedCustomer(event) ? 'Cliente dado de baja' : event.customer.displayName
 
-const initial = (visit: any) => {
-  return String(visit?.customer?.firstName || '?').charAt(0).toUpperCase()
-}
+const canOpenCycle = (event: LoyaltyEvent) => !isDeletedCustomer(event) && !!event.cycleId
 
-const goToUserStampCard = (visit: any) => {
-  const scId = props.stampCardId ?? visit?.stampCard?.id
-  router.push(`/empresa/tarjetas/${scId}/tarjetas-de-usuario/${visit.userStampCardId}`)
+const openCycle = (event: LoyaltyEvent) => {
+  if (canOpenCycle(event))
+    router.push(`/empresa/ciclos/${event.cycleId}`)
 }
 </script>
 
@@ -36,45 +36,110 @@ const goToUserStampCard = (visit: any) => {
   <VCard rounded="xl">
     <VList density="compact">
       <template
-        v-for="(visit, index) in visits"
-        :key="visit.id"
+        v-for="(event, index) in props.events"
+        :key="event.id"
       >
         <VListItem
           class="py-3"
-          style="cursor: pointer;"
-          @click="goToUserStampCard(visit)"
+          :link="canOpenCycle(event)"
+          @click="openCycle(event)"
         >
           <template #prepend>
             <VAvatar
               size="40"
-              color="primary"
+              :color="EVENT_TYPES[event.type].color"
               variant="tonal"
               class="me-3"
             >
-              <span class="text-body-2 font-weight-bold">{{ initial(visit) }}</span>
+              <VIcon
+                :icon="EVENT_TYPES[event.type].icon"
+                size="20"
+              />
             </VAvatar>
           </template>
 
-          <VListItemTitle class="text-body-2 font-weight-bold">
-            {{ visit?.customer?.firstName }} {{ visit?.customer?.lastName }}
-          </VListItemTitle>
-          <VListItemSubtitle>
+          <VListItemTitle class="text-body-2 font-weight-bold d-flex align-center flex-wrap gap-1">
+            <RouterLink
+              v-if="!props.hideCustomerLink && !isDeletedCustomer(event)"
+              :to="`/empresa/clientes/${event.customer.id}`"
+              class="customer-link text-truncate"
+              @click.stop
+            >
+              {{ customerName(event) }}
+            </RouterLink>
             <span
-              v-if="visit?.stampCard?.name"
-              class="me-2"
-            >{{ visit.stampCard.name }}</span>
-            <span class="text-disabled">{{ visit?.customer?.repittCode }}</span>
+              v-else
+              class="text-truncate"
+              :class="{ 'text-medium-emphasis': isDeletedCustomer(event) }"
+            >
+              {{ customerName(event) }}
+            </span>
+            <VChip
+              v-if="event.isTest"
+              size="x-small"
+              color="info"
+              variant="tonal"
+            >
+              Prueba
+            </VChip>
+            <VChip
+              v-if="event.voidedByEventId"
+              size="x-small"
+              color="error"
+              variant="tonal"
+            >
+              Anulado
+            </VChip>
+          </VListItemTitle>
+
+          <VListItemSubtitle class="event-subtitle">
+            <span :class="`text-${EVENT_TYPES[event.type].color} font-weight-medium`">
+              {{ EVENT_TYPES[event.type].label }}
+            </span>
+            · {{ cardName(event) }}
           </VListItemSubtitle>
 
+          <div class="d-flex align-center gap-1 text-caption text-medium-emphasis mt-1">
+            <VIcon
+              icon="tabler-user"
+              size="13"
+            />
+            {{ actorLabel(event.actor) }}
+          </div>
+
+          <div
+            v-if="event.reason"
+            class="text-caption text-medium-emphasis font-italic mt-1"
+          >
+            Motivo: {{ event.reason }}
+          </div>
+
           <template #append>
-            <div class="d-flex flex-column align-end gap-1">
-              <span class="text-caption font-weight-medium">{{ formatDate(visit?.createdAt) }}</span>
-              <span class="text-caption text-medium-emphasis">{{ formatTime(visit?.createdAt) }}</span>
+            <div class="d-flex flex-column align-end gap-1 ms-2">
+              <span class="text-caption font-weight-medium text-no-wrap">
+                {{ formatInstant(event.occurredAt, props.timezone, { day: 'numeric', month: 'short', year: 'numeric' }) }}
+              </span>
+              <span class="text-caption text-medium-emphasis text-no-wrap">
+                {{ formatTime(event.occurredAt, props.timezone) }}
+              </span>
             </div>
           </template>
         </VListItem>
-        <VDivider v-if="index < visits.length - 1" />
+        <VDivider v-if="index < props.events.length - 1" />
       </template>
     </VList>
   </VCard>
 </template>
+
+<style scoped>
+.customer-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(var(--v-theme-primary), 0.4);
+  text-underline-offset: 3px;
+}
+
+.event-subtitle {
+  white-space: normal;
+}
+</style>

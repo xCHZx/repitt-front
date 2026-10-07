@@ -1,51 +1,91 @@
 <script setup lang="ts">
-import { getAllStampCardsByBusinessIdAsCurrentCompany } from '@/services/company/stampCards'
-import { useCompanyStore } from '@/stores/company'
+import { listCards } from '@/api/endpoints/cards'
+import type { StampCard, StampCardStatus } from '@/api/types'
+import CardListItem from '@/components/cards/CardListItem.vue'
+import { MAX_NON_ARCHIVED_CARDS, MAX_PUBLISHED_CARDS, validityText } from '@/components/cards/cardMeta'
+import ApiErrorAlert from '@/components/common/ApiErrorAlert.vue'
+import { useApiError } from '@/composables/useApiError'
+import { useBusinessStore } from '@/stores/business'
 
 definePage({
   meta: {
-    requiresAuth: true,
-    requiredRole: ['Owner'],
     layout: 'company',
+    area: 'business',
+    ownerOnly: true,
   },
 })
 
-const companyStore = useCompanyStore()
-const stampCards = ref<any[]>([])
-const isLoading = ref(false)
+type Tab = 'current' | 'archived'
 
-const getData = async () => {
-  if (!companyStore.selectedCompany.id)
+const business = useBusinessStore()
+
+const tab = ref<Tab>('current')
+const cards = ref<Record<Tab, StampCard[] | null>>({ current: null, archived: null })
+
+// Loading and error state belong to each tab: both lists can load at the same time.
+const loading = ref<Record<Tab, boolean>>({ current: false, archived: false })
+const errors: Record<Tab, ReturnType<typeof useApiError>> = { current: useApiError(), archived: useApiError() }
+
+const isLoading = computed(() => loading.value[tab.value])
+const error = computed(() => errors[tab.value].error.value)
+
+async function load(which: Tab) {
+  const businessId = business.activeId
+  if (!businessId || loading.value[which])
     return
-  isLoading.value = true
+  errors[which].reset()
+  loading.value[which] = true
   try {
-    stampCards.value = await getAllStampCardsByBusinessIdAsCurrentCompany(companyStore.selectedCompany.id)
+    cards.value[which] = await listCards(businessId, which === 'archived' ? 'archived' : undefined)
   }
-  catch {
-    // silently ignore
+  catch (e) {
+    errors[which].capture(e)
   }
   finally {
-    isLoading.value = false
+    loading.value[which] = false
   }
 }
 
-onMounted(() => getData())
+watch(tab, which => {
+  if (!cards.value[which])
+    load(which)
+}, { immediate: true })
 
-const activeCards = computed(() => stampCards.value.filter(c => c.isActive))
-const inactiveCards = computed(() => stampCards.value.filter(c => !c.isActive))
+const shown = computed(() => cards.value[tab.value])
+
+const SECTIONS: { status: StampCardStatus; label: string; icon: string }[] = [
+  { status: 'published', label: 'Publicadas', icon: 'tabler-circle-check' },
+  { status: 'paused', label: 'Pausadas', icon: 'tabler-player-pause' },
+  { status: 'draft', label: 'Borradores', icon: 'tabler-pencil' },
+]
+
+const sections = computed(() => {
+  const list = cards.value.current ?? []
+
+  return SECTIONS
+    .map(s => ({ ...s, items: list.filter(c => c.status === s.status) }))
+    .filter(s => s.items.length)
+})
+
+const publishedCount = computed(() => (cards.value.current ?? []).filter(c => c.status === 'published').length)
+const atPublishedLimit = computed(() => publishedCount.value >= MAX_PUBLISHED_CARDS)
+const atCardLimit = computed(() => (cards.value.current?.length ?? 0) >= MAX_NON_ARCHIVED_CARDS)
 </script>
 
 <template>
   <div>
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between mb-5">
-      <div
-        v-if="!isLoading"
-        class="text-body-2 text-medium-emphasis"
+    <div class="d-flex align-center justify-space-between gap-2 mb-4">
+      <VTabs
+        v-model="tab"
+        density="compact"
       >
-        {{ stampCards.length }} tarjeta{{ stampCards.length !== 1 ? 's' : '' }}
-      </div>
-      <div v-else />
+        <VTab value="current">
+          Activas
+        </VTab>
+        <VTab value="archived">
+          Archivadas
+        </VTab>
+      </VTabs>
       <VBtn
         size="small"
         color="primary"
@@ -53,11 +93,11 @@ const inactiveCards = computed(() => stampCards.value.filter(c => !c.isActive))
         prepend-icon="tabler-plus"
         to="/empresa/tarjetas/crear"
       >
-        Nueva
+        Nueva tarjeta
       </VBtn>
     </div>
 
-    <!-- Loading skeletons -->
+    <!-- Cargando -->
     <div
       v-if="isLoading"
       class="d-flex flex-column gap-3"
@@ -70,58 +110,105 @@ const inactiveCards = computed(() => stampCards.value.filter(c => !c.isActive))
       />
     </div>
 
-    <!-- Cards list -->
-    <template v-else-if="stampCards.length > 0">
-      <!-- Active -->
-      <template v-if="activeCards.length > 0">
+    <!-- Error de carga -->
+    <div v-else-if="error || !shown">
+      <ApiErrorAlert
+        :error="error"
+        class="mb-4"
+      />
+      <VBtn
+        variant="tonal"
+        prepend-icon="tabler-refresh"
+        @click="load(tab)"
+      >
+        Reintentar
+      </VBtn>
+    </div>
+
+    <!-- Activas -->
+    <template v-else-if="tab === 'current' && shown.length">
+      <VAlert
+        v-if="atCardLimit"
+        color="warning"
+        variant="tonal"
+        rounded="xl"
+        density="compact"
+        icon="tabler-alert-triangle"
+        class="mb-4"
+      >
+        Llegaste al máximo de {{ MAX_NON_ARCHIVED_CARDS }} tarjetas sin archivar. Archiva alguna para crear otra.
+      </VAlert>
+      <VAlert
+        v-if="atPublishedLimit"
+        color="info"
+        variant="tonal"
+        rounded="xl"
+        density="compact"
+        icon="tabler-info-circle"
+        class="mb-4"
+      >
+        Tienes {{ publishedCount }} tarjetas publicadas, el máximo es {{ MAX_PUBLISHED_CARDS }} (las vencidas cuentan).
+        Pausa o archiva una para publicar otra.
+      </VAlert>
+
+      <template
+        v-for="section in sections"
+        :key="section.status"
+      >
         <div class="section-label mb-3">
           <VIcon
-            icon="tabler-circle-check"
+            :icon="section.icon"
             size="15"
           />
-          Activas
+          {{ section.label }}
         </div>
         <div class="d-flex flex-column gap-3 mb-5">
-          <StampCardListItemAsBusiness
-            v-for="card in activeCards"
+          <CardListItem
+            v-for="card in section.items"
             :key="card.id"
             :name="card.name"
             :reward="card.reward"
             :required-stamps="card.requiredStamps"
-            :stamp-icon="card.stampIconPath"
             :primary-color="card.primaryColor"
-            :is-active="card.isActive"
-            :to="`/empresa/tarjetas/${card.id}`"
-          />
-        </div>
-      </template>
-
-      <!-- Inactive -->
-      <template v-if="inactiveCards.length > 0">
-        <div class="section-label mb-3">
-          <VIcon
-            icon="tabler-circle-x"
-            size="15"
-          />
-          Inactivas
-        </div>
-        <div class="d-flex flex-column gap-3">
-          <StampCardListItemAsBusiness
-            v-for="card in inactiveCards"
-            :key="card.id"
-            :name="card.name"
-            :reward="card.reward"
-            :required-stamps="card.requiredStamps"
-            :stamp-icon="card.stampIconPath"
-            :primary-color="card.primaryColor"
-            :is-active="card.isActive"
+            :icon-url="card.iconUrl"
+            :status="card.status"
+            :is-expired="card.isExpired"
+            :validity="validityText(card)"
             :to="`/empresa/tarjetas/${card.id}`"
           />
         </div>
       </template>
     </template>
 
-    <!-- Empty state -->
+    <!-- Archivadas -->
+    <template v-else-if="tab === 'archived' && shown.length">
+      <div class="text-caption text-medium-emphasis mb-3">
+        Se muestran las 100 archivadas más recientes. Tus clientes aún pueden canjear lo que ganaron en ellas.
+      </div>
+      <div class="d-flex flex-column gap-3">
+        <CardListItem
+          v-for="card in shown"
+          :key="card.id"
+          :name="card.name"
+          :reward="card.reward"
+          :required-stamps="card.requiredStamps"
+          :primary-color="card.primaryColor"
+          :icon-url="card.iconUrl"
+          :status="card.status"
+          :is-expired="card.isExpired"
+          :validity="validityText(card)"
+          :to="`/empresa/tarjetas/${card.id}`"
+        />
+      </div>
+    </template>
+
+    <!-- Vacío -->
+    <div
+      v-else-if="tab === 'archived'"
+      class="text-center py-12 text-body-2 text-medium-emphasis"
+    >
+      No tienes tarjetas archivadas.
+    </div>
     <div
       v-else
       class="text-center py-12"
@@ -129,8 +216,7 @@ const inactiveCards = computed(() => stampCards.value.filter(c => !c.isActive))
       <VIcon
         icon="tabler-cards"
         size="72"
-        class="mb-4"
-        style="opacity: 0.3;"
+        class="mb-4 empty-icon"
       />
       <div class="text-h6 font-weight-bold mb-1">
         Sin tarjetas de lealtad
@@ -160,5 +246,9 @@ const inactiveCards = computed(() => stampCards.value.filter(c => !c.isActive))
   gap: 5px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.empty-icon {
+  opacity: 0.3;
 }
 </style>

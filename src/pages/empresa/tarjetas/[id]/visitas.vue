@@ -1,63 +1,60 @@
 <script setup lang="ts">
-import Swal from 'sweetalert2'
-import { getAllVisitsByStampCardIdAsCurrentCompany } from '@/services/company/visits'
-import { useCompanyStore } from '@/stores/company'
+import EventLog from '@/components/crm/EventLog.vue'
+import { useBusinessStore } from '@/stores/business'
+
+// Event log of one card (guide §4.A.8, `GET …/events?cardId=`).
 
 definePage({
   meta: {
-    requiresAuth: true,
-    requiredRole: ['Owner'],
     layout: 'company',
+    area: 'business',
+    ownerOnly: true,
   },
 })
 
-const route: any = useRoute()
-const companyStore = useCompanyStore()
+const route = useRoute()
+const router = useRouter()
+const business = useBusinessStore()
 
-const data: any = ref({})
+// The card belongs to the business that was active: on a switch, go back to the card list
+watch(() => business.activeId, (id, previous) => {
+  if (previous && id !== previous)
+    router.replace('/empresa/tarjetas')
+})
 
-const getData = async () => {
-  if (!companyStore.selectedCompany?.id)
-    return
-  try {
-    data.value = await getAllVisitsByStampCardIdAsCurrentCompany(companyStore.selectedCompany.id, route.params.id)
-  }
-  catch (error: any) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: Array.isArray(error) ? error.join('\n') : error,
-    })
-  }
-}
+const cardId = computed(() => {
+  const params = route.params as Record<string, string | string[] | undefined>
+  const id = params.id
 
-onMounted(() => {
-  getData()
+  return typeof id === 'string' ? id : undefined
 })
 </script>
 
 <template>
-  <VRow>
-    <VCol cols="12">
-      <VCardText class="text-center text-h3 font-weight-bold">
-        Historial de Visitas
-      </VCardText>
-      <div>
-        <VRow>
-          <VCol cols="12">
-            <VCardText class="text-center pt-2">
-              <h5 class="text-h5">
-                Total de Visitas: {{ data?.totalVisits ?? 'No disponible' }}
-              </h5>
-            </VCardText>
-            <CompanyVisitListItemFull
-              v-if="data?.totalVisits >= 1"
-              :stamp-card-id="route.params.id"
-              :visits="data?.visits"
-            />
-          </VCol>
-        </VRow>
-      </div>
-    </VCol>
-  </VRow>
+  <div>
+    <div class="section-label mb-3">
+      <VIcon
+        icon="tabler-history"
+        size="15"
+      />
+      Movimientos de la tarjeta
+    </div>
+    <EventLog
+      :key="cardId"
+      :fixed-card-id="cardId"
+    />
+  </div>
 </template>
+
+<style scoped>
+.section-label {
+  display: flex;
+  align-items: center;
+  color: rgb(var(--v-theme-primary));
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+</style>

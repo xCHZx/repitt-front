@@ -1,55 +1,63 @@
 <script lang="ts" setup>
 interface Props {
   title: string
-  mainNumber: number
+  mainNumber: number | string
+
+  /** Percentage (already ×100); undefined hides the chip. */
   growth?: number
   icon: string
   color: string
+
+  /** Small text under the title (e.g. the previous period value). */
+  caption?: string
 }
 
 const props = defineProps<Props>()
+
+const growthText = computed(() => {
+  if (props.growth === undefined)
+    return ''
+  const value = Math.round(props.growth * 10) / 10
+
+  return `${value >= 0 ? '+' : ''}${value.toLocaleString('es-MX')}%`
+})
 </script>
 
 <template>
-  <VCard class="logistics-card-statistics cursor-pointer">
-    <VCardText class="py-3">
-      <div class="d-flex align-center gap-x-4 mb-1 ">
+  <VCard rounded="xl">
+    <VCardText class="pa-4">
+      <div class="d-flex align-center justify-space-between mb-3">
         <VAvatar
-          variant="tonal"
+          rounded="lg"
+          size="36"
           :color="props.color"
-          size="80"
-          rounded
+          variant="tonal"
         >
           <VIcon
             :icon="props.icon"
-            size="50"
+            size="20"
           />
         </VAvatar>
-        <div
-          class="text-right"
-          style="flex-grow: 1;"
+        <VChip
+          v-if="props.growth !== undefined"
+          :color="props.growth >= 0 ? 'success' : 'error'"
+          size="x-small"
+          variant="tonal"
         >
-          <div class="font-weight-medium text-h5 mb-n3 pt-3 text-primary">
-            {{ props.title }}
-          </div>
-          <div class="font-weight-bold text-h2">
-            {{ props.mainNumber }}
-          </div>
-        </div>
+          {{ growthText }}
+        </VChip>
       </div>
-    </VCardText>
-    <VDivider />
-    <VCardText
-      v-if="props.growth !== undefined"
-      class="py-2"
-    >
-      <div class="d-flex gap-x-2 align-center">
-        <div class="text-h4 font-weight-bold text-success">
-          {{ (props.growth >= 0) ? '+' : '' }} {{ props.growth }}%
-        </div>
-        <div class="text-h5 text-disabled">
-          este periodo
-        </div>
+      <div class="text-h4 font-weight-bold mb-1">
+        {{ props.mainNumber }}
+      </div>
+      <div class="text-caption text-medium-emphasis">
+        {{ props.title }}
+      </div>
+      <div
+        v-if="props.caption"
+        class="text-caption text-disabled"
+      >
+        {{ props.caption }}
       </div>
     </VCardText>
   </VCard>

@@ -1,258 +1,172 @@
 <script lang="ts" setup>
-import { createBusinessAsCompany, uploadBusinessLogo } from '@/services/company/businesses'
-import { getAllCategories } from '@/services/catalog/categories'
-import { createCheckoutSession } from '@/services/subscription/subscription'
+import BusinessFormFields from '@/components/business/BusinessFormFields.vue'
+import { emptyBusinessForm, toCreateBody } from '@/components/business/businessForm'
+import { createBusiness } from '@/api/endpoints/businesses'
+import ApiErrorAlert from '@/components/common/ApiErrorAlert.vue'
+import { useApiError } from '@/composables/useApiError'
+import { useBusinessStore } from '@/stores/business'
+import { useSessionStore } from '@/stores/session'
+
+// Create another business (guide §4.A.1). Requires amr=pwd: the API interceptor runs the
+// password step-up. No Stripe checkout here: the business starts in pre_trial.
 
 definePage({
   meta: {
-    requiresAuth: true,
-    requiredRole: ['Owner'],
-    layout: 'company',
+    layout: 'blank',
+    area: 'business',
+    needsBusiness: false,
   },
 })
 
 const router = useRouter()
+const business = useBusinessStore()
+const session = useSessionStore()
+const { error, fieldErrors, capture, reset } = useApiError()
 
+// INVALID_PHONE comes without details: show it under the public phone field (§5.1)
+const formFieldErrors = computed(() => error.value?.error.code === 'INVALID_PHONE'
+  ? { ...fieldErrors.value, publicPhone: error.value.message }
+  : fieldErrors.value)
+
+const form = ref(emptyBusinessForm())
+const formRef = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null)
+const fieldsRef = ref<InstanceType<typeof BusinessFormFields> | null>(null)
 const isSubmitting = ref(false)
-const errorMsg = ref('')
 
-const name = ref('')
-const description = ref('')
-const address = ref('')
-const phone = ref('')
-const openingHours = ref('')
-const segment = ref<number | null>(null)
-const logo = ref<File[]>()
-
-const categoriesList = ref([{ title: 'Cargando categorías...', value: null as any }])
-
-const loadCategories = async () => {
-  try {
-    const response = await getAllCategories()
-
-    categoriesList.value = response.map((c: any) => ({
-      title: c.name,
-      value: c.id,
-    }))
-  }
-  catch {
-    // silently ignore
-  }
+const goBack = () => {
+  if (window.history.length > 1)
+    router.back()
+  else
+    router.push(business.active ? '/empresa' : '/empresa/seleccionar')
 }
 
 const onSubmit = async () => {
+  const result = await formRef.value?.validate()
+  if (result && !result.valid)
+    return
+
+  reset()
   isSubmitting.value = true
-  errorMsg.value = ''
   try {
-    const newBusiness = await createBusinessAsCompany({
-      name: name.value,
-      categoryId: segment.value,
-      description: description.value || undefined,
-      address: address.value || undefined,
-      phone: phone.value ? '+52' + phone.value : undefined,
-      openingHours: openingHours.value || undefined,
-    })
+    const created = await createBusiness(toCreateBody(form.value))
 
-    if (logo.value && logo.value.length > 0)
-      await uploadBusinessLogo(newBusiness.id, logo.value[0])
+    business.upsert(created)
+    business.select(created.id)
 
-    const { url } = await createCheckoutSession(newBusiness.id, 'premium')
-    window.location.href = url
+    // Keep memberships (home route, layout) in sync; not critical if it fails
+    session.loadMe().catch(() => {})
+
+    await router.push('/empresa/informacion')
   }
-  catch (error: any) {
-    errorMsg.value = Array.isArray(error) ? error.join('\n') : String(error)
+  catch (e) {
+    const err = capture(e)
+    if (err.error.detailCode === 'categoryUnavailable')
+      fieldsRef.value?.reloadCategories()
+  }
+  finally {
     isSubmitting.value = false
   }
 }
-
-onMounted(() => {
-  loadCategories()
-})
 </script>
 
 <template>
-  <VForm @submit.prevent="onSubmit">
-    <!-- ─── Básico ──────────────────────────────────────────── -->
-    <div class="section-label mb-3">
-      <VIcon
-        icon="tabler-building-store"
-        size="15"
-      />
-      Tu negocio
-    </div>
-    <VCard
-      rounded="xl"
-      class="mb-5"
-    >
-      <VCardText class="pa-4 d-flex flex-column gap-4">
-        <VTextField
-          v-model="name"
-          variant="outlined"
-          density="comfortable"
-          prepend-inner-icon="tabler-building-store"
-          label="Nombre del negocio *"
-          placeholder="Ej: Mi Café"
-          hide-details="auto"
-          :rules="[v => !!v || 'Requerido']"
-        />
-        <VSelect
-          v-model="segment"
-          :items="categoriesList"
-          variant="outlined"
-          density="comfortable"
-          prepend-inner-icon="tabler-tag"
-          label="Giro del negocio *"
-          hide-details="auto"
-          :rules="[v => !!v || 'Requerido']"
-        />
-        <VTextField
-          v-model="description"
-          variant="outlined"
-          density="comfortable"
-          prepend-inner-icon="tabler-text-plus"
-          label="Descripción"
-          placeholder="Ej: Cafetería de especialidad en el centro"
-          hide-details
-        />
-      </VCardText>
-    </VCard>
-
-    <!-- ─── Contacto y ubicación ───────────────────────────── -->
-    <div class="section-label mb-3">
-      <VIcon
-        icon="tabler-map-pin"
-        size="15"
-      />
-      Contacto y ubicación
-    </div>
-    <VCard
-      rounded="xl"
-      class="mb-5"
-    >
-      <VCardText class="pa-4 d-flex flex-column gap-4">
-        <VTextField
-          v-model="address"
-          variant="outlined"
-          density="comfortable"
-          prepend-inner-icon="tabler-map-pin"
-          label="Dirección"
-          placeholder="Ej: Av. Reforma 100, CDMX"
-          hide-details
-        />
-        <VTextField
-          v-model="phone"
-          variant="outlined"
-          density="comfortable"
-          class="phone-field"
-          label="Teléfono"
-          type="tel"
-          placeholder="1234567890"
-          hide-details
+  <div class="crear-page">
+    <div class="crear-inner">
+      <div class="d-flex align-center gap-2 mb-5">
+        <VBtn
+          icon
+          variant="text"
+          size="small"
+          aria-label="Regresar"
+          @click="goBack"
         >
-          <template #prepend-inner>
-            <span class="text-body-2 text-medium-emphasis ps-1" style="white-space: nowrap;">🇲🇽 +52</span>
-            <VDivider
-              vertical
-              class="mx-2 my-1"
-            />
-          </template>
-        </VTextField>
-        <VTextField
-          v-model="openingHours"
-          variant="outlined"
-          density="comfortable"
-          prepend-inner-icon="tabler-clock"
-          label="Horario de atención"
-          placeholder="Ej: Lun-Vie 9:00–18:00"
-          hide-details
-        />
-      </VCardText>
-    </VCard>
+          <VIcon
+            icon="tabler-arrow-left"
+            size="20"
+          />
+        </VBtn>
+        <h1 class="text-h6 font-weight-bold mb-0">
+          Nuevo negocio
+        </h1>
+      </div>
 
-    <!-- ─── Logo ───────────────────────────────────────────── -->
-    <div class="section-label mb-3">
-      <VIcon
-        icon="tabler-photo"
-        size="15"
-      />
-      Logo
+      <VAlert
+        v-if="!session.hasPassword"
+        color="warning"
+        variant="tonal"
+        rounded="lg"
+        icon="tabler-lock"
+        class="mb-5"
+      >
+        Para crear un negocio necesitas una contraseña en tu cuenta.
+        <template #append>
+          <VBtn
+            size="small"
+            variant="text"
+            to="/visitante/perfil"
+          >
+            Ir a mi perfil
+          </VBtn>
+        </template>
+      </VAlert>
+
+      <VForm
+        ref="formRef"
+        @submit.prevent="onSubmit"
+      >
+        <BusinessFormFields
+          ref="fieldsRef"
+          v-model="form"
+          :field-errors="formFieldErrors"
+          :disabled="isSubmitting || !session.hasPassword"
+        />
+
+        <ApiErrorAlert
+          :error="error"
+          class="mb-4"
+        />
+
+        <VBtn
+          type="submit"
+          block
+          size="large"
+          color="primary"
+          rounded="lg"
+          :loading="isSubmitting"
+          :disabled="!session.hasPassword"
+        >
+          Crear negocio
+          <VIcon
+            icon="tabler-arrow-right"
+            end
+          />
+        </VBtn>
+
+        <p class="legal-note">
+          Podrás subir tu logo y crear tus tarjetas en el siguiente paso.
+        </p>
+      </VForm>
     </div>
-    <VCard
-      rounded="xl"
-      class="mb-6"
-    >
-      <VCardText class="pa-4">
-        <VFileInput
-          v-model="logo"
-          variant="outlined"
-          density="comfortable"
-          accept="image/*"
-          label="Sube tu logo (opcional)"
-          prepend-inner-icon="tabler-photo-up"
-          prepend-icon=""
-          hide-details
-        />
-      </VCardText>
-    </VCard>
-
-    <!-- ─── Error ───────────────────────────────────────────── -->
-    <VAlert
-      v-if="errorMsg"
-      color="error"
-      variant="tonal"
-      rounded="xl"
-      density="compact"
-      icon="tabler-alert-triangle"
-      class="mb-4"
-    >
-      {{ errorMsg }}
-    </VAlert>
-
-    <!-- ─── Submit ─────────────────────────────────────────── -->
-    <VBtn
-      type="submit"
-      block
-      size="large"
-      color="primary"
-      rounded="lg"
-      :loading="isSubmitting"
-    >
-      <VIcon
-        icon="tabler-arrow-right"
-        end
-      />
-      Crear negocio
-    </VBtn>
-
-    <p class="legal-note">
-      Al continuar serás redirigido a Stripe para activar tu suscripción.
-    </p>
-  </VForm>
+  </div>
 </template>
 
 <style scoped>
-.section-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 700;
-  gap: 5px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+.crear-page {
+  background: rgb(var(--v-theme-background));
+  min-block-size: 100vh;
+  padding-block: 16px 32px;
+  padding-inline: 16px;
+}
+
+.crear-inner {
+  margin-inline: auto;
+  max-inline-size: 600px;
 }
 
 .legal-note {
-  color: rgba(var(--v-theme-on-surface), 0.4);
+  color: rgba(var(--v-theme-on-surface), 0.5);
   font-size: 0.78rem;
   margin-block-start: 12px;
   text-align: center;
-}
-</style>
-
-<style>
-.phone-field .v-field__prepend-inner {
-  align-items: center;
-  padding-inline-end: 0;
 }
 </style>

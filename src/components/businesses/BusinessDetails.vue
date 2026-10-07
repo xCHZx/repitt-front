@@ -1,49 +1,22 @@
 <script setup lang="ts">
-interface Props {
-  name?: string
-  description?: string
-  address?: string
-  phone?: string
-  segment?: string
-  openingHours?: string
-  logoPath?: string
-  createdAt?: string
-  businessRepittCode?: string
-  isActive?: boolean
-}
+import OpeningHoursList from '@/components/business/OpeningHoursList.vue'
+import type { Business } from '@/api/types'
+import { MEXICO_TIMEZONES, formatInstant } from '@/utils/dates'
 
-const props = defineProps<Props>()
+// Owner view of the business data (guide §3.1, BusinessWithRoleDto).
 
-const initial = computed(() =>
-  String(props.name || 'R').charAt(0).toUpperCase(),
-)
+const props = defineProps<{
+  business: Business
+  categoryName?: string | null
+}>()
 
-const formatDate = (iso?: string) => {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+const initial = computed(() => String(props.business.name || 'R').charAt(0).toUpperCase())
+
+const timezoneLabel = computed(() =>
+  MEXICO_TIMEZONES.find(z => z.value === props.business.timezone)?.title ?? props.business.timezone)
 </script>
 
 <template>
-  <!-- Status banner -->
-  <VCard
-    rounded="xl"
-    class="mb-4"
-    :color="isActive ? 'success' : 'error'"
-    variant="tonal"
-  >
-    <VCardText class="pa-3 d-flex align-center gap-2">
-      <VIcon
-        :icon="isActive ? 'tabler-circle-check' : 'tabler-circle-x'"
-        size="18"
-      />
-      <span class="text-body-2 font-weight-bold">
-        Negocio {{ isActive ? 'activo' : 'inactivo' }}
-      </span>
-    </VCardText>
-  </VCard>
-
-  <!-- Header -->
   <VCard
     rounded="xl"
     class="mb-4"
@@ -57,8 +30,9 @@ const formatDate = (iso?: string) => {
         class="mb-3"
       >
         <VImg
-          v-if="logoPath"
-          :src="logoPath"
+          v-if="props.business.logoUrl"
+          :src="props.business.logoUrl"
+          cover
         />
         <span
           v-else
@@ -67,20 +41,19 @@ const formatDate = (iso?: string) => {
       </VAvatar>
 
       <div class="text-h6 font-weight-bold mb-2">
-        {{ name || 'Sin nombre' }}
+        {{ props.business.name }}
       </div>
 
       <div class="d-flex flex-wrap justify-center gap-2 mb-3">
         <VChip
-          v-if="segment"
+          v-if="props.categoryName"
           color="primary"
           size="small"
           variant="tonal"
         >
-          {{ segment }}
+          {{ props.categoryName }}
         </VChip>
         <VChip
-          v-if="businessRepittCode"
           size="small"
           variant="outlined"
         >
@@ -89,15 +62,15 @@ const formatDate = (iso?: string) => {
             icon="tabler-barcode"
             size="13"
           />
-          {{ businessRepittCode }}
+          {{ props.business.repittCode }}
         </VChip>
       </div>
 
       <div
-        v-if="description"
+        v-if="props.business.description"
         class="text-body-2 text-medium-emphasis"
       >
-        {{ description }}
+        {{ props.business.description }}
       </div>
     </VCardText>
 
@@ -106,23 +79,45 @@ const formatDate = (iso?: string) => {
     <VList density="compact">
       <VListItem
         prepend-icon="tabler-map-pin"
-        :title="address || 'Dirección no disponible'"
+        :title="props.business.address || 'Sin dirección'"
       />
       <VDivider />
       <VListItem
         prepend-icon="tabler-phone"
-        :title="phone || 'Teléfono no disponible'"
+        :title="props.business.publicPhone || 'Sin teléfono público'"
       />
       <VDivider />
       <VListItem
-        prepend-icon="tabler-clock"
-        :title="openingHours || 'Horario no disponible'"
+        prepend-icon="tabler-world"
+        :title="`Zona horaria: ${timezoneLabel}`"
       />
       <VDivider />
       <VListItem
         prepend-icon="tabler-calendar"
-        :title="`Miembro desde ${formatDate(createdAt)}`"
+        :title="`Creado el ${formatInstant(props.business.createdAt, props.business.timezone)}`"
       />
     </VList>
+
+    <VDivider />
+
+    <VCardText class="pa-4">
+      <div class="d-flex align-center gap-2 mb-2 text-body-2 font-weight-medium">
+        <VIcon
+          icon="tabler-clock"
+          size="18"
+        />
+        Horario de atención
+      </div>
+      <OpeningHoursList
+        v-if="props.business.openingHours"
+        :hours="props.business.openingHours"
+      />
+      <div
+        v-else
+        class="text-body-2 text-disabled"
+      >
+        Sin horario registrado
+      </div>
+    </VCardText>
   </VCard>
 </template>

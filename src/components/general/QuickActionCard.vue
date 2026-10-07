@@ -13,7 +13,10 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <VCard rounded="xl" :to="to">
+  <VCard
+    rounded="xl"
+    :to="to"
+  >
     <VCardText class="text-center pa-4">
       <VIcon
         :icon="icon"

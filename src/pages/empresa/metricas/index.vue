@@ -1,181 +1,131 @@
 <script lang="ts" setup>
-import { getGlobalMetrics } from '@/services/company/metrics'
-import { useCompanyStore } from '@/stores/company'
+import { getMetrics } from '@/api/endpoints/crm'
+import type { Metrics, MetricsPeriod } from '@/api/types'
+import ApiErrorAlert from '@/components/common/ApiErrorAlert.vue'
+import MetricsBarChart from '@/components/crm/MetricsBarChart.vue'
+import MetricsByCard from '@/components/crm/MetricsByCard.vue'
+import MetricsTopCustomers from '@/components/crm/MetricsTopCustomers.vue'
+import { bucketLabel, indicatorTiles, rangeLabel } from '@/components/crm/metricsFormat'
+import ProgressMiniCard from '@/components/general/ProgressMiniCard.vue'
+import { useApiError } from '@/composables/useApiError'
+import { useBusinessStore } from '@/stores/business'
+
+// Business metrics (guide §4.A.9): selected period + a second call with period=year for the yearly chart.
 
 definePage({
   meta: {
-    requiresAuth: true,
-    requiredRole: ['Owner'],
     layout: 'company',
+    area: 'business',
+    ownerOnly: true,
   },
 })
 
-const companyStore = useCompanyStore()
-const timePeriod = ref('month')
-const isLoading = ref(false)
-const error = ref<string | null>(null)
+const business = useBusinessStore()
 
-const timePeriodOptions = [
-  { title: 'Día', value: 'day' },
+const period = ref<MetricsPeriod>('month')
+
+const periodOptions: { title: string; value: MetricsPeriod }[] = [
+  { title: 'Hoy', value: 'day' },
   { title: 'Semana', value: 'week' },
   { title: 'Mes', value: 'month' },
   { title: 'Año', value: 'year' },
 ]
 
-const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+const SERIES_TITLE: Record<MetricsPeriod, string> = {
+  day: 'Sellos por día',
+  week: 'Sellos por día',
+  month: 'Sellos por semana',
+  year: 'Sellos por mes',
+}
 
-const metrics = ref({
-  activeUsers: 0,
-  completedStampCards: { current: 0, previous: 0, growth: null as number | null },
-  redeemedRewards: { current: 0, previous: 0, growth: null as number | null },
-  visits: { current: 0, previous: 0, growth: null as number | null },
-  topClients: [] as { userId: number; firstName: string; lastName: string; repittCode: string; visitsCount: number }[],
-  visitsByMonth: Array.from({ length: 12 }, (_, i) => ({ month: i + 1, visitsCount: 0 })),
+/** Loads one metrics query, cancelling the previous one (AbortController). */
+function useMetricsQuery() {
+  const data = ref<Metrics | null>(null)
+  const isLoading = ref(false)
+  const { error, capture, reset } = useApiError()
+
+  let controller: AbortController | null = null
+
+  async function load(p: MetricsPeriod) {
+    const businessId = business.activeId
+    if (!businessId)
+      return
+    controller?.abort()
+
+    const current = new AbortController()
+
+    controller = current
+    isLoading.value = true
+    reset()
+    try {
+      const result = await getMetrics(businessId, { period: p }, current.signal)
+      if (!current.signal.aborted)
+        data.value = result
+    }
+    catch (e) {
+      // A cancelled request surfaces as a network error: ignore it
+      if (!current.signal.aborted)
+        capture(e)
+    }
+    finally {
+      if (controller === current)
+        isLoading.value = false
+    }
+  }
+
+  const abort = () => controller?.abort()
+
+  return { data, isLoading, error, load, abort }
+}
+
+const main = useMetricsQuery()
+const yearly = useMetricsQuery()
+
+const metrics = main.data
+
+const tiles = computed(() => (metrics.value ? indicatorTiles(metrics.value.indicators) : []))
+
+const periodSeries = computed(() => {
+  const m = metrics.value
+  if (!m || m.period === 'year' || m.series.length < 2)
+    return null
+
+  return {
+    title: SERIES_TITLE[m.period],
+    categories: m.series.map(p => bucketLabel(p.bucket, m.period, m.timezone)),
+    data: m.series.map(p => p.stamps),
+  }
 })
 
-const statCards = computed(() => [
-  {
-    title: 'Visitas',
-    value: metrics.value.visits.current,
-    growth: metrics.value.visits.growth,
-    icon: 'tabler-walk',
-    color: 'primary',
-  },
-  {
-    title: 'Tarjetas completadas',
-    value: metrics.value.completedStampCards.current,
-    growth: metrics.value.completedStampCards.growth,
-    icon: 'tabler-cards',
-    color: 'info',
-  },
-  {
-    title: 'Recompensas canjeadas',
-    value: metrics.value.redeemedRewards.current,
-    growth: metrics.value.redeemedRewards.growth,
-    icon: 'tabler-gift',
-    color: 'success',
-  },
-  {
-    title: 'Clientes activos',
-    value: metrics.value.activeUsers,
-    growth: null,
-    icon: 'tabler-users-group',
-    color: 'warning',
-  },
-])
+const yearSeries = computed(() => {
+  const m = yearly.data.value
+  if (!m)
+    return null
 
-// Chart
-const labelColor = 'rgba(var(--v-theme-on-background), var(--v-medium-emphasis-opacity))'
-const borderColor = 'rgba(var(--v-border-color), var(--v-border-opacity))'
+  return {
+    categories: m.series.map(p => bucketLabel(p.bucket, 'year', m.timezone)),
+    data: m.series.map(p => p.stamps),
+  }
+})
 
-const series = computed(() => [
-  {
-    name: 'Visitas',
-    data: metrics.value.visitsByMonth.map(item => item.visitsCount),
-  },
-])
-
-const maxVisits = computed(() =>
-  Math.max(...metrics.value.visitsByMonth.map(i => i.visitsCount), 1),
-)
-
-const chartOptions = computed(() => ({
-  chart: {
-    type: 'bar',
-    toolbar: { show: false },
-    zoom: { enabled: false },
-    parentHeightOffset: 0,
-  },
-  plotOptions: {
-    bar: {
-      columnWidth: '45%',
-      dataLabels: { position: 'top' },
-    },
-  },
-  dataLabels: {
-    enabled: true,
-    offsetY: -18,
-    style: {
-      fontSize: '11px',
-      colors: [labelColor],
-    },
-  },
-  colors: ['#6C3CE1'],
-  grid: {
-    strokeDashArray: 6,
-    borderColor,
-  },
-  xaxis: {
-    categories: metrics.value.visitsByMonth.map(i => monthNames[i.month - 1]),
-    axisBorder: { show: false },
-    axisTicks: { show: false },
-    labels: {
-      style: { colors: labelColor, fontSize: '12px' },
-    },
-  },
-  yaxis: {
-    tickAmount: 4,
-    min: 0,
-    max: maxVisits.value + Math.ceil(maxVisits.value * 0.2) + 1,
-    labels: {
-      style: { colors: labelColor, fontSize: '12px' },
-    },
-  },
-  responsive: [
-    {
-      breakpoint: 480,
-      options: {
-        chart: { height: 200 },
-        plotOptions: { bar: { columnWidth: '60%' } },
-      },
-    },
-  ],
-}))
-
-// Top clients rank colors
-const rankColor = (index: number) => {
-  if (index === 0) return 'warning'
-  if (index === 1) return 'secondary'
-  if (index === 2) return 'error'
-  return 'default'
+const loadAll = () => {
+  main.load(period.value)
+  yearly.load('year')
 }
 
-const getData = async () => {
-  if (!companyStore.selectedCompany?.id)
-    return
-  isLoading.value = true
-  error.value = null
-  try {
-    metrics.value = await getGlobalMetrics(companyStore.selectedCompany.id, timePeriod.value)
-  }
-  catch (e: any) {
-    error.value = Array.isArray(e) ? e.join('\n') : String(e)
-  }
-  finally {
-    isLoading.value = false
-  }
-}
-
-watch(timePeriod, () => getData())
-onMounted(() => { getData() })
+watch(period, value => main.load(value))
+watch(() => business.activeId, loadAll)
+onMounted(loadAll)
+onBeforeUnmount(() => {
+  main.abort()
+  yearly.abort()
+})
 </script>
 
 <template>
-  <!-- Inactive -->
-  <VAlert
-    v-if="!companyStore.selectedCompany?.isActive"
-    color="error"
-    variant="tonal"
-    rounded="xl"
-    icon="tabler-lock"
-    class="mb-4"
-  >
-    Las métricas no están disponibles mientras tu negocio esté <strong>inactivo</strong>.
-  </VAlert>
-
-  <template v-else>
+  <div>
     <!-- Header: label + period toggle -->
-    <div class="d-flex align-center justify-space-between mb-4">
+    <div class="d-flex align-center justify-space-between flex-wrap gap-2 mb-1">
       <div class="section-label">
         <VIcon
           icon="tabler-chart-bar"
@@ -185,7 +135,7 @@ onMounted(() => { getData() })
         Resumen
       </div>
       <VBtnToggle
-        v-model="timePeriod"
+        v-model="period"
         mandatory
         variant="outlined"
         color="primary"
@@ -193,7 +143,7 @@ onMounted(() => { getData() })
         rounded="xl"
       >
         <VBtn
-          v-for="opt in timePeriodOptions"
+          v-for="opt in periodOptions"
           :key="opt.value"
           :value="opt.value"
           size="small"
@@ -202,22 +152,28 @@ onMounted(() => { getData() })
         </VBtn>
       </VBtnToggle>
     </div>
+    <div class="period-caption text-caption text-medium-emphasis mb-4">
+      <template v-if="metrics && !main.error.value">
+        {{ rangeLabel(metrics) }} · comparado con el periodo anterior
+      </template>
+    </div>
 
-    <!-- Error -->
-    <VAlert
-      v-if="error"
-      color="error"
-      variant="tonal"
-      rounded="lg"
-      density="compact"
-      icon="tabler-alert-triangle"
+    <ApiErrorAlert
+      :error="main.error.value"
       class="mb-4"
     >
-      {{ error }}
-    </VAlert>
+      <VBtn
+        size="small"
+        variant="text"
+        class="mt-1 px-0"
+        @click="main.load(period)"
+      >
+        Reintentar
+      </VBtn>
+    </ApiErrorAlert>
 
     <!-- Skeleton -->
-    <template v-if="isLoading">
+    <template v-if="main.isLoading.value && !metrics">
       <div class="stats-grid mb-4">
         <VSkeletonLoader
           v-for="n in 4"
@@ -231,165 +187,92 @@ onMounted(() => { getData() })
         rounded="xl"
         class="mb-4"
       />
-      <VSkeletonLoader
-        type="list-item-avatar-three-line, list-item-avatar-three-line, list-item-avatar-three-line"
-        rounded="xl"
+    </template>
+
+    <!-- On error the previous period's data is hidden: the toggle already shows the new one -->
+    <template v-else-if="metrics && !main.error.value">
+      <VProgressLinear
+        v-if="main.isLoading.value"
+        indeterminate
+        color="primary"
+        rounded
+        class="mb-2"
+      />
+
+      <!-- KPI cards -->
+      <div class="stats-grid mb-4">
+        <ProgressMiniCard
+          v-for="tile in tiles"
+          :key="tile.key"
+          :title="tile.title"
+          :main-number="tile.value"
+          :growth="tile.growth"
+          :icon="tile.icon"
+          :color="tile.color"
+          :caption="tile.caption"
+        />
+      </div>
+
+      <MetricsBarChart
+        v-if="periodSeries"
+        :title="periodSeries.title"
+        subtitle="Sellos registrados en el periodo"
+        name="Sellos"
+        :categories="periodSeries.categories"
+        :data="periodSeries.data"
+        class="mb-4"
+      />
+
+      <MetricsTopCustomers
+        :customers="metrics.topCustomers"
+        class="mb-4"
+      />
+
+      <MetricsByCard
+        :cards="metrics.byCard"
+        class="mb-4"
       />
     </template>
 
-    <template v-else>
-      <!-- KPI cards 2x2 -->
-      <div class="stats-grid mb-4">
-        <VCard
-          v-for="card in statCards"
-          :key="card.title"
-          rounded="xl"
-        >
-          <VCardText class="pa-4">
-            <div class="d-flex align-center justify-space-between mb-3">
-              <VAvatar
-                rounded="lg"
-                size="36"
-                :color="card.color"
-                variant="tonal"
-              >
-                <VIcon
-                  :icon="card.icon"
-                  size="20"
-                />
-              </VAvatar>
-              <VChip
-                v-if="card.growth !== null"
-                :color="card.growth >= 0 ? 'success' : 'error'"
-                size="x-small"
-                variant="tonal"
-              >
-                {{ card.growth >= 0 ? '+' : '' }}{{ card.growth }}%
-              </VChip>
-            </div>
-            <div class="text-h4 font-weight-bold mb-1">
-              {{ card.value }}
-            </div>
-            <div class="text-caption text-medium-emphasis">
-              {{ card.title }}
-            </div>
-          </VCardText>
-        </VCard>
-      </div>
-
-      <!-- Chart -->
-      <VCard
-        rounded="xl"
-        class="mb-4"
+    <!-- Yearly chart (second call, period=year) -->
+    <ApiErrorAlert
+      :error="yearly.error.value"
+      class="mb-4"
+    >
+      <VBtn
+        size="small"
+        variant="text"
+        class="mt-1 px-0"
+        @click="yearly.load('year')"
       >
-        <VCardText class="pa-4 pb-0">
-          <div class="section-label mb-1">
-            <VIcon
-              icon="tabler-chart-bar"
-              size="13"
-              color="primary"
-            />
-            Visitas por mes
-          </div>
-          <div class="text-caption text-medium-emphasis">
-            Sellos registrados en el año actual
-          </div>
-        </VCardText>
-        <VCardText class="pa-2 pt-0">
-          <VueApexCharts
-            type="bar"
-            height="240"
-            :options="chartOptions"
-            :series="series"
-          />
-        </VCardText>
-      </VCard>
-
-      <!-- Top clients -->
-      <VCard rounded="xl">
-        <VCardText class="pa-4 pb-2">
-          <div class="section-label">
-            <VIcon
-              icon="tabler-crown"
-              size="13"
-              color="primary"
-            />
-            Clientes más frecuentes
-          </div>
-        </VCardText>
-
-        <VList v-if="metrics.topClients.length">
-          <template
-            v-for="(client, index) in metrics.topClients"
-            :key="client.userId"
-          >
-            <VListItem class="px-4 py-2">
-              <template #prepend>
-                <div
-                  class="rank-num text-caption font-weight-bold me-3"
-                  :style="{ color: `rgb(var(--v-theme-${rankColor(index)}))` }"
-                >
-                  #{{ index + 1 }}
-                </div>
-                <VAvatar
-                  rounded="lg"
-                  size="36"
-                  color="primary"
-                  variant="tonal"
-                >
-                  <span class="text-caption font-weight-bold">
-                    {{ client.firstName?.charAt(0).toUpperCase() }}
-                  </span>
-                </VAvatar>
-              </template>
-
-              <VListItemTitle class="text-body-2 font-weight-bold">
-                {{ client.firstName }} {{ client.lastName }}
-              </VListItemTitle>
-              <VListItemSubtitle class="text-caption">
-                {{ client.repittCode }}
-              </VListItemSubtitle>
-
-              <template #append>
-                <VChip
-                  :color="rankColor(index)"
-                  size="x-small"
-                  variant="tonal"
-                >
-                  {{ client.visitsCount }} visitas
-                </VChip>
-              </template>
-            </VListItem>
-            <VDivider v-if="index < metrics.topClients.length - 1" />
-          </template>
-        </VList>
-
-        <VCardText
-          v-else
-          class="text-center text-medium-emphasis py-8"
-        >
-          <VIcon
-            icon="tabler-users-group"
-            size="36"
-            class="mb-2 d-block mx-auto"
-            style="opacity: 0.3;"
-          />
-          Sin datos para este período
-        </VCardText>
-      </VCard>
-    </template>
-  </template>
+        Reintentar
+      </VBtn>
+    </ApiErrorAlert>
+    <VSkeletonLoader
+      v-if="yearly.isLoading.value && !yearSeries"
+      type="card"
+      rounded="xl"
+    />
+    <MetricsBarChart
+      v-else-if="yearSeries && !yearly.error.value"
+      title="Sellos por mes"
+      subtitle="Sellos registrados en el año actual"
+      name="Sellos"
+      :categories="yearSeries.categories"
+      :data="yearSeries.data"
+    />
+  </div>
 </template>
-
-<style lang="scss">
-@use "@core/scss/template/libs/apex-chart.scss";
-</style>
 
 <style lang="scss" scoped>
 .stats-grid {
   display: grid;
   gap: 12px;
   grid-template-columns: 1fr 1fr;
+}
+
+.period-caption {
+  min-block-size: 1.25rem;
 }
 
 .section-label {
@@ -401,10 +284,5 @@ onMounted(() => { getData() })
   gap: 5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-
-.rank-num {
-  inline-size: 24px;
-  text-align: center;
 }
 </style>
