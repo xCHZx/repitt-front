@@ -28,6 +28,7 @@ describe('toApiError', () => {
     expect(err.status).toBe(400)
     expect(err.code).toBe('VALIDATION_FAILED')
     expect(err.detailCode).toBe('categoryUnavailable')
+    expect(err.detailMessage).toBe('La categoría no existe')
     expect(err.fieldErrors).toEqual({ 'business.categoryId': 'La categoría no existe', 'name': 'Muy largo' })
     expect(err.detailObj).toBeUndefined()
     expect(err.requestId).toBe('r1')
@@ -70,11 +71,30 @@ describe('toApiError', () => {
     expect(err.isNetwork).toBe(false)
   })
 
-  it('treats a 5xx without envelope as INTERNAL_ERROR', () => {
-    const err = toApiError(axiosErr(502, '<html>Bad gateway</html>'))
+  it('treats a gateway 502/503/504 without envelope as a retriable NETWORK error', () => {
+    for (const status of [502, 503, 504]) {
+      const err = toApiError(axiosErr(status, '<html>Gateway Timeout</html>', { 'X-Request-Id': 'lb-1' }))
+
+      expect(err.status).toBe(status)
+      expect(err.code).toBe('NETWORK')
+      expect(err.isNetwork).toBe(true)
+      expect(err.requestId).toBe('lb-1')
+    }
+  })
+
+  it('treats any other 5xx without envelope as INTERNAL_ERROR', () => {
+    const err = toApiError(axiosErr(500, '<html>Oops</html>'))
 
     expect(err.code).toBe('INTERNAL_ERROR')
     expect(err.isNetwork).toBe(false)
+  })
+
+  it('keeps an enveloped 5xx as the backend code (not retriable)', () => {
+    const err = toApiError(axiosErr(500, { error: { code: 'INTERNAL_ERROR', message: 'm', requestId: 'r2' } }))
+
+    expect(err.code).toBe('INTERNAL_ERROR')
+    expect(err.isNetwork).toBe(false)
+    expect(err.requestId).toBe('r2')
   })
 
   it('flags 409 CONFLICT retry', () => {

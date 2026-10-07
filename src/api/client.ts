@@ -35,8 +35,12 @@ export interface ApiClientHooks {
   /** Show the step-up / reauthentication dialog. Resolves true when the original request can be retried. */
   requestReauth: (method: ReauthMethod) => Promise<boolean>
 
-  /** PASSWORD_REQUIRED is only solvable by step-up when the user has a password and is not a cashier of the active business (§1.12). */
-  canStepUpWithPassword: () => boolean
+  /**
+   * PASSWORD_REQUIRED is only solvable by step-up when the user has a password and is not a cashier
+   * of the business the request is for (§1.12). `businessId` comes from the request URL
+   * (`/businesses/{id}/...`) and is null for routes outside any business (e.g. POST /v1/businesses).
+   */
+  canStepUpWithPassword: (businessId: string | null) => boolean
 }
 
 const noopHooks: ApiClientHooks = {
@@ -46,6 +50,19 @@ const noopHooks: ApiClientHooks = {
   onAccountSuspended: () => {},
   requestReauth: async () => false,
   canStepUpWithPassword: () => false,
+}
+
+/** Business a request belongs to, from its (already /v1-stripped) URL; null outside `/businesses/{id}`. */
+export function businessIdOfUrl(url: string | undefined): string | null {
+  const match = url?.match(/^\/businesses\/([^/?#]+)/)
+  if (!match)
+    return null
+  try {
+    return decodeURIComponent(match[1])
+  }
+  catch {
+    return match[1]
+  }
 }
 
 let hooks: ApiClientHooks = noopHooks
@@ -141,7 +158,7 @@ http.interceptors.response.use(undefined, async (raw: unknown) => {
       break
 
     case 'PASSWORD_REQUIRED':
-      if (!meta.noAuthHandling && !cfg._reauthed && hooks.canStepUpWithPassword()) {
+      if (!meta.noAuthHandling && !cfg._reauthed && hooks.canStepUpWithPassword(businessIdOfUrl(cfg.url))) {
         cfg._reauthed = true
         if (await hooks.requestReauth('password'))
           return http.request(cfg)
@@ -214,6 +231,9 @@ export type RequestOptions<O> = PathPart<O> & QueryPart<O> & BodyPart<O> & {
   headers?: Record<string, string>
   signal?: AbortSignal
   meta?: ApiRequestMeta
+
+  /** Milliseconds before the request is aborted and rejected as NETWORK (axios ECONNABORTED). Default: none. */
+  timeout?: number
 }
 
 type JsonOf<R> = R extends { content: { 'application/json': infer T } } ? T : undefined
@@ -244,6 +264,7 @@ interface LooseOptions {
   headers?: Record<string, string>
   signal?: AbortSignal
   meta?: ApiRequestMeta
+  timeout?: number
 }
 
 export function request<M extends HttpMethod, P extends PathsFor<M>>(
@@ -268,6 +289,7 @@ export async function request(method: HttpMethod, path: string, ...args: unknown
     data: o.body,
     headers,
     signal: o.signal,
+    timeout: o.timeout,
     meta: o.meta,
   }
 

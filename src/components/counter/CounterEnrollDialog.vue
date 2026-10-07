@@ -135,6 +135,10 @@ async function send(businessId: string, attempt: IdempotentAttempt<CounterEnroll
       pendingCycleId.value = err.detailObj.cycleId
     if (err.code === 'NOT_FOUND' || err.code.startsWith('CARD_'))
       emit('cardsStale')
+
+    // The card is not of this business anymore, or we are no longer a member (§3.3)
+    if (err.code === 'NOT_FOUND')
+      business.refreshActive().catch(() => {})
   }
   finally {
     submitting.value = false

@@ -1,16 +1,19 @@
 <script lang="ts" setup>
 import { RouterLink } from 'vue-router'
 import EntitlementBanner from '@/components/business/EntitlementBanner.vue'
+import EmailVerificationBanner from '@/components/visitor/EmailVerificationBanner.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
 import { useBusinessStore } from '@/stores/business'
+import { useSessionStore } from '@/stores/session'
 
-// Business area shell (guide §3): active business, role-based bottom nav, entitlement banner.
+// Business area shell (guide §3): active business, role-based bottom nav, entitlement and email-verification (§2.11) banners.
 
 const { injectSkinClasses } = useSkins()
 
 injectSkinClasses()
 
 const business = useBusinessStore()
+const session = useSessionStore()
 const router = useRouter()
 const route = useRoute()
 
@@ -24,6 +27,13 @@ watch([isFallbackStateActive, refLoadingIndicator], () => {
     refLoadingIndicator.value.resolveHandle()
 }, { immediate: true })
 
+// §3.3: the active business was dropped (refreshActive got a 404: no longer a member, or it no
+// longer exists) → back to the selector instead of repeating 404s on this page.
+watch(() => business.loaded && !business.active && route.meta.needsBusiness !== false, dropped => {
+  if (dropped)
+    router.replace('/empresa/seleccionar')
+})
+
 const path = computed(() => route.path.replace(/\/+$/, '') || '/')
 
 const OWNER_ROOTS = ['/empresa', '/empresa/tarjetas', '/empresa/clientes', '/empresa/visitas']
@@ -35,7 +45,6 @@ const showBackButton = computed(() =>
 const PAGE_TITLES: [RegExp, string][] = [
   [/^\/empresa$/, ''],
   [/^\/empresa\/tarjetas\/crear$/, 'Nueva tarjeta'],
-  [/^\/empresa\/tarjetas\/[^/]+\/tarjetas-de-usuario/, 'Tarjeta de cliente'],
   [/^\/empresa\/tarjetas\/[^/]+\/editar$/, 'Editar tarjeta'],
   [/^\/empresa\/tarjetas\/[^/]+\/visitas$/, 'Movimientos de la tarjeta'],
   [/^\/empresa\/tarjetas\/[^/]+$/, 'Detalle de tarjeta'],
@@ -174,6 +183,10 @@ const goBack = () => {
 
     <!-- Main Content -->
     <main class="company-main">
+      <EmailVerificationBanner
+        v-if="session.isAuthenticated"
+        class="mb-4"
+      />
       <EntitlementBanner class="mb-4" />
 
       <RouterView v-slot="{ Component }">

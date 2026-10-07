@@ -3,7 +3,8 @@
 //
 // One logical attempt (one tap of "Sellar", one enroll, one redeem, one void) = one key.
 // Every retry of that attempt reuses the SAME key and must send the SAME body.
-// Retriable: network error/timeout, 429 (wait Retry-After), 409 CONFLICT retry.
+// Retriable: network error/timeout (incl. a bare gateway 502/503/504, see errors.ts),
+// 429 (wait Retry-After), 409 CONFLICT retry.
 // Anything else is final for that attempt; a new user attempt gets a new key.
 import { toApiError } from './errors'
 

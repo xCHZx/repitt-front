@@ -29,6 +29,7 @@ Si la guía y el contrato difieren, manda el contrato.
 ## Estado
 
 - `useSessionStore()` (`@/stores/session`): `me` (`MeDto`), `accessToken` (solo memoria), `amr`, `isAuthenticated`, `memberships`, `hasMemberships`, `hasPassword`, `isOtpSession`, `emailPendingVerification`, `applySession({ accessToken, amr, user })`, `loadMe()`, `logout(everywhere?)`, `clear()`.
+  `status === 'unavailable'`: el arranque no pudo contactar al servidor (red / 5xx / 429, ya reintentado): no es «sin sesión»; `retryBoot()` lo reintenta (botón «Reintentar» en el login).
 - `useBusinessStore()` (`@/stores/business`): `businesses`, `active`, `activeId`, `role`, `isOwner`, `isCashier`, `entitlement`, `canOperate`, `timezone`, `select(id)`, `load()`, `upsert(business)`, `refreshActive()` (maneja el `404` = ya no eres miembro, §3.3).
   El `businessId` de toda llamada `/v1/businesses/{businessId}/**` sale de `business.activeId`.
 - Los stores viejos `auth` y `company` y todo `src/services/**` desaparecen: no importarlos.

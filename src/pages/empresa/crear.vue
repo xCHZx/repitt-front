@@ -53,8 +53,16 @@ const onSubmit = async () => {
     business.upsert(created)
     business.select(created.id)
 
-    // Keep memberships (home route, layout) in sync; not critical if it fails
-    session.loadMe().catch(() => {})
+    // The guard reads me.memberships: refresh it BEFORE navigating, or a first business
+    // (no memberships yet) would be bounced to /visitante. If GET /v1/me fails, add the
+    // new owner membership locally so the business area stays reachable.
+    try {
+      await session.loadMe()
+    }
+    catch {
+      if (session.me && !session.me.memberships.some(m => m.businessId === created.id))
+        session.me.memberships = [...session.me.memberships, { businessId: created.id, businessName: created.name, role: 'owner' }]
+    }
 
     await router.push('/empresa/informacion')
   }

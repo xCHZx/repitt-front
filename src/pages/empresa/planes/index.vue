@@ -21,8 +21,6 @@ const route = useRoute()
 const router = useRouter()
 const business = useBusinessStore()
 
-const isWelcome = route.query.welcome === 'true'
-
 // Stripe sends the owner back to /empresa/planes?businessId=<id> both when the checkout is cancelled
 // and when leaving the portal, so a per-tab flag set before opening the checkout tells them apart.
 const returnBusinessId = typeof route.query.businessId === 'string' ? route.query.businessId : null
@@ -223,17 +221,6 @@ onBeforeUnmount(() => window.removeEventListener('pageshow', onPageShow))
 
 <template>
   <div class="planes-page">
-    <VAlert
-      v-if="isWelcome"
-      color="success"
-      variant="tonal"
-      rounded="lg"
-      icon="tabler-circle-check"
-      class="mb-5"
-      title="¡Tu negocio está listo!"
-      text="Publica tu primera tarjeta para iniciar tu periodo de prueba."
-    />
-
     <div class="planes-hero">
       <div class="planes-hero-icon">
         <VIcon

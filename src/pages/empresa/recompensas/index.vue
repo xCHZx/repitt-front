@@ -48,6 +48,12 @@ function retry() {
   return lastLoad === 'more' ? list.loadMore() : list.reload()
 }
 
+// §3.3: a 404 on the list means we are no longer a member (or the business is gone)
+watch(error, e => {
+  if (e?.error.status === 404)
+    business.refreshActive().catch(() => {})
+})
+
 // Card style: cross card.id with the business cards (default style if archived / missing)
 const cardsById = ref(new Map<string, StampCard>())
 

@@ -7,6 +7,7 @@ import { computed, ref } from 'vue'
 import { getBusiness, listBusinesses } from '@/api/endpoints/businesses'
 import { isApiError } from '@/api/errors'
 import type { Business } from '@/api/types'
+import { useSessionStore } from '@/stores/session'
 import { DEFAULT_TIMEZONE } from '@/utils/dates'
 
 const ACTIVE_KEY = 'repitt.activeBusinessId'
@@ -50,8 +51,23 @@ export const useBusinessStore = defineStore('business', () => {
     writeActiveId(id)
   }
 
+  /**
+   * A membership was lost (§3.3): re-read GET /v1/me too, because routing (`homeRoute()`, the guard,
+   * the "Ir a mi negocio" shortcuts) reads `session.memberships`. Best effort.
+   */
+  async function syncMemberships() {
+    await useSessionStore().loadMe().catch(() => {})
+  }
+
   async function load() {
-    businesses.value = await listBusinesses()
+    const list = await listBusinesses()
+
+    // Refresh /me before touching the list: the company layout leaves the page as soon as the
+    // active business disappears, and the guard must already see the fresh memberships.
+    if (activeId.value && !list.some(b => b.id === activeId.value))
+      await syncMemberships()
+
+    businesses.value = list
     loaded.value = true
 
     if (activeId.value && !businesses.value.some(b => b.id === activeId.value))
@@ -81,7 +97,7 @@ export const useBusinessStore = defineStore('business', () => {
 
   /**
    * Re-read the active business (entitlement, trial…). A 404 means "no longer a member, or the
-   * business no longer exists": drop it and reload the list (§3.3).
+   * business no longer exists": refresh /me, drop it and reload the list (§3.3).
    */
   async function refreshActive() {
     const id = activeId.value
@@ -96,6 +112,7 @@ export const useBusinessStore = defineStore('business', () => {
     }
     catch (e) {
       if (isApiError(e) && e.status === 404) {
+        await syncMemberships()
         businesses.value = businesses.value.filter(b => b.id !== id)
         select(null)
         await load()

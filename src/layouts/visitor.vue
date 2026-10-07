@@ -38,7 +38,6 @@ const TITLES: [prefix: string, title: string][] = [
   ['/visitante/perfil/privacidad', 'Privacidad y datos'],
   ['/visitante/perfil/telefono', 'Cambiar teléfono'],
   ['/visitante/perfil', 'Mi cuenta'],
-  ['/visitante/negocios', 'Negocio'],
 ]
 
 const pageTitle = computed(() => {

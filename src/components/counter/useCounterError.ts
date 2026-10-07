@@ -12,9 +12,16 @@ export function useCounterError(op: CounterOperation) {
   const fieldErrors = computed<Record<string, string | undefined>>(() => error.value?.fieldErrors ?? {})
 
   function capture(e: unknown): DescribedError {
-    error.value = describeCounterError(e, { op, role: business.role, timeZone: business.timezone })
+    const described = describeCounterError(e, { op, role: business.role, timeZone: business.timezone })
 
-    return error.value
+    error.value = described
+
+    // §3.2: the 402 is only the safety net — re-read the business so its entitlement (banner,
+    // canOperate, router guard) stops treating it as operable.
+    if (described.error.code === 'ENTITLEMENT_REQUIRED')
+      business.refreshActive().catch(() => {})
+
+    return described
   }
 
   function reset() {

@@ -108,6 +108,12 @@ async function runAction(action: CardAction) {
   }
 }
 
+// The card belongs to the business that was active: on a switch, go back to the card list
+watch(() => business.activeId, (id, previous) => {
+  if (previous && id !== previous)
+    router.replace('/empresa/tarjetas')
+})
+
 watch(() => route.params.id, () => {
   isLoading.value = true
   card.value = null

@@ -13,6 +13,11 @@ describe('error catalog', () => {
     expect(errorMessage(err({ status: 409, code: 'CONFLICT', message: 'x', detailCode: 'noPublishedCard' }))).toBe('Publica una tarjeta primero.')
   })
 
+  it('prefers the detail message over the generic CONFLICT message', () => {
+    expect(errorMessage(err({ status: 409, code: 'CONFLICT', message: 'El recurso entra en conflicto con el estado actual', detailCode: 'someNewCode', detailMessage: 'Texto útil' }))).toBe('Texto útil')
+    expect(errorMessage(err({ status: 400, code: 'VALIDATION_FAILED', message: 'Datos inválidos', detailCode: 'maxLength', detailMessage: 'Muy largo' }))).toBe('Datos inválidos')
+  })
+
   it('hides front bugs behind a generic text', () => {
     expect(errorMessage(err({ status: 409, code: 'IDEMPOTENCY_MISMATCH', message: 'raw' }))).not.toContain('raw')
   })

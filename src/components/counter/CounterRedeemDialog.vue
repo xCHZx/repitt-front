@@ -86,7 +86,9 @@ async function loadCycle() {
     status.value = detail.cycle.status
   }
   catch (e) {
-    capture(e)
+    // §3.3: a child 404 may also mean we are no longer a member
+    if (capture(e).error.code === 'NOT_FOUND')
+      business.refreshActive().catch(() => {})
   }
   finally {
     loading.value = false
@@ -145,7 +147,9 @@ async function redeem() {
       capture(e)
     }
     else if (err.code === 'NOT_FOUND') {
+      // The cycle is gone, or we are no longer a member (§3.3)
       emit('changed')
+      business.refreshActive().catch(() => {})
     }
   }
   finally {

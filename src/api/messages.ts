@@ -97,7 +97,15 @@ export function errorMessage(e: unknown): string {
   if (err.detailCode && BY_DETAIL[err.detailCode])
     return BY_DETAIL[err.detailCode]
 
-  return BY_CODE[err.code] ?? err.message
+  if (BY_CODE[err.code] !== undefined)
+    return BY_CODE[err.code] as string
+
+  // Conflicts / forbidden actions carry a generic envelope message; the useful text is the detail's.
+  // Validation keeps the general message: its details are shown under each field.
+  if (err.detailMessage && err.code !== 'VALIDATION_FAILED')
+    return err.detailMessage
+
+  return err.message
 }
 
 export function describeError(e: unknown): DescribedError {

@@ -1,8 +1,9 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import type { InternalAxiosRequestConfig } from 'axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { configureApiClient, http, request } from '../client'
+import { businessIdOfUrl, configureApiClient, http, request } from '../client'
 import type { ApiClientHooks } from '../client'
+import { createBusiness } from '../endpoints/businesses'
 import * as loyalty from '../endpoints/loyalty'
 import * as me from '../endpoints/me'
 import { withIdempotency } from '../idempotency'
@@ -198,12 +199,95 @@ describe('step-up and reauthentication', () => {
     expect(hooks.requestReauth).not.toHaveBeenCalled()
   })
 
+  it('PASSWORD_REQUIRED asks about the business of the request, not the active one', async () => {
+    useApi(() => ({ status: 403, data: errorBody('PASSWORD_REQUIRED') }))
+    hooks.requestReauth.mockResolvedValue(false)
+
+    await expect(request('get', '/v1/businesses/{businessId}/members', { path: { businessId: 'b1' } })).rejects.toMatchObject({ code: 'PASSWORD_REQUIRED' })
+    expect(hooks.canStepUpWithPassword).toHaveBeenLastCalledWith('b1')
+  })
+
+  it('PASSWORD_REQUIRED on POST /v1/businesses (no business) offers the step-up and retries', async () => {
+    const calls = useApi((cfg, n) => n === 0
+      ? { status: 403, data: errorBody('PASSWORD_REQUIRED') }
+      : { status: 201, data: { data: { id: 'b2' } } })
+
+    await expect(createBusiness({ name: 'Café' } as Parameters<typeof createBusiness>[0])).resolves.toEqual({ id: 'b2' })
+    expect(hooks.canStepUpWithPassword).toHaveBeenCalledWith(null)
+    expect(hooks.requestReauth).toHaveBeenCalledWith('password')
+    expect(calls).toHaveLength(2)
+  })
+
+  it('businessIdOfUrl reads the business from /businesses/{id} routes only', () => {
+    expect(businessIdOfUrl('/businesses/b%201/members')).toBe('b 1')
+    expect(businessIdOfUrl('/businesses/b1')).toBe('b1')
+    expect(businessIdOfUrl('/businesses')).toBeNull()
+    expect(businessIdOfUrl('/me/password')).toBeNull()
+    expect(businessIdOfUrl(undefined)).toBeNull()
+  })
+
   it('a cancelled dialog rejects with the original error', async () => {
     hooks.requestReauth.mockResolvedValue(false)
     useApi(() => ({ status: 403, data: errorBody('PASSWORD_REQUIRED') }))
 
     await expect(request('get', '/v1/businesses/{businessId}/members', { path: { businessId: 'b1' } })).rejects.toMatchObject({ code: 'PASSWORD_REQUIRED' })
     expect(hooks.requestReauth).toHaveBeenCalledWith('password')
+  })
+})
+
+describe('counter writes: timeout and gateway errors (§1.8)', () => {
+  it('counter writes carry a timeout and a timed-out write is retried with the same Idempotency-Key', async () => {
+    vi.useFakeTimers()
+
+    const timeouts: (number | undefined)[] = []
+
+    const calls = useApi((cfg, n) => {
+      timeouts.push(cfg.timeout)
+      if (n === 0)
+        throw new AxiosError(`timeout of ${cfg.timeout}ms exceeded`, 'ECONNABORTED', cfg)
+
+      return { status: 201, data: { data: { event: { id: 'e1' } } } }
+    })
+
+    const p = withIdempotency(key => loyalty.stamp('b1', { cardId: 'c1', code: 'repitt:u:ABC123' }, key))
+
+    await vi.runAllTimersAsync()
+    await expect(p).resolves.toBeDefined()
+    expect(calls).toHaveLength(2)
+    expect(timeouts).toEqual([loyalty.COUNTER_WRITE_TIMEOUT_MS, loyalty.COUNTER_WRITE_TIMEOUT_MS])
+    expect(calls[1].headers['Idempotency-Key']).toBe(calls[0].headers['Idempotency-Key'])
+
+    vi.useRealTimers()
+  })
+
+  it('a bare 504 from the gateway is retried with the same Idempotency-Key', async () => {
+    vi.useFakeTimers()
+
+    const calls = useApi((cfg, n) => n === 0
+      ? { status: 504, data: '<html>Gateway Timeout</html>' }
+      : { status: 200, data: { data: { event: { id: 'e2' } } } })
+
+    const p = withIdempotency(key => loyalty.voidEvent('b1', 'e1', { reason: 'Sello por error' }, key))
+
+    await vi.runAllTimersAsync()
+    await expect(p).resolves.toBeDefined()
+    expect(calls).toHaveLength(2)
+    expect(calls[1].headers['Idempotency-Key']).toBe(calls[0].headers['Idempotency-Key'])
+
+    vi.useRealTimers()
+  })
+
+  it('reads without an explicit timeout keep axios default (none)', async () => {
+    let timeout: number | undefined
+
+    useApi(cfg => {
+      timeout = cfg.timeout
+
+      return { status: 200, data: meBody }
+    })
+
+    await me.getMe()
+    expect(timeout).toBe(0)
   })
 })
 

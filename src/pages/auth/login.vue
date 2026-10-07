@@ -39,6 +39,20 @@ function goHome() {
   router.replace(afterLoginRoute(route.query.redirect))
 }
 
+// The boot could not reach the server (network / 5xx): the session may still be alive (§2.2)
+const isRetryingBoot = ref(false)
+
+async function retryBoot() {
+  isRetryingBoot.value = true
+  await session.retryBoot()
+  isRetryingBoot.value = false
+
+  if (session.status === 'suspended')
+    router.replace('/cuenta-suspendida')
+  else if (session.isAuthenticated)
+    goHome()
+}
+
 function onPhoneVerified(result: OtpSession) {
   session.applySession(result)
 
@@ -58,6 +72,28 @@ function onPhoneVerified(result: OtpSession) {
     />
 
     <template v-else>
+      <VAlert
+        v-if="session.status === 'unavailable'"
+        color="warning"
+        variant="tonal"
+        rounded="lg"
+        density="compact"
+        icon="tabler-wifi-off"
+        class="mb-4"
+      >
+        No pudimos conectar con el servidor para recuperar tu sesión.
+        <template #append>
+          <VBtn
+            size="small"
+            variant="text"
+            :loading="isRetryingBoot"
+            @click="retryBoot"
+          >
+            Reintentar
+          </VBtn>
+        </template>
+      </VAlert>
+
       <div
         v-if="phoneStep === 'phone'"
         class="type-cards mb-6"

@@ -18,6 +18,7 @@ import { cardAvailability, parseCounterCode, redeemSummaryOf } from '@/component
 import type { CounterSuccessInfo, RedeemSummary } from '@/components/counter/counter'
 import { useCounterError } from '@/components/counter/useCounterError'
 import { isSameKeyRetriable, useRetriableAttempt } from '@/components/counter/useRetriableAttempt'
+import type { IdempotentAttempt } from '@/components/counter/useRetriableAttempt'
 import { useApiError } from '@/composables/useApiError'
 import { addCounterRecent } from '@/composables/useCounterRecents'
 import { useBusinessStore } from '@/stores/business'
@@ -61,7 +62,9 @@ async function loadCards() {
       selectedCardId.value = [...stampableIds.value][0]
   }
   catch (e) {
-    captureCards(e)
+    // §3.3: a 404 on a business route means we are no longer a member (or it is gone)
+    if (captureCards(e).error.status === 404)
+      business.refreshActive().catch(() => {})
   }
   finally {
     cardsLoading.value = false
@@ -148,7 +151,7 @@ function onStamped(res: StampResult, redeemCode: string | null) {
   }
 }
 
-async function stamp(request: StampRequest) {
+async function stamp(request: StampRequest, retrying?: IdempotentAttempt<StampRequest>) {
   const businessId = business.activeId
   if (!businessId || stamping.value)
     return
@@ -156,9 +159,10 @@ async function stamp(request: StampRequest) {
   resetStamp()
   stamping.value = true
 
-  // One key per logical attempt. Re-sending the same request after a network error / 429 /
-  // CONFLICT retry reuses the pending key and body object (§1.8), so it is never stamped twice.
-  const attempt = stampAttempt.begin(businessId, request)
+  // One key per logical attempt. "Reintentar" — or re-sending the same request shortly after a
+  // network error / 429 / CONFLICT retry — reuses the pending key and body object (§1.8), so it
+  // is never stamped twice.
+  const attempt = retrying?.target === businessId ? retrying : stampAttempt.begin(businessId, request)
   const body = attempt.body
 
   try {
@@ -201,7 +205,13 @@ async function stamp(request: StampRequest) {
 function retryStamp() {
   const attempt = stampAttempt.pending.value
   if (attempt)
-    stamp(attempt.body)
+    stamp(attempt.body, attempt)
+}
+
+/** "Cerrar" / "Escanear otro": the cashier gave up on the attempt, the next stamp gets a new key (§1.8). */
+function dismissStampError() {
+  resetStamp()
+  stampAttempt.clear()
 }
 
 const canRetryStamp = computed(() =>
@@ -416,7 +426,7 @@ function onEnrollRedeemPending(cycleId: string) {
         size="small"
         variant="text"
         color="secondary"
-        @click="resetStamp"
+        @click="dismissStampError"
       >
         {{ stampError?.error.code === 'INVALID_QR' ? 'Escanear otro' : 'Cerrar' }}
       </VBtn>

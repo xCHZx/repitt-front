@@ -6,7 +6,9 @@ import type { ApiErrorDto, ErrorCode } from './types'
 
 /**
  * Backend codes plus three client-side ones:
- * - NETWORK: the request got no response (offline, timeout, CORS, connection cut on 413…). Retriable.
+ * - NETWORK: the request got no response (offline, timeout, CORS, connection cut on 413…), or got a
+ *   502/503/504 without our envelope (proxy / load balancer: the upstream may or may not have applied
+ *   the write). Retriable with the same Idempotency-Key (§1.8).
  * - CANCELED: aborted with an AbortController (not an error for the UI).
  * - CLIENT: an exception that is not an HTTP error (a bug in the front). Never retried.
  */
@@ -22,6 +24,9 @@ export interface ApiErrorDetailObject {
 
 const NETWORK_MESSAGE = 'No pudimos conectar con el servidor'
 
+/** Gateway statuses that, without our envelope, come from infrastructure (bad gateway, unavailable, gateway timeout). */
+const GATEWAY_STATUSES = new Set([502, 503, 504])
+
 export class ApiError extends Error {
   /** HTTP status; 0 = no HTTP response (network, canceled or client-side error). */
   readonly status: number
@@ -30,6 +35,9 @@ export class ApiError extends Error {
 
   /** `details[0].code` when details is an array. */
   readonly detailCode?: string
+
+  /** `details[0].message` when details is an array (already es-MX). */
+  readonly detailMessage?: string
 
   /** `details[]` → `{ field: message }`. */
   readonly fieldErrors: Record<string, string>
@@ -45,6 +53,7 @@ export class ApiError extends Error {
     message: string
     requestId?: string
     detailCode?: string
+    detailMessage?: string
     fieldErrors?: Record<string, string>
     detailObj?: ApiErrorDetailObject
     retryAfterMs?: number
@@ -55,6 +64,7 @@ export class ApiError extends Error {
     this.code = init.code
     this.requestId = init.requestId
     this.detailCode = init.detailCode
+    this.detailMessage = init.detailMessage
     this.fieldErrors = init.fieldErrors ?? {}
     this.detailObj = init.detailObj
     this.retryAfterMs = init.retryAfterMs
@@ -97,6 +107,12 @@ export function toApiError(e: unknown): ApiError {
     return new ApiError({ status: 0, code: 'NETWORK', message: NETWORK_MESSAGE })
 
   const env = response.data?.error
+
+  // A real backend error always carries the envelope (§1.1). A bare 502/503/504 comes from a proxy or
+  // load balancer, so it is a transport failure: the write may have been applied, retry with the same key.
+  if (!env && GATEWAY_STATUSES.has(response.status))
+    return new ApiError({ status: response.status, code: 'NETWORK', message: NETWORK_MESSAGE, requestId: headerValue(response.headers, 'x-request-id') })
+
   const details = env?.details as unknown
   const list = Array.isArray(details) ? details as { field?: string; code?: string; message?: string }[] : []
   const retryAfter = Number(headerValue(response.headers, 'retry-after'))
@@ -104,11 +120,12 @@ export function toApiError(e: unknown): ApiError {
   return new ApiError({
     status: response.status,
 
-    // A response without our envelope (proxy, HTML error page…) is treated as an internal error
+    // Any other response without our envelope (HTML error page…): 5xx = internal error
     code: env?.code ?? (response.status >= 500 ? 'INTERNAL_ERROR' : 'NETWORK'),
     message: env?.message ?? (response.status >= 500 ? 'Ocurrió un error inesperado' : NETWORK_MESSAGE),
     requestId: env?.requestId ?? headerValue(response.headers, 'x-request-id'),
     detailCode: list[0]?.code,
+    detailMessage: list[0]?.message,
     fieldErrors: Object.fromEntries(list.filter(d => d.field).map(d => [d.field as string, d.message ?? ''])),
     detailObj: details && !Array.isArray(details) && typeof details === 'object' ? details as ApiErrorDetailObject : undefined,
     retryAfterMs: Number.isFinite(retryAfter) ? retryAfter * 1000 : undefined,
