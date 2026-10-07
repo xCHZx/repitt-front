@@ -1,68 +1,50 @@
 <script lang="ts" setup>
-import { logoutUser } from '@/services/auth/auth'
-import { getAllBusinessesMe } from '@/services/company/businesses'
-import { getCurrentVisitorData } from '@/services/visitor/users'
-import { getAllUserStampCardsByCurrentVisitor } from '@/services/visitor/userStampCards'
-import { useAuthStore } from '@/stores/auth'
+import { listMyCards } from '@/api/endpoints/me'
+import type { MeCard } from '@/api/types'
+import ApiErrorAlert from '@/components/common/ApiErrorAlert.vue'
+import AppQrCode from '@/components/common/AppQrCode.vue'
+import QuickActionCard from '@/components/general/QuickActionCard.vue'
+import StampCardListItem from '@/components/stampCards/StampCardListItem.vue'
+import { formatRepittCode, isRedeemable, nearestCard } from '@/components/visitor/wallet'
+import { useApiError } from '@/composables/useApiError'
+import { useSessionStore } from '@/stores/session'
+
+// Visitor home: greeting, my QR, rewards ready and the card closest to its reward (guide §4.C).
 
 definePage({
   meta: {
-    requiresAuth: true,
-    requiredRole: ['Visitor', 'Owner'],
     layout: 'visitor',
   },
 })
 
-const authStore = useAuthStore()
-const userData = ref<any>(null)
-const stampCards = ref<any[]>([])
-const businesses = ref<any[]>([])
-const isProfileDialogVisible = ref(false)
+const session = useSessionStore()
+const cards = ref<MeCard[]>([])
+const loading = ref(true)
+const { error, capture, reset } = useApiError()
 
-const getData = async () => {
-  const requests: Promise<any>[] = [
-    getCurrentVisitorData(),
-    getAllUserStampCardsByCurrentVisitor(),
-  ]
-  if (authStore.authRole === 'Owner')
-    requests.push(getAllBusinessesMe())
-
-  const [user, cards, biz] = await Promise.allSettled(requests)
-  if (user.status === 'fulfilled') userData.value = user.value
-  if (cards.status === 'fulfilled') stampCards.value = cards.value || []
-  if (biz?.status === 'fulfilled') businesses.value = biz.value || []
+const load = async () => {
+  loading.value = true
+  reset()
+  try {
+    cards.value = await listMyCards()
+  }
+  catch (e) {
+    capture(e)
+  }
+  finally {
+    loading.value = false
+  }
 }
 
-const nearestCard = computed(() => {
-  const active = stampCards.value.filter(
-    (c: any) => c.isActive && !c.isCompleted && !c.isRewardRedeemed && c.stampCard?.requiredStamps,
-  )
-  if (!active.length) return null
-  return active.sort(
-    (a: any, b: any) =>
-      (b.visitsCount / b.stampCard.requiredStamps) -
-      (a.visitsCount / a.stampCard.requiredStamps),
-  )[0]
-})
+const readyToRedeem = computed(() => cards.value.filter(isRedeemable))
+const nearest = computed(() => nearestCard(cards.value))
 
-const progressPercent = computed(() => {
-  if (!nearestCard.value) return 0
-  return Math.round((nearestCard.value.visitsCount / nearestCard.value.stampCard.requiredStamps) * 100)
-})
-
-const stampsLeft = computed(() => {
-  if (!nearestCard.value) return 0
-  return nearestCard.value.stampCard.requiredStamps - nearestCard.value.visitsCount
-})
-
-onMounted(() => {
-  getData()
-})
+onMounted(load)
 </script>
 
 <template>
-  <div class="pa-0">
-    <!-- Hero QR Card -->
+  <div>
+    <!-- Hero QR -->
     <VCard
       color="primary"
       rounded="xl"
@@ -70,13 +52,10 @@ onMounted(() => {
     >
       <VCardText class="text-center pa-6">
         <div class="text-white text-h5 font-weight-bold mb-1">
-          Hola, {{ userData?.firstName || authStore.user?.firstName || 'Usuario' }} 👋
+          Hola, {{ session.me?.firstName || 'bienvenido' }}
         </div>
-        <div
-          class="text-white text-body-2 mb-5"
-          style="opacity: 0.8;"
-        >
-          Muéstrale tu código al negocio para sellar
+        <div class="text-white text-body-2 mb-5 hero-caption">
+          Muéstrale tu código al negocio para recibir tus sellos
         </div>
 
         <VCard
@@ -85,20 +64,10 @@ onMounted(() => {
           to="/visitante/perfil/qr"
         >
           <VCardText class="pa-3">
-            <VImg
-              :src="userData?.qrPath"
-              :aspect-ratio="1"
-              :min-block-size="180"
-            >
-              <template #placeholder>
-                <div class="d-flex align-center justify-center fill-height">
-                  <VProgressCircular
-                    indeterminate
-                    color="primary"
-                  />
-                </div>
-              </template>
-            </VImg>
+            <AppQrCode
+              :value="session.me?.qrPayload"
+              :size="196"
+            />
           </VCardText>
         </VCard>
 
@@ -111,67 +80,73 @@ onMounted(() => {
             start
             icon="tabler-barcode"
           />
-          {{ userData?.repittCode || '—' }}
+          {{ formatRepittCode(session.me?.repittCode) }}
         </VChip>
       </VCardText>
     </VCard>
 
-    <!-- Gamification: nearest card to completion -->
-    <VCard
-      v-if="nearestCard"
-      rounded="xl"
-      class="mb-4"
-      to="/visitante/tarjetas"
-    >
-      <VCardText class="pa-4">
-        <div class="d-flex align-center gap-3 mb-3">
-          <VAvatar
-            :color="nearestCard.stampCard.primaryColor || 'primary'"
-            variant="tonal"
-            size="40"
-            rounded="lg"
-          >
-            <VImg
-              v-if="nearestCard.business.logoPath"
-              :src="nearestCard.business.logoPath"
-            />
-            <span
-              v-else
-              class="text-body-2 font-weight-bold"
-            >
-              {{ nearestCard.business.name?.charAt(0) }}
-            </span>
-          </VAvatar>
-          <div class="flex-grow-1">
-            <div class="text-body-2 font-weight-bold">
-              {{ nearestCard.business.name }}
-            </div>
-            <div class="text-caption text-medium-emphasis">
-              Falta{{ stampsLeft > 1 ? 'n' : '' }}
-              <strong class="text-warning">{{ stampsLeft }} sello{{ stampsLeft > 1 ? 's' : '' }}</strong>
-              para {{ nearestCard.stampCard.reward }}
-            </div>
-          </div>
-          <VChip
-            size="x-small"
-            color="warning"
-            variant="tonal"
-          >
-            {{ nearestCard.visitsCount }}/{{ nearestCard.stampCard.requiredStamps }}
-          </VChip>
-        </div>
-        <VProgressLinear
-          :model-value="progressPercent"
-          color="warning"
-          height="8"
-          rounded
-          bg-color="grey-200"
-        />
-      </VCardText>
-    </VCard>
+    <VSkeletonLoader
+      v-if="loading"
+      type="list-item-avatar-two-line"
+      class="mb-4 rounded-xl"
+    />
 
-    <!-- Quick Actions -->
-    <VRow dense class="mb-2">
+    <div
+      v-else-if="error"
+      class="mb-4"
+    >
+      <ApiErrorAlert :error="error" />
+      <VBtn
+        variant="tonal"
+        class="mt-3"
+        prepend-icon="tabler-refresh"
+        @click="load"
+      >
+        Reintentar
+      </VBtn>
+    </div>
+
+    <template v-else>
+      <!-- Rewards ready -->
+      <template v-if="readyToRedeem.length">
+        <div class="section-label text-warning">
+          <VIcon
+            icon="tabler-gift"
+            size="15"
+          />
+          ¡Recompensa lista!
+        </div>
+        <StampCardListItem
+          v-for="item in readyToRedeem"
+          :key="item.cycle.id"
+          :item="item"
+          :to="`/visitante/tarjetas/${item.cycle.id}`"
+          class="mb-3"
+        />
+      </template>
+
+      <!-- Nearest card -->
+      <template v-if="nearest">
+        <div class="section-label text-primary">
+          <VIcon
+            icon="tabler-flame"
+            size="15"
+          />
+          Estás cerca
+        </div>
+        <StampCardListItem
+          :item="nearest"
+          :to="`/visitante/tarjetas/${nearest.cycle.id}`"
+          class="mb-4"
+        />
+      </template>
+    </template>
+
+    <!-- Quick actions -->
+    <VRow
+      dense
+      class="mb-2"
+    >
       <VCol cols="6">
         <QuickActionCard
           icon="tabler-cards"
@@ -183,47 +158,35 @@ onMounted(() => {
       </VCol>
       <VCol cols="6">
         <QuickActionCard
-          icon="tabler-walk"
-          label="Visitas"
-          caption="Mi historial"
+          icon="tabler-activity"
+          label="Actividad"
+          caption="Sellos y canjes"
           to="/visitante/visitas"
           :icon-size="36"
         />
       </VCol>
     </VRow>
-    <!-- Footer actions -->
-    <div class="d-flex justify-center gap-4 mt-4">
-      <VBtn
-        v-if="authStore.authRole === 'Owner'"
-        variant="text"
-        size="small"
-        prepend-icon="tabler-refresh"
-        @click="isProfileDialogVisible = true"
-      >
-        Cambiar Perfil
-      </VBtn>
-      <VBtn
-        variant="text"
-        size="small"
-        color="medium-emphasis"
-        prepend-icon="tabler-logout"
-        @click="logoutUser().then(() => $router.push('/auth/login'))"
-      >
-        Cerrar sesión
-      </VBtn>
-    </div>
   </div>
-
-  <CambiarPerfilDialog
-    v-model="isProfileDialogVisible"
-    :businesses="businesses"
-    :user="userData"
-  />
 </template>
 
 <style scoped>
+.hero-caption {
+  opacity: 0.8;
+}
+
 .qr-tap-card {
   cursor: pointer;
   max-inline-size: 220px;
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 5px;
+  letter-spacing: 0.04em;
+  margin-block: 8px 10px;
+  text-transform: uppercase;
 }
 </style>

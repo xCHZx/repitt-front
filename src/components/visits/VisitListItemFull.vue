@@ -1,31 +1,23 @@
 <script setup lang="ts">
-interface Props {
-  visit: any
-}
+import type { MeActivityEvent } from '@/api/types'
+import { EVENT_META, accentOf, initialOf } from '@/components/visitor/wallet'
+import { formatDateTime } from '@/utils/dates'
 
-const props = defineProps<Props>()
+// One entry of my activity (MeActivityEventDto, guide §4.C.3). Opens the cycle detail.
 
-const formattedDate = computed(() => {
-  if (!props.visit?.createdAt) return '—'
+const props = defineProps<{
+  event: MeActivityEvent
+}>()
 
-  return new Date(props.visit.createdAt).toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-})
-
-const initial = computed(() =>
-  String(props.visit?.business?.name || 'R').charAt(0).toUpperCase(),
-)
+const meta = computed(() => EVENT_META[props.event.type])
+const accentColor = computed(() => accentOf(props.event.card.primaryColor))
 </script>
 
 <template>
   <VCard
     rounded="xl"
-    style="border-inline-start: 3px solid rgb(var(--v-theme-primary));"
+    :to="`/visitante/tarjetas/${props.event.cycleId}`"
+    :style="{ borderInlineStart: `3px solid ${accentColor}` }"
   >
     <VCardText class="pa-4">
       <div class="d-flex align-center gap-3">
@@ -36,21 +28,21 @@ const initial = computed(() =>
           variant="tonal"
         >
           <VImg
-            v-if="visit?.business?.logoPath"
-            :src="visit.business.logoPath"
+            v-if="props.event.business.logoUrl"
+            :src="props.event.business.logoUrl"
           />
           <span
             v-else
             class="text-body-2 font-weight-bold"
-          >{{ initial }}</span>
+          >{{ initialOf(props.event.business.name) }}</span>
         </VAvatar>
 
         <div class="flex-grow-1 overflow-hidden">
           <div class="text-subtitle-2 font-weight-bold text-truncate">
-            {{ visit?.business?.name ?? 'Sin nombre' }}
+            {{ props.event.business.name }}
           </div>
           <div class="text-caption text-medium-emphasis text-truncate">
-            {{ visit?.stampCard?.name ?? '—' }}
+            {{ props.event.card.name }}
           </div>
           <div class="d-flex align-center gap-1 mt-1">
             <VIcon
@@ -58,10 +50,19 @@ const initial = computed(() =>
               size="12"
               color="medium-emphasis"
             />
-            <span class="text-caption text-medium-emphasis">{{ formattedDate }}</span>
+            <span class="text-caption text-medium-emphasis">{{ formatDateTime(props.event.occurredAt) }}</span>
           </div>
         </div>
 
+        <VChip
+          size="small"
+          variant="tonal"
+          :color="meta.color"
+          :prepend-icon="meta.icon"
+          class="flex-shrink-0"
+        >
+          {{ meta.label }}
+        </VChip>
       </div>
     </VCardText>
   </VCard>

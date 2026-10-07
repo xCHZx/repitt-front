@@ -1,151 +1,125 @@
 <script setup lang="ts">
-import { getAllUserStampCardsByCurrentVisitor } from '@/services/visitor/userStampCards'
+import { listMyCards } from '@/api/endpoints/me'
+import type { MeCard } from '@/api/types'
+import ApiErrorAlert from '@/components/common/ApiErrorAlert.vue'
+import StampCardListItem from '@/components/stampCards/StampCardListItem.vue'
+import { walletGroups } from '@/components/visitor/wallet'
+import { useApiError } from '@/composables/useApiError'
+
+// Wallet (guide §4.C.2): GET /v1/me/cards (≤ 100, no pagination).
 
 definePage({
   meta: {
-    requiresAuth: true,
-    requiredRole: ['Visitor', 'Owner'],
     layout: 'visitor',
   },
 })
 
-const data = ref<any[]>([])
+const items = ref<MeCard[]>([])
+const loading = ref(true)
+const { error, capture, reset } = useApiError()
 
-const getData = async () => {
+const load = async () => {
+  loading.value = true
+  reset()
   try {
-    data.value = await getAllUserStampCardsByCurrentVisitor() || []
+    items.value = await listMyCards()
   }
-  catch (error: any) {
-    console.error('Error getting data:', error)
+  catch (e) {
+    capture(e)
+  }
+  finally {
+    loading.value = false
   }
 }
 
-const redeemable = computed(() =>
-  data.value.filter((c: any) => c.isCompleted && !c.isRewardRedeemed),
-)
+const groups = computed(() => walletGroups(items.value))
 
-const active = computed(() =>
-  data.value.filter((c: any) => !c.isCompleted && !c.isRewardRedeemed && c.isActive && c.stampCard?.isActive),
-)
+const sections = computed(() => [
+  { key: 'redeemable', label: '¡Listas para canjear!', icon: 'tabler-gift', class: 'text-warning', items: groups.value.redeemable, dimmed: false },
+  { key: 'progress', label: 'En progreso', icon: 'tabler-rosette-discount', class: 'text-primary', items: groups.value.inProgress, dimmed: false },
+  { key: 'inactive', label: 'Inactivas o terminadas', icon: 'tabler-archive', class: 'text-medium-emphasis', items: groups.value.inactive, dimmed: true },
+].filter(s => s.items.length))
 
-const redeemed = computed(() =>
-  data.value.filter((c: any) => c.isRewardRedeemed),
-)
-
-onMounted(() => {
-  getData()
-})
+onMounted(load)
 </script>
 
 <template>
   <div>
-    <!-- Empty state -->
+    <template v-if="loading">
+      <VSkeletonLoader
+        v-for="i in 3"
+        :key="i"
+        type="list-item-avatar-two-line"
+        class="mb-3 rounded-xl"
+      />
+    </template>
+
     <div
-      v-if="data.length === 0"
+      v-else-if="error"
+      class="py-6"
+    >
+      <ApiErrorAlert :error="error" />
+      <VBtn
+        variant="tonal"
+        class="mt-4"
+        prepend-icon="tabler-refresh"
+        @click="load"
+      >
+        Reintentar
+      </VBtn>
+    </div>
+
+    <div
+      v-else-if="items.length === 0"
       class="text-center py-12"
     >
       <VIcon
         icon="tabler-cards"
         size="56"
         color="medium-emphasis"
-        class="mb-4"
-        style="opacity: 0.35;"
+        class="mb-4 empty-icon"
       />
       <div class="text-h6 font-weight-bold mb-1">
         Aún no tienes tarjetas
       </div>
       <div class="text-body-2 text-medium-emphasis mb-5">
-        Visita un negocio y pide que sellen tu tarjeta
+        Visita un negocio y muéstrale tu QR para recibir tu primer sello
       </div>
       <VBtn
-        to="/visitante/negocios"
+        to="/visitante/perfil/qr"
         variant="tonal"
         color="primary"
-        prepend-icon="tabler-map-pin"
+        prepend-icon="tabler-qrcode"
       >
-        Explorar negocios
+        Ver mi QR
       </VBtn>
     </div>
 
     <template v-else>
-      <!-- Canjeables -->
-      <template v-if="redeemable.length">
-        <div class="section-label text-warning">
-          <VIcon icon="tabler-gift" size="15" />
-          ¡Listas para canjear!
-        </div>
+      <section
+        v-for="section in sections"
+        :key="section.key"
+        class="wallet-section"
+      >
         <div
-          v-for="card in redeemable"
-          :key="card.id"
-          class="mb-3"
+          class="section-label"
+          :class="section.class"
         >
-          <StampCardListItem
-            :business-name="card.business.name"
-            :segment="card.business.categoryName"
-            :reward="card.stampCard.reward"
-            :visits-count="card.visitsCount"
-            :required-stamps="card.stampCard.requiredStamps"
-            :image="card.business.logoPath"
-            :primary-color="card.stampCard.primaryColor"
-            :is-completed="card.isCompleted"
-            :is-redeemed="card.isRewardRedeemed"
-            :to="`/visitante/tarjetas/${card.id}`"
+          <VIcon
+            :icon="section.icon"
+            size="15"
           />
+          {{ section.label }}
         </div>
-      </template>
-
-      <!-- En progreso -->
-      <template v-if="active.length">
-        <div class="section-label">
-          <VIcon icon="tabler-rosette-discount" size="15" />
-          En progreso
-        </div>
-        <div
-          v-for="card in active"
-          :key="card.id"
+        <StampCardListItem
+          v-for="item in section.items"
+          :key="item.cycle.id"
+          :item="item"
+          :dimmed="section.dimmed"
+          :to="`/visitante/tarjetas/${item.cycle.id}`"
           class="mb-3"
-        >
-          <StampCardListItem
-            :business-name="card.business.name"
-            :segment="card.business.categoryName"
-            :reward="card.stampCard.reward"
-            :visits-count="card.visitsCount"
-            :required-stamps="card.stampCard.requiredStamps"
-            :image="card.business.logoPath"
-            :primary-color="card.stampCard.primaryColor"
-            :is-completed="card.isCompleted"
-            :is-redeemed="card.isRewardRedeemed"
-            :to="`/visitante/tarjetas/${card.id}`"
-          />
-        </div>
-      </template>
-
-      <!-- Canjeadas -->
-      <template v-if="redeemed.length">
-        <div class="section-label text-medium-emphasis">
-          <VIcon icon="tabler-check" size="15" />
-          Canjeadas
-        </div>
-        <div
-          v-for="card in redeemed"
-          :key="card.id"
-          class="mb-3"
-        >
-          <StampCardListItem
-            :business-name="card.business.name"
-            :segment="card.business.categoryName"
-            :reward="card.stampCard.reward"
-            :visits-count="card.visitsCount"
-            :required-stamps="card.stampCard.requiredStamps"
-            :image="card.business.logoPath"
-            :primary-color="card.stampCard.primaryColor"
-            :is-completed="card.isCompleted"
-            :is-redeemed="card.isRewardRedeemed"
-            :disabled="true"
-            :to="`/visitante/tarjetas/${card.id}`"
-          />
-        </div>
-      </template>
+        />
+      </section>
     </template>
   </div>
 </template>
@@ -162,7 +136,11 @@ onMounted(() => {
   text-transform: uppercase;
 }
 
-.section-label:not(:first-child) {
+.wallet-section + .wallet-section {
   margin-block-start: 24px;
+}
+
+.empty-icon {
+  opacity: 0.35;
 }
 </style>

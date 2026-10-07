@@ -1,10 +1,14 @@
 <script lang="ts" setup>
+import EmailVerificationBanner from '@/components/visitor/EmailVerificationBanner.vue'
 import NavbarThemeSwitcher from '@/layouts/components/NavbarThemeSwitcher.vue'
-import { useAuthStore } from '@/stores/auth'
+import { useSessionStore } from '@/stores/session'
+
+// Visitor / "Mi cuenta" layout: every signed-in user (visitors, owners and cashiers) can use it.
+// There is no global role: the business shortcut shows when the user has memberships (§3).
 
 const { injectSkinClasses } = useSkins()
 
-const authStore = useAuthStore()
+const session = useSessionStore()
 
 injectSkinClasses()
 
@@ -21,31 +25,44 @@ watch([isFallbackStateActive, refLoadingIndicator], () => {
     refLoadingIndicator.value.resolveHandle()
 }, { immediate: true })
 
-const bottomNavRoots = ['visitante', 'visitante-tarjetas', 'visitante-visitas', 'visitante-perfil']
+const path = computed(() => route.path.replace(/\/+$/, '') || '/')
 
-const showBackButton = computed(() => !bottomNavRoots.includes(String(route.name)))
+const bottomNavRoots = ['/visitante', '/visitante/tarjetas', '/visitante/visitas', '/visitante/perfil', '/visitante/perfil/qr']
+
+const showBackButton = computed(() => !bottomNavRoots.includes(path.value))
+
+const TITLES: [prefix: string, title: string][] = [
+  ['/visitante/tarjetas', 'Mis tarjetas'],
+  ['/visitante/visitas', 'Actividad'],
+  ['/visitante/perfil/qr', 'Mi QR'],
+  ['/visitante/perfil/privacidad', 'Privacidad y datos'],
+  ['/visitante/perfil/telefono', 'Cambiar teléfono'],
+  ['/visitante/perfil', 'Mi cuenta'],
+  ['/visitante/negocios', 'Negocio'],
+]
 
 const pageTitle = computed(() => {
-  const name = String(route.name)
-  if (name === 'visitante') return ''
-  if (name.startsWith('visitante-tarjetas')) return 'Mis Tarjetas'
-  if (name === 'visitante-perfil-qr') return 'Mi Código QR'
-  if (name.startsWith('visitante-visitas')) return 'Mis Visitas'
-  if (name.startsWith('visitante-perfil')) return 'Mi Perfil'
-  if (name.startsWith('visitante-negocios')) return 'Negocio'
-  return 'Repitt'
+  if (path.value === '/visitante')
+    return ''
+
+  return TITLES.find(([prefix]) => path.value.startsWith(prefix))?.[1] ?? 'Repitt'
 })
 
-const isTabActive = (tab: string) => {
-  const name = String(route.name)
-  switch (tab) {
-    case 'inicio': return name === 'visitante'
-    case 'tarjetas': return name.startsWith('visitante-tarjetas')
-    case 'qr': return name === 'visitante-perfil-qr'
-    case 'visitas': return name.startsWith('visitante-visitas')
-    case 'perfil': return name.startsWith('visitante-perfil') && name !== 'visitante-perfil-qr'
-    default: return false
-  }
+const TAB_MATCHERS: Record<string, (p: string) => boolean> = {
+  inicio: p => p === '/visitante',
+  tarjetas: p => p.startsWith('/visitante/tarjetas'),
+  qr: p => p === '/visitante/perfil/qr',
+  actividad: p => p.startsWith('/visitante/visitas'),
+  perfil: p => p.startsWith('/visitante/perfil') && p !== '/visitante/perfil/qr',
+}
+
+const isTabActive = (tab: string) => !!TAB_MATCHERS[tab]?.(path.value)
+
+const goBack = () => {
+  if (window.history.state?.back)
+    router.back()
+  else
+    router.replace(path.value.startsWith('/visitante/perfil') ? '/visitante/perfil' : '/visitante')
 }
 </script>
 
@@ -62,17 +79,21 @@ const isTabActive = (tab: string) => {
             icon
             variant="text"
             size="small"
-            @click="router.go(-1)"
+            aria-label="Regresar"
+            @click="goBack"
           >
-            <VIcon icon="tabler-arrow-left" size="20" />
+            <VIcon
+              icon="tabler-arrow-left"
+              size="20"
+            />
           </VBtn>
           <img
             v-else
-            src="@/assets/images/logo-v2.png"
+            src="@images/logo-v2.png"
             alt="Repitt"
             class="topbar-logo"
             height="24"
-          />
+          >
         </div>
 
         <div
@@ -84,12 +105,13 @@ const isTabActive = (tab: string) => {
 
         <div class="topbar-right">
           <VBtn
-            v-if="authStore.authRole === 'Owner'"
+            v-if="session.hasMemberships"
             icon
             variant="text"
             size="small"
             title="Ir a mi negocio"
-            to="/empresa/"
+            aria-label="Ir a mi negocio"
+            to="/empresa"
           >
             <VIcon
               icon="tabler-building-store"
@@ -103,6 +125,10 @@ const isTabActive = (tab: string) => {
 
     <!-- Main Content -->
     <main class="visitor-main">
+      <EmailVerificationBanner
+        v-if="session.isAuthenticated"
+        class="mb-4"
+      />
       <RouterView v-slot="{ Component }">
         <Suspense
           :timeout="0"
@@ -118,7 +144,7 @@ const isTabActive = (tab: string) => {
     <nav class="visitor-bottom-nav">
       <div class="bottom-nav-inner">
         <RouterLink
-          to="/visitante/"
+          to="/visitante"
           class="nav-tab"
           :class="{ 'nav-tab--active': isTabActive('inicio') }"
         >
@@ -134,7 +160,10 @@ const isTabActive = (tab: string) => {
           class="nav-tab"
           :class="{ 'nav-tab--active': isTabActive('tarjetas') }"
         >
-          <VIcon icon="tabler-cards" size="22" />
+          <VIcon
+            icon="tabler-cards"
+            size="22"
+          />
           <span>Tarjetas</span>
         </RouterLink>
 
@@ -159,10 +188,13 @@ const isTabActive = (tab: string) => {
         <RouterLink
           to="/visitante/visitas"
           class="nav-tab"
-          :class="{ 'nav-tab--active': isTabActive('visitas') }"
+          :class="{ 'nav-tab--active': isTabActive('actividad') }"
         >
-          <VIcon icon="tabler-walk" size="22" />
-          <span>Visitas</span>
+          <VIcon
+            icon="tabler-activity"
+            size="22"
+          />
+          <span>Actividad</span>
         </RouterLink>
 
         <RouterLink
@@ -170,7 +202,10 @@ const isTabActive = (tab: string) => {
           class="nav-tab"
           :class="{ 'nav-tab--active': isTabActive('perfil') }"
         >
-          <VIcon icon="tabler-user" size="22" />
+          <VIcon
+            icon="tabler-user"
+            size="22"
+          />
           <span>Perfil</span>
         </RouterLink>
       </div>

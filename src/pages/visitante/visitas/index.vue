@@ -1,97 +1,115 @@
 <script lang="ts" setup>
-import { getAllVisitsAsCurrentVisitor } from '@/services/visitor/visits'
+import { listMyActivity } from '@/api/endpoints/me'
+import type { MeActivityEvent } from '@/api/types'
+import ApiErrorAlert from '@/components/common/ApiErrorAlert.vue'
+import VisitListItemFull from '@/components/visits/VisitListItemFull.vue'
+import { useCursorList } from '@/composables/useCursorList'
+import { formatInstant } from '@/utils/dates'
+
+// My activity (guide §4.C.3): cursor list, newest first, no totals.
 
 definePage({
   meta: {
-    requiresAuth: true,
-    requiredRole: ['Visitor', 'Owner'],
     layout: 'visitor',
   },
 })
 
-const totalVisits = ref(0)
-const visits = ref<any[]>([])
+const { items, loading, loaded, error, hasMore, isEmpty: noActivity, reload, loadMore } = useCursorList<MeActivityEvent>(
+  cursor => listMyActivity({ cursor, limit: 25 }),
+)
 
-const getData = async () => {
-  try {
-    const response = await getAllVisitsAsCurrentVisitor()
-
-    totalVisits.value = response?.totalVisits ?? 0
-    visits.value = response?.visits ?? []
-  }
-  catch (error: any) {
-    console.error('Error getting data:', error)
-  }
-}
-
-const groupedVisits = computed(() => {
-  const groups: Record<string, any[]> = {}
-
-  for (const visit of visits.value) {
-    const label = new Date(visit.createdAt).toLocaleDateString('es-ES', {
-      month: 'long',
-      year: 'numeric',
-    })
-    if (!groups[label]) groups[label] = []
-    groups[label].push(visit)
+const groups = computed(() => {
+  const map = new Map<string, MeActivityEvent[]>()
+  for (const event of items.value) {
+    const label = formatInstant(event.occurredAt, undefined, { month: 'long', year: 'numeric' })
+    const list = map.get(label)
+    if (list)
+      list.push(event)
+    else
+      map.set(label, [event])
   }
 
-  return Object.entries(groups).map(([label, items]) => ({ label, items }))
+  return [...map.entries()].map(([label, events]) => ({ label, events }))
 })
 
-onMounted(() => {
-  getData()
-})
+onMounted(reload)
 </script>
 
 <template>
   <div>
-    <!-- Empty state -->
+    <template v-if="!loaded && loading">
+      <VSkeletonLoader
+        v-for="i in 4"
+        :key="i"
+        type="list-item-avatar-two-line"
+        class="mb-2 rounded-xl"
+      />
+    </template>
+
     <div
-      v-if="visits.length === 0"
+      v-else-if="!loaded && error"
+      class="py-6"
+    >
+      <ApiErrorAlert :error="error" />
+      <VBtn
+        variant="tonal"
+        class="mt-4"
+        prepend-icon="tabler-refresh"
+        @click="reload"
+      >
+        Reintentar
+      </VBtn>
+    </div>
+
+    <div
+      v-else-if="noActivity"
       class="text-center py-12"
     >
       <VIcon
-        icon="tabler-walk"
+        icon="tabler-activity"
         size="56"
         color="medium-emphasis"
-        class="mb-4"
-        style="opacity: 0.35;"
+        class="mb-4 empty-icon"
       />
       <div class="text-h6 font-weight-bold mb-1">
-        Aún no tienes visitas
+        Aún no tienes actividad
       </div>
       <div class="text-body-2 text-medium-emphasis">
-        Cada vez que visites un negocio aparecerá aquí
+        Tus sellos y canjes aparecerán aquí
       </div>
     </div>
 
     <template v-else>
-      <!-- Stat total -->
-      <div class="d-flex align-center gap-2 mb-5">
-        <VIcon icon="tabler-walk" size="16" color="primary" />
-        <span class="text-body-2 text-medium-emphasis">
-          <strong class="text-primary">{{ totalVisits }}</strong> visitas en total
-        </span>
-      </div>
-
-      <!-- Grupos por mes -->
       <template
-        v-for="group in groupedVisits"
+        v-for="group in groups"
         :key="group.label"
       >
         <div class="month-label">
           {{ group.label }}
         </div>
-
         <div class="d-flex flex-column gap-2 mb-5">
           <VisitListItemFull
-            v-for="visit in group.items"
-            :key="visit.id"
-            :visit="visit"
+            v-for="event in group.events"
+            :key="event.id"
+            :event="event"
           />
         </div>
       </template>
+
+      <ApiErrorAlert
+        :error="error"
+        class="mb-3"
+      />
+
+      <VBtn
+        v-if="hasMore"
+        block
+        variant="tonal"
+        :loading="loading"
+        @click="loadMore"
+      >
+        Ver más
+      </VBtn>
     </template>
   </div>
 </template>
@@ -104,5 +122,9 @@ onMounted(() => {
   letter-spacing: 0.05em;
   margin-block-end: 10px;
   text-transform: uppercase;
+}
+
+.empty-icon {
+  opacity: 0.35;
 }
 </style>

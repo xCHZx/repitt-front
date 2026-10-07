@@ -1,93 +1,66 @@
 <script setup lang="ts">
-interface Props {
-  firstName?: string
-  lastName?: string
-  qrPath?: string
-  repittCode?: string
-}
+import AppQrCode from '@/components/common/AppQrCode.vue'
+import { formatRepittCode } from '@/components/visitor/wallet'
 
-const props = defineProps<Props>()
+// "Digital pass" with my QR (MeDto.qrPayload = repitt:u:CODE) and the code for manual capture (guide §4.C.1).
+
+const props = defineProps<{
+  firstName?: string | null
+  lastName?: string | null
+  qrPayload?: string | null
+  repittCode?: string | null
+}>()
 
 const initials = computed(() => {
   const a = props.firstName?.charAt(0).toUpperCase() ?? ''
   const b = props.lastName?.charAt(0).toUpperCase() ?? ''
+
   return a + b || '?'
 })
 
-const fullName = computed(() => {
-  const name = [props.firstName, props.lastName].filter(Boolean).join(' ')
-  return name || 'Sin nombre'
-})
+const fullName = computed(() => [props.firstName, props.lastName].filter(Boolean).join(' ') || 'Sin nombre')
 </script>
 
 <template>
   <div class="qr-pass">
-    <!-- Header del pase -->
     <div class="qr-pass__header">
       <VAvatar
         size="48"
         color="white"
-        class="qr-pass__avatar"
       >
-        <span
-          class="text-body-1 font-weight-bold"
-          style="color: rgb(var(--v-theme-primary));"
-        >{{ initials }}</span>
+        <span class="text-body-1 font-weight-bold text-primary">{{ initials }}</span>
       </VAvatar>
-
       <div>
         <div class="text-subtitle-1 font-weight-bold text-white">
           {{ fullName }}
         </div>
-        <div
-          class="text-caption text-white"
-          style="opacity: 0.75;"
-        >
-          Código de visitas · Repitt
+        <div class="text-caption text-white qr-pass__caption">
+          Mi código Repitt
         </div>
       </div>
     </div>
 
-    <!-- Cuerpo blanco con QR -->
     <div class="qr-pass__body">
       <p class="text-caption text-medium-emphasis text-center mb-4 mt-5">
-        Muéstrale este código al negocio
+        Muéstrale este código al negocio para recibir tus sellos
       </p>
 
-      <!-- QR siempre en fondo blanco para escaneo -->
       <div class="qr-pass__qr-wrap">
-        <VImg
-          :src="qrPath"
-          :aspect-ratio="1"
-          width="100%"
-        >
-          <template #placeholder>
-            <div
-              class="d-flex align-center justify-center fill-height"
-              style="min-block-size: 240px;"
-            >
-              <VProgressCircular
-                indeterminate
-                color="primary"
-              />
-            </div>
-          </template>
-        </VImg>
+        <AppQrCode
+          :value="props.qrPayload"
+          :size="236"
+        />
       </div>
 
-      <VChip
-        color="primary"
-        variant="tonal"
-        size="large"
-        class="mt-5"
+      <div class="text-caption text-medium-emphasis mt-5">
+        Si no pueden escanearlo, díctales este código
+      </div>
+      <div
+        class="qr-pass__code text-primary"
+        :aria-label="props.repittCode ?? undefined"
       >
-        <VIcon
-          start
-          icon="tabler-barcode"
-          size="18"
-        />
-        {{ repittCode || '—' }}
-      </VChip>
+        {{ formatRepittCode(props.repittCode) }}
+      </div>
     </div>
   </div>
 </template>
@@ -106,6 +79,10 @@ const fullName = computed(() => {
   gap: 14px;
   padding-block: 20px 56px;
   padding-inline: 24px;
+}
+
+.qr-pass__caption {
+  opacity: 0.75;
 }
 
 .qr-pass__body {
@@ -127,5 +104,14 @@ const fullName = computed(() => {
   max-inline-size: 260px;
   padding-block: 12px;
   padding-inline: 12px;
+}
+
+.qr-pass__code {
+  font-family: ui-monospace, monospace !important;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-block-start: 4px;
+  white-space: pre;
 }
 </style>
