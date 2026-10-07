@@ -24,6 +24,7 @@ const MIN_LENGTH = 10
 const passwordRules = [
   (v: string) => !!v || 'Escribe una contraseña',
   (v: string) => v.length >= MIN_LENGTH || `Usa al menos ${MIN_LENGTH} caracteres`,
+  (v: string) => !/repitt/i.test(v) || 'La contraseña no puede contener «repitt»',
 ]
 
 const confirmRules = [

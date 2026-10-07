@@ -104,7 +104,10 @@ async function onSubmitCode(code: string) {
     if (err.isConflictRetry) {
       restart('No pudimos completar el cambio. Pide un código nuevo para intentarlo otra vez.')
     }
-    else if (err.detailCode === 'passwordContainsPersonalData') {
+
+    // «repitt» is rejected before checking the code (still valid); the email or phone inside the
+    // password is checked after it, so the code is spent and a new one is needed (backend, 2026-10-06)
+    else if (err.detailCode === 'passwordContainsPersonalData' && !/repitt/i.test(password.value)) {
       password.value = ''
       restart(`${described.fieldErrors.password ?? described.message} Pide un código nuevo y elige otra contraseña.`)
     }
