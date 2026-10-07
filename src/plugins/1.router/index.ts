@@ -4,8 +4,9 @@ import { setupLayouts } from 'virtual:generated-layouts'
 import type { RouteRecordRaw } from 'vue-router/auto'
 
 import { createRouter, createWebHistory } from 'vue-router/auto'
-import { useAuthStore } from '@/stores/auth'
-import { useCompanyStore } from '@/stores/company'
+import { useBusinessStore } from '@/stores/business'
+import { useSessionStore } from '@/stores/session'
+import { homeRoute } from '@/utils/home'
 
 function recursiveLayouts(route: RouteRecordRaw): RouteRecordRaw {
   if (route.children) {
@@ -28,53 +29,70 @@ const router = createRouter({
   },
   extendRoutes: pages => [
     ...[...pages].map(route => recursiveLayouts(route)),
+
+    // Business QR (guide §4.A.4): `${APP_URL}/n/<repittCode>`
+    { path: '/n/:repittCode', redirect: to => ({ path: `/visitante/negocios/${String(to.params.repittCode)}` }) },
   ],
 })
 
-const VALID_ROLES = ['Owner', 'Visitor']
+/**
+ * Access rules (guide §3):
+ * - `meta.public`: no session needed; `meta.guestOnly` sends signed-in users home.
+ * - Everything else needs a session (boot = refresh + GET /v1/me).
+ * - `meta.area === 'business'`: needs a membership; unless `meta.needsBusiness === false`, an
+ *   active business too. `meta.ownerOnly` hides owner screens from cashiers.
+ *   `meta.requiresEntitlement`: counter screens are blocked when `entitlement.allowed` is false.
+ *   Access is decided by `entitlement`, never by `isPublished` or the subscription status.
+ */
+router.beforeEach(async to => {
+  const session = useSessionStore()
 
-// Rutas de empresa accesibles sin suscripción activa
-const EMPRESA_NO_SUB_REQUIRED = ['/empresa/planes', '/empresa/seleccionar', '/empresa/crear']
+  await session.ensureReady()
 
-router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
-  const authToken = authStore.authToken
-  const authRole = authStore.authRole
+  if (session.status === 'suspended')
+    return to.path === '/cuenta-suspendida' ? true : { path: '/cuenta-suspendida' }
 
-  // Si hay token pero la sesión está corrupta (sin rol válido), limpiar y redirigir a login
-  if (authToken && !VALID_ROLES.includes(authRole)) {
-    authStore.deleteAuthData()
-    localStorage.removeItem('company')
-    next({ name: 'auth-login' })
+  if (to.meta.public) {
+    if (to.meta.guestOnly && session.isAuthenticated)
+      return homeRoute()
 
-    return
+    return true
   }
 
-  if (to.meta.requiresAuth && !authToken) {
-    next({ name: 'auth-login' })
-  }
-  else if (to.meta.requiredRole && !to.meta.requiredRole.includes(authRole)) {
-    next('/404')
-  }
-  else if (
-    authRole === 'Owner'
-    && to.path.startsWith('/empresa')
-    && !EMPRESA_NO_SUB_REQUIRED.some(p => to.path.startsWith(p))
-  ) {
-    // isActive es la fuente de verdad: false = negocio sin suscripción pagada
-    const companyStore = useCompanyStore()
-    const isBusinessActive = companyStore.selectedCompany?.isActive
+  if (!session.isAuthenticated)
+    return { path: '/auth/login', query: to.fullPath === '/' ? undefined : { redirect: to.fullPath } }
 
-    if (isBusinessActive === false) {
-      next({ path: '/empresa/planes' })
-    }
-    else {
-      next()
-    }
-  }
-  else {
-    next()
-  }
+  if (to.path === '/')
+    return homeRoute()
+
+  if (to.meta.area !== 'business')
+    return true
+
+  if (!session.hasMemberships)
+    return { path: '/visitante' }
+
+  const business = useBusinessStore()
+
+  await business.ensureLoaded()
+
+  // Stripe returns to /empresa/planes?businessId=<id>
+  const queryBusinessId = typeof to.query.businessId === 'string' ? to.query.businessId : null
+  if (queryBusinessId && business.businesses.some(b => b.id === queryBusinessId))
+    business.select(queryBusinessId)
+
+  if (to.meta.needsBusiness === false)
+    return true
+
+  if (!business.active)
+    return { path: '/empresa/seleccionar' }
+
+  if (to.meta.ownerOnly && !business.isOwner)
+    return { path: '/empresa' }
+
+  if (to.meta.requiresEntitlement && !business.canOperate)
+    return business.isOwner ? { path: '/empresa/planes' } : { path: '/empresa' }
+
+  return true
 })
 
 export { router }

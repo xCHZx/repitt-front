@@ -4,6 +4,7 @@ import ScrollToTop from '@core/components/ScrollToTop.vue'
 import initCore from '@core/initCore'
 import { initConfigStore, useConfigStore } from '@core/stores/config'
 import { hexToRgb } from '@layouts/utils'
+import ReauthDialog from '@/components/auth/ReauthDialog.vue'
 
 const { global } = useTheme()
 
@@ -20,6 +21,7 @@ const configStore = useConfigStore()
     <VApp :style="`--v-global-theme-primary: ${hexToRgb(global.current.value.colors.primary)}`">
       <RouterView />
 
+      <ReauthDialog />
       <ScrollToTop />
     </VApp>
   </VLocaleProvider>
