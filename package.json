@@ -11,7 +11,10 @@
     "lint": "eslint . -c .eslintrc.cjs --fix --ext .ts,.js,.cjs,.vue,.tsx,.jsx",
     "build:icons": "tsx src/plugins/iconify/build-icons.ts",
     "msw:init": "msw init public/ --save",
-    "postinstall": "npm run build:icons && npm run msw:init"
+    "postinstall": "npm run build:icons && npm run msw:init",
+    "api:types": "node scripts/gen-api-types.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@casl/ability": "6.7.0",
@@ -36,10 +39,12 @@
     "eslint-plugin-regexp": "2.2.0",
     "jwt-decode": "4.0.0",
     "mapbox-gl": "3.1.2",
+    "markdown-it": "^14.1.0",
     "ofetch": "1.3.3",
     "pinia": "2.1.7",
     "pinia-plugin-persistedstate": "^3.2.1",
     "prismjs": "1.29.0",
+    "qrcode": "^1.5.4",
     "roboto-fontface": "0.10.0",
     "shepherd.js": "11.2.0",
     "sweetalert2": "^11.10.8",
@@ -80,7 +85,9 @@
     "@tiptap/extension-superscript": "2.2.4",
     "@tiptap/extension-underline": "2.2.4",
     "@types/mapbox-gl": "2.7.21",
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "20.11.24",
+    "@types/qrcode": "^1.5.5",
     "@types/webfontloader": "1.6.38",
     "@typescript-eslint/eslint-plugin": "6.21.0",
     "@typescript-eslint/parser": "6.21.0",
@@ -98,6 +105,7 @@
     "eslint-plugin-unicorn": "50.0.1",
     "eslint-plugin-vue": "9.22.0",
     "msw": "2.2.2",
+    "openapi-typescript": "^7",
     "postcss-html": "1.6.0",
     "postcss-scss": "4.0.9",
     "sass": "1.71.1",
@@ -118,6 +126,7 @@
     "vite-plugin-vue-layouts": "0.11.0",
     "vite-plugin-vuetify": "2.0.1",
     "vite-svg-loader": "5.1.0",
+    "vitest": "^2.1.9",
     "vue-shepherd": "3.0.0",
     "vue-tsc": "1.8.27"
   },
@@ -131,7 +140,7 @@
     "@tiptap/core": "^2",
     "@types/video.js": "^7"
   },
-  "packageManager": "pnpm@8.6.2",
+  "packageManager": "pnpm@8.15.9",
   "msw": {
     "workerDirectory": "public"
   }
