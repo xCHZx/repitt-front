@@ -10,36 +10,6 @@ Cosas que parecen simples pero tienen trampa. Errores comunes a evitar.
 **Solución:** cómo manejarlo correctamente
 -->
 
-## `business` está en la raíz del payload de visitante, no dentro de `stampCard` — 2026-03-21
-**Problema:** Al leer datos de `/users/me/stamp-cards/:id`, es tentador asumir que el negocio viene anidado como `data.stampCard.business`. Pero la respuesta real tiene `business` en la raíz del objeto.
-**Solución:** Acceder siempre como `data.business.name`, `data.business.logoPath`, etc. La tarjeta en sí viene en `data.stampCard.*`.
-
-Estructura real del payload:
-```json
-{
-  "id": 1,
-  "visitsCount": 3,
-  "isCompleted": false,
-  "isRewardRedeemed": false,
-  "business": { "name": "...", "logoPath": "..." },
-  "stampCard": { "name": "...", "stampsRequired": 10, "reward": "..." }
-}
-```
-
----
-
-## Props booleanas vs numéricas en componentes de stamp cards — 2026-03-21
-**Problema:** `StampCardListItem` y similares tienen props como `isCompleted` e `isRedeemed` definidas como `Number`. El backend nuevo devuelve booleanos (`true/false`). Vue lanza warnings de tipo en consola.
-**Solución:** Definir las props como `boolean | number` para aceptar ambos formatos:
-```ts
-const props = defineProps<{
-  isCompleted: boolean | number
-  isRedeemed: boolean | number
-}>()
-```
-
----
-
 ## `growth: null` rompe `ProgressMiniCard` — 2026-03-21
 **Problema:** El componente `ProgressMiniCard` usa `v-if="props.growth !== undefined"` para mostrar/ocultar la sección de crecimiento. Si se le pasa `null` (que viene del backend cuando no hay dato), lo muestra igual pero vacío.
 **Solución:** Usar `?? undefined` al pasar el prop:
@@ -58,15 +28,6 @@ const props = defineProps<{
 
 ---
 
-## `response.data.data` vs `response.data` — RESUELTO — 2026-03-21
-**Resumen confirmado:**
-- Endpoints `/businesses/...` → todos devuelven `{ data: {...} }` manualmente → `response.data.data` ✅
-- `GET /users/me` → devuelve `{ role, data: {...} }` → `response.data.data` para el usuario ✅
-- `PATCH /users/me` y otros de `/users/...` → devuelven plano → `response.data` ✅
-- `refreshUserData` retorna `response.data` = `{ role, data }`. Extraer `.data` al usar en componentes: `(await refreshUserData()).data`
-
----
-
 ## Orden de propiedades CSS en estilos inline (stylelint-config-idiomatic-order) — 2026-03-23
 **Problema:** El proyecto usa `stylelint-config-idiomatic-order` + `stylelint-use-logical-spec`. Los estilos inline en templates Vue son validados por stylelint. El orden incorrecto rompe el linting.
 **Solución:** Orden confirmado por errores reales:
@@ -74,11 +35,6 @@ const props = defineProps<{
 - Orden de grupos: `overflow` → `border-radius` → `background` → `box-shadow` → `gap` → `padding-block/inline` → `block-size/inline-size` → `color` → `font-size` → `font-weight` → `gap` (cuando coexiste con font props: después de font-weight, antes de letter-spacing) → `letter-spacing` → `text-transform`
 - `gap` va ANTES de `grid-template-columns`
 - Alpha en rgba: usar `%` no decimales: `rgba(0, 0, 0, 55%)` ✅ — `rgba(0, 0, 0, 0.55)` ❌
-
----
-
-## Variables `baseUrl` muertas en servicios — LIMPIADAS — 2026-03-21
-Las 4 variables `baseUrl` con rutas viejas y la función duplicada `registerVisitByUserStampCardAsCompany` fueron eliminadas en sesión 2. No quedan referencias a rutas legacy.
 
 ---
 
@@ -141,28 +97,6 @@ Las 4 variables `baseUrl` con rutas viejas y la función duplicada `registerVisi
 
 ---
 
-## `GET /users/me` no debe usarse para actualizar `authRole` — 2026-03-27
-**Problema:** `GET /users/me` devuelve un campo `role` pero no es la fuente de verdad del rol de sesión. Si se usa para sobreescribir `authStore.authRole`, puede degradar un Owner a Visitor (o viceversa) porque el rol del JWT y el de users/me pueden diferir en ciertos casos edge.
-**Solución:** `authStore.refreshUserData` fue modificado para NO actualizar `authRole`. El rol solo se establece en `populateAuthData` al momento del login. Si necesitas datos del usuario (nombre, etc.), usa `refreshUserData` para los datos del perfil únicamente.
-
----
-
-## Router guard: `isActive === false` no `!isActive` — 2026-03-27
-**Problema:** El guard de `/empresa` usa `companyStore.selectedCompany.isActive` para decidir si redirigir a `/empresa/planes`. Al hacer login, el company store se limpia y `isActive` queda `null`. `!null` es `true`, así que redirigía a `/empresa/planes` aunque el negocio tuviera suscripción activa.
-**Solución:** Comparar con `=== false` explícito para distinguir "no cargado aún" (`null`) de "inactivo" (`false`):
-```ts
-if (isBusinessActive === false)
-  next({ path: '/empresa/planes' })
-```
-
----
-
-## `POST /auth/visitor/login` siempre devuelve `role: "Visitor"` — por diseño — 2026-03-27
-**Problema:** Un usuario que tiene negocios (Owner) también puede tener cuenta de visitante. Si intenta entrar desde el tab "Soy visitante" (teléfono), el endpoint `/auth/visitor/login` le devuelve `role: "Visitor"` y no verá su panel de negocio.
-**Solución:** Es comportamiento esperado por seguridad. Para acceder al panel de negocio, el usuario DEBE usar el tab "Tengo un negocio" (email + contraseña), que llama a `POST /auth/login` y devuelve `role: "Owner"`.
-
----
-
 ## Vue 3: props booleanas omitidas se castean a `false` — 2026-03-23
 **Problema:** Una prop tipada como `boolean?` que NO se pasa al componente toma el valor `false`, no `undefined`. Esto causa bugs sutiles (ej: banner "tarjeta desactivada" aparece aunque la tarjeta esté activa).
 **Solución:** Siempre pasar explícitamente todas las props booleanas:
@@ -172,3 +106,33 @@ if (isBusinessActive === false)
 <!-- ✅ -->
 <StampCardDetailsAsVisitor :is-active="data?.stampCard?.isActive" :reward="..." />
 ```
+
+---
+
+## Las páginas no deben repetir lo que hacen los interceptores — 2026-10-06
+**Problema:** manejar `401`, `TOKEN_EXPIRED`, `PASSWORD_REQUIRED`, `REAUTH_REQUIRED` o `409 CONFLICT retry` en una página duplica el refresh, abre dos diálogos o reintenta dos veces una escritura.
+**Solución:** dejar que `src/api/client.ts` lo resuelva. La página solo recibe el error final (`ApiError`) si el usuario cancela el step-up o el reintento vuelve a fallar.
+
+---
+
+## Una escritura de mostrador = una clave de idempotencia — 2026-10-06
+**Problema:** generar una `Idempotency-Key` nueva en un reintento puede duplicar un sello; reutilizarla con otro cuerpo da `409 IDEMPOTENCY_MISMATCH`.
+**Solución:** `withIdempotency(key => loyaltyApi.stamp(businessId, body, key))` con el **mismo objeto** `body` en todos los intentos. Un nuevo intento del usuario (p. ej. «registrar sin sellar») usa una clave nueva.
+
+---
+
+## Exportar datos: reautenticar antes, no después — 2026-10-06
+**Problema:** `GET /v1/me/export` tiene límite de 3/h y un `403 REAUTH_REQUIRED` también cuenta.
+**Solución:** `await ensureReauthenticated()` y luego una sola llamada.
+
+---
+
+## Fechas del negocio en la zona del negocio — 2026-10-06
+**Problema:** `toLocaleDateString()` usa la zona del navegador; un sello a las 23:30 en CDMX puede verse en el día siguiente.
+**Solución:** `formatInstant(iso, useBusinessStore().timezone)`. Para `startsOn`/`endsOn` usar `formatLocalDate` (son fechas de calendario; `endsOn` es inclusivo).
+
+---
+
+## Un error de carga no es una lista vacía — 2026-10-06
+**Problema:** mostrar «No hay clientes» cuando la llamada falló oculta el problema.
+**Solución:** `useCursorList` expone `error` e `isEmpty` por separado; pintar `ApiErrorAlert` con el folio y un botón de reintentar.

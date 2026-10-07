@@ -91,3 +91,29 @@ Decisiones técnicas tomadas durante el desarrollo y su justificación.
 **Contexto:** `src/services/utils/utils.ts` exportaba `getAllSegments` (GET `/utils/segments`) pero ningún componente la importaba.
 **Decisión:** Función eliminada. El archivo solo exporta `refreshUserData`.
 **Por qué:** Código muerto. El endpoint de segmentos no está en uso en la UI actual.
+
+---
+
+## Migración a la API v1 (OpenAPI) — 2026-10-06
+**Contexto:** el backend se reescribió (NestJS + OpenAPI, contrato v1 congelado). Cambió casi todo: prefijo `/v1`, ids uuid, envelope único, errores tipados, sesión con refresh en cookie, roles por negocio, entitlement, idempotencia en mostrador, QR como texto.
+**Decisión:** reemplazar `src/services/**` y los stores `auth`/`company` por `src/api/` (cliente tipado por ruta sobre los tipos generados) y los stores `session`/`business`. Las reglas transversales (refresh, step-up, reintentos) viven en los interceptores. Las decisiones «patrón REST /businesses/:businessId», «suscripción en companyStore» y «eliminación de getAllSegments» quedan **superadas**.
+**Por qué:** un solo lugar para el contrato; los tipos no se pueden desalinear; las páginas solo manejan errores de su dominio.
+
+---
+
+## Sin librería de data fetching — 2026-10-06
+**Contexto:** se evaluó `@tanstack/vue-query`.
+**Decisión:** no usarla; composables propios (`useApiError`, `useCursorList`).
+**Por qué:** prioridad de velocidad de entrega y menor curva para el equipo.
+
+---
+
+## A dónde entra cada usuario — 2026-10-06
+**Decisión:** 0 membresías → `/visitante`; 1 → ese negocio; varias → `/empresa/seleccionar`. La cuenta (`/visitante/perfil`) es la misma para clientes, dueños y cajeros.
+**Por qué:** la mayoría de los dueños tiene un negocio; el selector solo estorba cuando hay varios.
+
+---
+
+## Plantilla Vuexy: borrar lo muerto — 2026-10-06
+**Decisión:** se borraron el layout con sidebar, la navegación, los dialogs de demo, `AppPricing` y los clientes HTTP de la plantilla (`useApi`, `$api`). `src/@core` y `src/@layouts` siguen intactos.
+**Por qué:** menos superficie y menos confusión sobre qué cliente HTTP usar.

@@ -13,64 +13,51 @@ Patrones recurrentes en el proyecto que los agentes deben conocer y seguir.
 ```
 -->
 
-## Patrón de servicio HTTP autenticado
-**Dónde se usa:** todos los archivos en `src/services/company/`, `src/services/visitor/`, `src/services/auth/`
+## Llamada a la API v1
+**Dónde se usa:** toda la app. Las funciones viven en `src/api/endpoints/*` y están tipadas desde el contrato.
 
 ```ts
-const getSomething = async (businessId: number) => {
-  return await authAxios.get(`/businesses/${businessId}/resource`)
-    .then(response => response.data)
-    .catch(error => { throw error.response?.data?.message || error.message })
-}
+import { cardsApi } from '@/api'
+import { useBusinessStore } from '@/stores/business'
+
+const business = useBusinessStore()
+const cards = await cardsApi.listCards(business.activeId!, 'published') // StampCardDto[]
 ```
 
 Reglas:
-- Siempre usar `authAxios` (no `axios` directo) — inyecta JWT automáticamente.
-- Siempre retornar `response.data` (no `response.data.data` salvo excepción documentada).
-- El catch siempre relanza como string para que el componente pueda mostrar el mensaje en un Swal.
+- Nunca `axios` directo ni tipos de API escritos a mano (`@/api/types`).
+- Las funciones ya devuelven `data`; las listas paginadas devuelven `{ data, page }` (usar `useCursorList`).
+- Una operación nueva: agregar una función en `src/api/endpoints/` con `request('get', '/v1/...')`; el tipo de retorno se infiere solo.
 
----
-
-## Patrón nativo de feedback (reemplaza Swal por completo)
-**Dónde se usa:** todas las páginas — Swal está prohibido, rompe el look nativo en móvil.
+## Patrón nativo de feedback con `useApiError`
+**Dónde se usa:** todas las páginas (Swal está prohibido).
 
 ```ts
+const { error, fieldErrors, capture, reset } = useApiError()
 const isLoading = ref(false)
-const error = ref<string | null>(null)
-const snackbar = ref(false)
 
-const onSubmit = async () => {
-  error.value = null
+async function onSubmit() {
+  reset()
   isLoading.value = true
   try {
-    await someService()
-    snackbar.value = true          // éxito → VSnackbar
-    router.push('/destino')
-  } catch (e: any) {
-    error.value = Array.isArray(e) ? e.join('\n') : String(e)  // error → VAlert inline
-  } finally {
+    await businessesApi.updateBusiness(business.activeId!, form)
+    snackbar.value = true
+  }
+  catch (e) {
+    const { error: err } = capture(e)
+    if (err.code === 'RULES_LOCKED') lockRules()
+  }
+  finally {
     isLoading.value = false
   }
 }
 ```
 
 ```vue
-<!-- Error inline -->
-<VAlert v-if="error" color="error" variant="tonal" rounded="lg" density="compact" icon="tabler-alert-triangle">
-  {{ error }}
-</VAlert>
-
-<!-- Botón con loading -->
+<ApiErrorAlert :error="error" />
+<AppTextField v-model="form.name" :error-messages="fieldErrors.name" />
 <VBtn :loading="isLoading" @click="onSubmit">Guardar</VBtn>
-
-<!-- Confirmación destructiva → VDialog con botones Cancelar/Confirmar -->
-<!-- Éxito toast -->
-<VSnackbar v-model="snackbar" color="success" :timeout="2500" location="top" rounded="xl">
-  Operación exitosa
-</VSnackbar>
 ```
-
----
 
 ## Placeholder de imagen con VProgressCircular
 **Dónde se usa:** QR codes en `UserQrCard.vue`, `visitante/tarjetas/[id].vue`
@@ -104,21 +91,15 @@ Pasar `undefined` (no string vacío `""`) cuando no hay imagen, para que VAvatar
 
 ---
 
-## BusinessId desde el store en endpoints de empresa
-**Dónde se usa:** todos los servicios en `src/services/company/`
+## BusinessId desde el store del negocio activo
+**Dónde se usa:** toda llamada `/v1/businesses/{businessId}/**`.
 
 ```ts
-// En el componente/página:
-import { useCompanyStore } from '@/stores/company'
-const companyStore = useCompanyStore()
-
-// Al llamar el servicio:
-await getSomething(companyStore.selectedCompany.id, otroParam)
+const business = useBusinessStore()
+await crmApi.listCustomers(business.activeId!, { q })
 ```
 
-El `businessId` **siempre** viene de `companyStore.selectedCompany.id`. Nunca hardcodearlo ni tomarlo de la URL directamente.
-
----
+Nunca tomarlo de la URL ni guardar `repittCode` como clave. Al cambiar de negocio (`business.select(id)`) las páginas deben recargar sus datos.
 
 ## Optional chaining en templates
 **Dónde se usa:** todos los templates que consumen datos de API
@@ -217,21 +198,6 @@ Props: `icon`, `label`, `caption?`, `to`, `iconSize?` (default 32). Usa prop `to
 
 ---
 
-## Extraer `.data` de `refreshUserData`
-**Dónde se usa:** `empresa/index.vue`, cualquier componente que llame a `refreshUserData`
-
-`refreshUserData` en `utils/utils.ts` retorna `response.data` = `{ role: "...", data: { ...usuario } }`. Para usar los campos del usuario directamente:
-
-```ts
-// ❌ Mal — user.value tendría { role, data: {...} }
-user.value = await refreshUserData()
-
-// ✅ Bien — user.value tendrá { id, firstName, repittCode, ... }
-user.value = (await refreshUserData()).data
-```
-
----
-
 ## Layout custom en Vuexy (sin VerticalNavLayout)
 **Dónde se usa:** `src/layouts/visitor.vue`
 
@@ -319,24 +285,10 @@ Requiere llamar `getAllUserStampCardsByCurrentVisitor()` en el `onMounted` del h
 
 ---
 
-## Botón de cambio de rol en layout visitante
-**Dónde se usa:** `src/layouts/visitor.vue` — topbar derecha
+## Acceso al negocio desde el layout de visitante
+**Dónde se usa:** `src/layouts/visitor.vue`
 
-El botón de "Ir a mi negocio" solo se muestra cuando `authRole === 'Owner'` (usuario con ambos roles):
-
-```vue
-<VBtn
-  v-if="authStore.authRole === 'Owner'"
-  icon variant="text" size="small"
-  to="/empresa/"
->
-  <VIcon icon="tabler-building-store" size="20" />
-</VBtn>
-```
-
-Ubicación: `topbar-right`, antes del `NavbarThemeSwitcher`. Invisible para visitantes puros.
-
----
+El botón «Ir a mi negocio» aparece cuando `useSessionStore().hasMemberships`; navega a `/empresa` y el guard decide si hace falta elegir negocio.
 
 ## Cámara lazy con QrcodeStream
 **Dónde se usa:** `empresa/visitas/registrar.vue`
@@ -362,53 +314,6 @@ const activateCamera = () => {
 ```
 
 La página carga instantáneamente. Nunca usar `location.reload()` para reiniciar — toggling `cameraActive` false → true reinicializa el componente.
-
----
-
-## Formatter de código Repitt con computed getter/setter
-**Dónde se usa:** `empresa/visitas/registrar.vue` — input manual de código de cliente o tarjeta
-
-Formato: `XXX-XXX-XXX` (visitante, 11 chars) o `XXX-XXX-XXX-XXX` (tarjeta USC, 15 chars).
-
-```ts
-const qrCodeValue = ref('')
-
-const formattedCode = computed({
-  get: () => qrCodeValue.value,
-  set: (value: string) => {
-    const clean = value.replace(/[^a-z0-9]/gi, '').slice(0, 12)  // máx 4 grupos × 3
-    const groups = clean.match(/.{1,3}/g) || []
-    qrCodeValue.value = groups.join('-')
-  },
-})
-```
-
-```vue
-<AppTextField v-model="formattedCode" maxlength="15" placeholder="abc-def-ghi" />
-```
-
-`maxlength="15"` bloquea el input nativo antes de que Vue procese el setter. El `codeType` computed detecta el tipo por longitud: 11 = visitante, 15 = tarjeta USC.
-
----
-
-## `CambiarPerfilDialog` compartido entre empresa y visitante
-**Dónde se usa:** `empresa/index.vue` y `visitante/index.vue`
-
-El mismo dialog maneja el cambio de perfil de negocio desde ambas secciones. En visitante, solo se muestra si el usuario es Owner:
-
-```vue
-<!-- Solo visible para owners -->
-<VBtn v-if="authStore.authRole === 'Owner'" @click="isProfileDialogVisible = true">
-  Cambiar Perfil
-</VBtn>
-<CambiarPerfilDialog v-model="isProfileDialogVisible" :businesses="businesses" :user="userData" />
-```
-
-Los `businesses` se cargan condicionalmente en el `getData()` del home visitante:
-```ts
-if (authStore.authRole === 'Owner')
-  requests.push(getAllBusinessesMe())
-```
 
 ---
 
@@ -443,75 +348,10 @@ Animaciones clave (en `<style lang="scss" scoped>`):
 
 ---
 
-## `timeAgo` — tiempo relativo sin dependencias
-**Dónde se usa:** `empresa/clientes/index.vue`, `empresa/clientes/[customerId].vue`
+## Fechas y tiempo relativo
+**Dónde se usa:** listas de clientes, movimientos, actividad.
 
-```ts
-const timeAgo = (dateStr: string) => {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60_000)
-  if (mins < 2) return 'Hace un momento'
-  if (mins < 60) return `Hace ${mins} min`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return hours === 1 ? 'Hace 1 hora' : `Hace ${hours} horas`
-  const days = Math.floor(hours / 24)
-  if (days === 1) return 'Ayer'
-  if (days < 30) return `Hace ${days} días`
-  const months = Math.floor(days / 30)
-  return months === 1 ? 'Hace 1 mes' : `Hace ${months} meses`
-}
-```
-
-No instalar `date-fns` ni `dayjs` — esta función cubre todos los casos de la app.
-
----
-
-## Selector de país inline en campo de teléfono
-**Dónde se usa:** `auth/login.vue`, `auth/registro/visitante.vue`, `empresa/visitas/registrar.vue`
-
-`VSelect variant="plain"` dentro del slot `#prepend-inner` de `VTextField`:
-
-```vue
-<VTextField v-model="phoneNumber" type="tel" variant="outlined" class="phone-field">
-  <template #prepend-inner>
-    <VSelect v-model="countryCode" :items="COUNTRIES" item-value="dial"
-      variant="plain" density="compact" hide-details class="country-select">
-      <template #selection="{ item }">
-        <span class="text-body-2">{{ item.raw.flag }} {{ item.raw.dial }}</span>
-      </template>
-      <template #item="{ item, props: itemProps }">
-        <VListItem v-bind="itemProps" :title="`${item.raw.flag} ${item.raw.name}`" :subtitle="item.raw.dial" />
-      </template>
-    </VSelect>
-    <VDivider vertical class="mx-2 my-1" />
-  </template>
-</VTextField>
-```
-
-CSS **OBLIGATORIAMENTE** en bloque `<style>` global (no scoped) — los selectores `:deep()` no están permitidos en bloques scoped por el linter:
-
-```css
-.phone-field .v-field__prepend-inner { align-items: center; padding-inline-end: 0; }
-.country-select .v-field__input { min-block-size: 0; padding-block: 0; padding-inline-start: 0; }
-.country-select .v-select__selection { overflow: visible; margin-inline-end: 0; white-space: nowrap; }
-```
-
-CSS scoped solo para el tamaño: `.country-select { max-inline-size: 92px; min-inline-size: 92px; }`
-
-Array de países: 21 países (MX, US, CO, AR, CL, PE, VE, EC, BO, PY, UY, BR, GT, HN, SV, NI, CR, PA, DO, CU, ES). Default `+52` (México).
-
----
+`@/utils/dates`: `formatInstant`, `formatDateTime`, `formatTime`, `formatLocalDate`, `todayInZone`, `timeAgo`. No instalar `date-fns` ni `dayjs`.
 
 ## Formateo de fechas ISO
-**Dónde se usa:** `UserStampCardWaitingRedeemListAsCompany.vue`, listas de visitas
-
-```ts
-const formatDate = (iso: string | null | undefined) => {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('es-ES', {
-    day: '2-digit', month: 'short', year: 'numeric',
-  })
-}
-```
-
-Las fechas del backend vienen en ISO 8601. Nunca mostrarlas crudas en la UI.
+Ver «Fechas y tiempo relativo». Las fechas del backend nunca se muestran crudas.

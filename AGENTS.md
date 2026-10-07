@@ -5,179 +5,132 @@
 
 ## Descripción del proyecto
 
-Frontend de **Repitt**, una plataforma de fidelización de clientes mediante tarjetas de sellos (stamp cards). Permite a empresas crear y gestionar sus programas de fidelización, y a visitantes acumular sellos y canjear recompensas.
+Frontend de **Repitt**, una plataforma de fidelización de clientes mediante tarjetas de sellos (stamp cards). Los negocios crean y operan sus programas (dueños y cajeros); los clientes acumulan sellos y canjean recompensas.
+
+Desde 2026-10-06 consume la **API v1** del backend (`repitt-backend`, NestJS + OpenAPI). El contrato v1 está congelado: solo habrá cambios aditivos.
+
+## Fuentes de verdad de la API
+
+| Qué | Dónde |
+|-----|-------|
+| Contrato | `src/api/openapi.json` (copia de `repitt-backend/docs/api/openapi.json`, rama `qa`). **Manda sobre la guía** |
+| Tipos | `src/api/v1.d.ts`, generado con `pnpm api:types`. **Nunca** escribir tipos de API a mano |
+| Guía funcional | `repitt-backend/docs/api/front-guide-v1.md` (pantallas, errores → UI, reglas) |
+| Convenciones del front | [`docs/agents/v1-conventions.md`](docs/agents/v1-conventions.md) — **leer antes de tocar código** |
+
+Para actualizar el contrato: copiar el `openapi.json` nuevo a `src/api/` y correr `pnpm api:types`.
 
 ## Stack
 
-- **Vue 3** + **Vite** + **TypeScript**
-- **Vuetify 3** como UI framework (tema **Vuexy** v9.1.1)
-- **Pinia** para estado global (con persistencia via `pinia-plugin-persistedstate`)
-- **Axios** para HTTP con JWT Bearer token
-- **unplugin-vue-router** para file-based routing
-- **CASL** para control de permisos por rol
-- **pnpm** como package manager
+- **Vue 3** + **Vite** + **TypeScript** (strict)
+- **Vuetify 3** (tema **Vuexy** v9.1.1)
+- **Pinia** (sin persistencia de datos de la API)
+- **Axios** con `withCredentials` (refresh en cookie httpOnly)
+- **unplugin-vue-router** (rutas por archivos)
+- **openapi-typescript**, **qrcode**, **markdown-it**, **vitest**
+- **pnpm** 8.15.9 (`packageManager` fijado)
 
 ## Comandos
 
 ```bash
-pnpm dev          # servidor de desarrollo
-pnpm build        # build de producción
-pnpm lint         # linting con eslint --fix
-pnpm typecheck    # verificación de tipos TypeScript
+pnpm dev               # servidor de desarrollo (http://localhost:5173)
+pnpm build             # build de producción
+pnpm typecheck         # vue-tsc (los errores en src/@core y src/@layouts son de la plantilla)
+pnpm lint              # eslint --fix sobre todo el repo
+pnpm test              # unit tests (src/**/*.spec.ts)
+pnpm test:integration  # contrato contra un backend local: BACKEND_LOG=<log del backend> pnpm test:integration
+pnpm api:types         # regenera src/api/v1.d.ts desde src/api/openapi.json
 ```
 
 ## Arquitectura
 
-### Roles de usuario
-Hay dos roles principales que determinan el flujo de navegación:
-- **empresa** → `/empresa/*` — gestión de negocios, tarjetas, visitas, clientes (mini CRM), métricas
-- **visitante** → `/visitante/*` — tarjetas propias, negocios, perfil, QR
+### Capa HTTP — `src/api/`
 
-### Layouts
-El proyecto usa **tres layouts**:
+```
+src/api/
+  openapi.json · v1.d.ts   # contrato y tipos generados
+  types.ts                 # alias con nombre (MeDto, Business, StampCard, CursorPage<T>…)
+  client.ts                # request(method, '/v1/...', opts) tipado por ruta + interceptores
+  errors.ts                # ApiError (code, detailCode, fieldErrors, detailObj, requestId, retryAfterMs)
+  messages.ts              # catálogo de errores → texto de UI
+  idempotency.ts           # withIdempotency (sellar, alta, canje, anulación)
+  refresh.ts               # refresh de un solo vuelo (promesa compartida + navigator.locks)
+  endpoints/               # auth, me, public, businesses, cards, loyalty, crm, billing
+```
 
-| Layout | Archivo | Usado en |
-|--------|---------|----------|
-| Default (sidebar Vuexy) | `src/layouts/default.vue` | auth, rutas genéricas |
-| Company (bottom nav empresa) | `src/layouts/company.vue` | `/empresa/*` (excepto `seleccionar.vue` → `blank`) |
-| Visitor (bottom nav visitante) | `src/layouts/visitor.vue` | `/visitante/*` |
+Los interceptores resuelven: refresh en `401 TOKEN_EXPIRED`, fin de sesión, cuenta suspendida, step-up / reautenticación (diálogo global `ReauthDialog`) con reintento, reintento único en `409 CONFLICT retry` y esperas cortas de `Retry-After` en lecturas. Las páginas **no** repiten esa lógica.
 
-Las páginas declaran su layout con `definePage({ meta: { layout: 'company' } })`. Sin declaración explícita usan el default (sidebar Vuexy) — **evitar esto en páginas de empresa o visitante**.
+### Sesión y roles
 
-El layout `company.vue` incluye: top bar fijo con nombre del negocio, bottom nav con FAB central "Registrar visita".
+- `src/stores/session.ts`: access token **solo en memoria**; al cargar la app se hace `POST /v1/auth/refresh` y `GET /v1/me`. No hay rol global.
+- `src/stores/business.ts`: negocios donde el usuario es miembro (`GET /v1/businesses`), negocio activo (solo su id se recuerda en `localStorage`), `role` (`owner` / `cashier`) y `entitlement`.
+- Sin membresías = cliente (visitante). Tras iniciar sesión: 0 membresías → `/visitante`; 1 → `/empresa`; varias → `/empresa/seleccionar`.
+- El acceso a pago se decide por `entitlement { allowed, reason, until }`, nunca por `isPublished` ni por el estado de la suscripción.
 
-El layout `visitor.vue` es completamente custom (no usa `VerticalNavLayout`). Incluye:
-- Top bar fijo con back button condicional, título de página y acceso a empresa (solo `Owner`)
-- Bottom nav con 5 tabs: Inicio / Tarjetas / **QR (FAB elevado)** / Visitas / Perfil
-- Requiere `injectSkinClasses()` y `AppLoadingIndicator` para funcionar con el theming de Vuexy
+### Rutas y layouts
 
-### Routing
-File-based routing en `src/pages/`. Las rutas se generan automáticamente a partir de la estructura de carpetas.
+Guard en `src/plugins/1.router/index.ts` según `definePage({ meta })`: `public`, `guestOnly`, `area: 'business'`, `needsBusiness`, `ownerOnly`, `requiresEntitlement` (ver `env.d.ts`).
 
-### Stores (Pinia)
-- `src/stores/auth.ts` — token JWT, datos del usuario, rol, estado de suscripción
-- `src/stores/company.ts` — empresa seleccionada actualmente
+| Layout | Archivo | Uso |
+|--------|---------|-----|
+| Blank | `src/layouts/blank.vue` (`default.vue` es igual) | auth, página pública, selector de negocio |
+| Company | `src/layouts/company.vue` | `/empresa/**`: top bar con negocio activo, banner de entitlement, bottom nav por rol (dueño / cajero) con FAB «Registrar» |
+| Visitor | `src/layouts/visitor.vue` | `/visitante/**`: cartera, QR, actividad, cuenta |
 
-Ambos stores usan `persist: true`.
-
-### Servicios HTTP
-Todos los servicios usan `authAxios` definido en `src/services/axios.ts`, que inyecta automáticamente el JWT del store en cada request. Si el servidor responde 401, redirige a `/auth/login`.
-
-La URL base de la API se configura en `.env` con la variable `VITE_API_URL`.
-
-**Patrón de endpoints empresa:** todos siguen `/businesses/:businessId/[recurso]`. El `businessId` se obtiene **siempre** de `companyStore.selectedCompany.id`.
-
-**Patrón de endpoints visitante:** todos siguen `/users/me/[recurso]` (el backend infiere el usuario del JWT).
+Áreas principales:
+- **Dueño** (`/empresa`): negocio, publicación, assets, tarjetas, cajeros (`/empresa/cajeros`), clientes (CRM), movimientos (`/empresa/visitas`), métricas, planes.
+- **Mostrador** (dueño y cajero): `/empresa/visitas/registrar`, `/empresa/recompensas`, `/empresa/ciclos/:cycleId`.
+- **Cliente** (`/visitante`): cartera, detalle por ciclo, actividad, mi QR, cuenta (`/visitante/perfil`, también para dueños y cajeros), privacidad.
+- **Públicas**: `/n/:repittCode` → `/visitante/negocios/:code`, `/privacidad`, `/reset-password`, `/verify-email`, `/cuenta-suspendida`.
 
 ### Variables de entorno
+
 ```
-VITE_API_URL=      # URL base del backend NestJS
+VITE_API_URL=http://localhost:3000/v1   # incluye el prefijo /v1
 ```
-Hay entornos separados: `.env.development`, `.env.staging`, `.env.production`.
+
+`.env.*` (excepto `.env.example`) no se versionan. API y front deben ser **same-site** en producción (cookie de refresh `SameSite=Lax`).
 
 ## Tema visual
 
 | Propiedad | Valor |
 |-----------|-------|
 | Color primario | `#6C3CE1` (primary-darken-1: `#5328B8`) |
-| Fuente | Plus Jakarta Sans (cargada via webfontloader, override global `* { font-family }`) |
+| Fuente | Plus Jakarta Sans (webfontloader, override global `* { font-family }`) |
 | Background light | `#F7F6FE` |
-| Accent de recompensas | `warning: #FF9F43` (ámbar) — usar para progress bars, chips de progreso |
-
-Variables CSS de Vuetify para usar en SCSS:
-- Color sólido: `rgb(var(--v-theme-primary))`
-- Semi-transparente: `rgba(var(--v-global-theme-primary), 0.4)` (usa el var de App.vue)
+| Accent de recompensas | `warning: #FF9F43` |
 
 ## Convenciones de código
 
-- **Siempre usar Composition API** con `<script setup lang="ts">`. Nunca Options API.
-- **Usar componentes Vuetify** para la UI. No crear estilos personalizados salvo necesidad justificada.
-- **Respetar el tema Vuexy**: usar las clases, variables y patrones que ya usa el template.
-- Los directorios `src/@core/` y `src/@layouts/` son del template base — **modificarlos con cuidado** y solo cuando sea estrictamente necesario.
-- Iconos via **Iconify** (conjuntos disponibles: `tabler`, `mdi`, `fa`). Ejemplo: `<VIcon icon="tabler-user" />`.
-- No instalar dependencias nuevas sin consultar.
-- **Fechas ISO:** nunca mostrar fechas crudas del backend. Siempre formatear con `toLocaleDateString('es-ES', ...)`.
-- **Fallbacks de texto:** usar texto significativo (`'Sin nombre'`, `'—'`), nunca `'...'`.
-- **VAvatar sin imagen:** pasar `undefined`, no string vacío, para que el fallback de inicial funcione.
-- **No usar SweetAlert2 (Swal).** El patrón reemplazado es nativo Vuetify: `isLoading` ref en VBtn, VAlert inline para errores, VDialog para confirmaciones, VSnackbar para éxito. Ver `docs/agents/patterns.md`.
+- **Composition API** con `<script setup lang="ts">`.
+- **Vuetify** para la UI; respetar el tema Vuexy. `src/@core/` y `src/@layouts/` son de la plantilla: tocarlos solo si es estrictamente necesario.
+- Iconos Iconify (`tabler`, `mdi`, `fa`).
+- **No instalar dependencias sin consultar.**
+- **Sin SweetAlert2**: `isLoading` en botones, `ApiErrorAlert` / `VAlert` inline, `VDialog` para confirmar, `VSnackbar` para éxito.
+- Errores: decidir por `code` / `detailCode`; mostrar con `useApiError` + `ApiErrorAlert` (incluye el folio `requestId`).
+- Fechas: `src/utils/dates.ts` (zona del negocio para todo dato del negocio; `startsOn`/`endsOn` como fechas locales).
+- Navegar por **path**; importar explícitamente componentes y composables nuevos.
+- Detalle completo en [`docs/agents/v1-conventions.md`](docs/agents/v1-conventions.md).
 
 ## Separación de componentes
 
-### Cuándo extraer
-- Bloque de markup repetido 2+ veces → extraer siempre
-- Dialog/modal inline en una página → siempre su propio componente
-- Bloque de más de ~50 líneas con lógica propia → evaluar extracción
-
-### Organización de `src/components/`
-```
-general/      # reutilizables entre secciones (QuickActionCard, HeroCTACard, MainMenuItemList)
-empresa/      # específicos de /empresa (CambiarPerfilDialog)
-businesses/   # entidad negocio
-stampCards/   # entidad tarjeta de sellos
-visits/       # entidad visita
-users/        # entidad usuario
-dialogs/      # dialogs genéricos del template Vuexy base
-```
-
-### Navegación en templates
-- Usar prop `to` de Vuetify (`VCard`, `VBtn`, `VListItem`) — activa `.v-card--link` con cursor y ripple automáticos
-- **No crear wrappers `goToPage(url)`** — llamar `router.push()` directamente o usar `to`
-- Inline styles de cursor/hover → reemplazar por prop `to` o clase en `<style scoped>`
-
-### Listas repetitivas
-Definir array en `<script setup>` + `v-for` en lugar de bloques duplicados:
-```ts
-const quickActions = [
-  { icon: 'tabler-cards', label: 'Tarjetas', to: '/ruta' },
-]
-```
-
-### Lifecycle hooks
-No mezclar `onBeforeMount` + `onMounted` para lógica relacionada. Consolidar en un `onMounted` con guard + return temprano:
-```ts
-onMounted(async () => {
-  if (!condicion) { router.push('/otra-ruta'); return }
-  await setup()
-  fetchData()
-})
-```
-
-## Estructura de servicios
-
-```
-src/services/
-  auth/           # login, registro, recuperar contraseña
-  company/        # businesses, stampCards, visits, metrics, userStampCards, customers
-  visitor/        # business, users, userStampCards, visits
-  catalog/        # categorías (GET /catalogs/categories)
-  utils/          # refreshUserData — actualiza auth store desde GET /users/me
-  axios.ts        # instancia de axios con interceptores JWT
-```
-
-> `subscription/` fue eliminado (2026-03-25) — MVP gratuito, Stripe en v2.
-
-### Endpoints de usuario (`visitor/users.ts`)
-- `getCurrentVisitorData()` → `GET /users/me` → retorna usuario (extrae `response.data.data`)
-- `updateCurrentVisitorData({ firstName?, lastName?, phone? })` → `PATCH /users/me` → retorna plano
-
-### Respuestas del backend
-- Endpoints `/businesses/...` → wrapper manual `{ data: {...} }` → parse con `response.data.data`
-- `GET /users/me` → wrapper especial `{ role, data: {...} }` → parse con `response.data.data`
-- `PATCH /users/me` y demás `/users/...` → respuesta plana → parse con `response.data`
-- `refreshUserData()` retorna `{ role, data: {...} }`. Al usar en componentes: `(await refreshUserData()).data`
+- Bloque repetido 2+ veces, dialog inline o bloque > ~50–80 líneas con lógica propia → componente.
+- `src/components/`: `common/` (ApiErrorAlert, AppQrCode, MarkdownContent, PrivacyNoticeShort), `auth/`, `business/`, `cards/`, `counter/`, `crm/`, `billing/`, `visitor/`, `general/` (QuickActionCard, HeroCTACard…).
+- Usar la prop `to` de Vuetify para navegar; no crear wrappers `goToPage`.
+- Un solo `onMounted` con guard y return temprano en lugar de mezclar hooks.
 
 ## Testing y deploy
 
-- **No hay tests** automatizados.
-- **Deploy manual** — build con `pnpm build` y despliegue del output.
+- `pnpm test`: unit tests del núcleo HTTP (errores, refresh, idempotencia, interceptores) y utilidades.
+- `pnpm test:integration`: flujos principales contra el backend local (OTP desde el log del backend).
+- Deploy: build estático (`pnpm build`) servido por nginx (`prod.Dockerfile`, `qa.Dockerfile`).
 
 ## Memoria dinámica
 
-El conocimiento acumulado durante el desarrollo (decisiones, patrones, gotchas) vive en [`docs/agents/`](docs/agents/):
-
 | Archivo | Contenido |
 |---------|-----------|
-| [decisions.md](docs/agents/decisions.md) | Decisiones de arquitectura y por qué se tomaron |
-| [patterns.md](docs/agents/patterns.md) | Patrones de código recurrentes en el proyecto |
-| [gotchas.md](docs/agents/gotchas.md) | Cosas que parecen simples pero tienen trampa |
-| [api-notes.md](docs/agents/api-notes.md) | Comportamientos del backend descubiertos en desarrollo |
+| [v1-conventions.md](docs/agents/v1-conventions.md) | Convenciones obligatorias contra la API v1 |
+| [decisions.md](docs/agents/decisions.md) | Decisiones de arquitectura y por qué |
+| [patterns.md](docs/agents/patterns.md) | Patrones de UI recurrentes |
+| [gotchas.md](docs/agents/gotchas.md) | Trampas conocidas |
+| [api-notes.md](docs/agents/api-notes.md) | Comportamientos del backend v1 descubiertos al integrar |
