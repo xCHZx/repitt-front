@@ -1,111 +1,194 @@
 <script setup lang="ts">
-import { getBusinessByRepittCodeAsCurrentCompany } from '@/services/company/businesses'
-import { useCompanyStore } from '@/stores/company'
+import { getBilling } from '@/api/endpoints/billing'
+import type { ApiErrorCode } from '@/api/errors'
+import ApiErrorAlert from '@/components/common/ApiErrorAlert.vue'
+import { useApiError } from '@/composables/useApiError'
+import { useBusinessStore } from '@/stores/business'
 
-definePage({ meta: { layout: 'blank' } })
+definePage({ meta: { layout: 'company', area: 'business', ownerOnly: true } })
 
-const companyStore = useCompanyStore()
-const router = useRouter()
+// Stripe success return: /empresa/planes/gracias?businessId=<id> (guide §4.A.10).
+// Landing here grants nothing: poll GET …/billing until the backend confirms `subscribed`.
 
-const isActivating = ref(true)
-const MAX_ATTEMPTS = 10
-const INTERVAL_MS = 3000
+const POLL_INTERVAL_MS = 3000
+const POLL_MAX_MS = 60_000
 
-onMounted(async () => {
-  const repittCode = companyStore.selectedCompany?.businessRepittCode
-  if (!repittCode) {
-    isActivating.value = false
+type Phase = 'confirming' | 'confirmed' | 'pending' | 'otherBusiness'
+
+const route = useRoute()
+const business = useBusinessStore()
+const { error, capture, reset } = useApiError()
+
+const phase = ref<Phase>('confirming')
+const isChecking = ref(false)
+
+let timer: ReturnType<typeof setTimeout> | null = null
+let stopped = false
+
+function stopPolling() {
+  stopped = true
+  if (timer)
+    clearTimeout(timer)
+  timer = null
+}
+
+/** Errors worth another poll; anything else (403, 404, cancelled step-up…) won't fix itself. */
+const TRANSIENT_CODES: ApiErrorCode[] = ['NETWORK', 'INTERNAL_ERROR', 'RATE_LIMITED', 'CONFLICT', 'NOT_READY']
+
+type CheckResult = 'confirmed' | 'notYet' | 'failed'
+
+/** One GET …/billing. */
+async function check(businessId: string): Promise<CheckResult> {
+  try {
+    const billing = await getBilling(businessId)
+
+    reset()
+
+    return billing.entitlement.reason === 'subscribed' ? 'confirmed' : 'notYet'
+  }
+  catch (e) {
+    const { error: described } = capture(e)
+
+    return TRANSIENT_CODES.includes(described.code) ? 'notYet' : 'failed'
+  }
+}
+
+async function onConfirmed() {
+  phase.value = 'confirmed'
+  try {
+    await business.refreshActive()
+  }
+  catch {
+    // The billing state is already confirmed; the business is re-read on the next navigation.
+  }
+}
+
+async function poll(businessId: string, deadline: number) {
+  if (stopped)
+    return
+  const result = await check(businessId)
+  if (stopped)
+    return
+  if (result === 'confirmed') {
+    await onConfirmed()
+
     return
   }
 
-  let attempts = 0
-  const poll = async () => {
-    try {
-      const business = await getBusinessByRepittCodeAsCurrentCompany(repittCode)
-      if (business?.isActive) {
-        companyStore.selectCompany(business)
-        isActivating.value = false
-        return
-      }
-    }
-    catch { /* silencioso */ }
+  // Non-transient error or time is up: show the error (if any) and "Revisar de nuevo".
+  if (result === 'failed' || Date.now() + POLL_INTERVAL_MS > deadline) {
+    stopPolling()
+    phase.value = 'pending'
 
-    attempts++
-    if (attempts < MAX_ATTEMPTS)
-      setTimeout(poll, INTERVAL_MS)
-    else
-      isActivating.value = false // timeout — dejar pasar igual
+    return
+  }
+  timer = setTimeout(() => poll(businessId, deadline), POLL_INTERVAL_MS)
+}
+
+async function checkAgain() {
+  const businessId = business.activeId
+  if (!businessId)
+    return
+
+  isChecking.value = true
+  try {
+    if (await check(businessId) === 'confirmed')
+      await onConfirmed()
+  }
+  finally {
+    isChecking.value = false
+  }
+}
+
+onMounted(() => {
+  const businessId = business.activeId
+  const queryBusinessId = typeof route.query.businessId === 'string' ? route.query.businessId : null
+
+  // The guard selects ?businessId only when the user is a member: otherwise don't poll another business.
+  if (!businessId || (queryBusinessId && queryBusinessId !== businessId)) {
+    phase.value = 'otherBusiness'
+
+    return
   }
 
-  poll()
+  poll(businessId, Date.now() + POLL_MAX_MS)
 })
+
+onBeforeUnmount(stopPolling)
+
+const COPY: Record<Phase, { title: string; text: string }> = {
+  confirming: { title: 'Confirmando tu pago…', text: 'Estamos confirmando tu pago con Stripe. Solo tomará unos segundos.' },
+  confirmed: { title: '¡Tu suscripción está activa!', text: 'Ya tienes acceso completo a Repitt. Gracias por confiar en nosotros.' },
+  pending: { title: 'Seguimos confirmando tu pago', text: 'Stripe aún no nos confirma el pago. Puede tardar unos minutos; no necesitas pagar de nuevo.' },
+  otherBusiness: { title: 'No pudimos revisar este pago', text: 'El pago es de un negocio que no está disponible con esta cuenta. Inicia sesión con la cuenta dueña del negocio.' },
+}
+
+const copy = computed(() => COPY[phase.value])
+
+const nextLink = computed(() => phase.value === 'pending'
+  ? { to: '/empresa/planes', label: 'Ver mi plan' }
+  : { to: '/empresa', label: 'Ir al inicio' })
 </script>
 
 <template>
   <div class="gracias-page">
     <div class="gracias-inner">
-      <!-- Icono -->
       <div class="gracias-icon">
-        <VIcon
-          v-if="!isActivating"
-          icon="tabler-crown"
-          size="48"
-          color="white"
-        />
         <VProgressCircular
-          v-else
+          v-if="phase === 'confirming'"
           indeterminate
           color="white"
           size="48"
         />
+        <VIcon
+          v-else
+          :icon="phase === 'confirmed' ? 'tabler-crown' : 'tabler-clock'"
+          size="48"
+          color="white"
+        />
       </div>
 
-      <!-- Textos -->
       <h1 class="gracias-title">
-        {{ isActivating ? 'Activando tu negocio...' : '¡Bienvenido al Plan Emprendedor!' }}
+        {{ copy.title }}
       </h1>
       <p class="gracias-subtitle">
-        {{ isActivating ? 'Estamos confirmando tu pago con Stripe. Solo tomará unos segundos.' : 'Tu suscripción está activa. Ya tienes acceso completo a todas las funciones de Repitt.' }}
+        {{ copy.text }}
       </p>
 
-      <!-- Features rápidos -->
-      <div class="gracias-features">
-        <div class="gracias-feature">
-          <VIcon
-            icon="tabler-cards"
-            color="white"
-            size="20"
-          />
-          <span>Tarjetas ilimitadas</span>
-        </div>
-        <div class="gracias-feature">
-          <VIcon
-            icon="tabler-users"
-            color="white"
-            size="20"
-          />
-          <span>Listado de Clientes</span>
-        </div>
-        <div class="gracias-feature">
-          <VIcon
-            icon="tabler-chart-bar"
-            color="white"
-            size="20"
-          />
-          <span>Métricas y reportes</span>
-        </div>
-      </div>
+      <ApiErrorAlert
+        v-if="phase === 'pending'"
+        :error="error"
+        class="gracias-alert"
+      />
 
       <VBtn
-        v-if="!isActivating"
+        v-if="phase === 'pending'"
         color="white"
         variant="elevated"
         size="large"
         rounded="lg"
-        class="gracias-btn"
-        @click="router.push('/empresa')"
+        class="gracias-btn mb-3"
+        :loading="isChecking"
+        @click="checkAgain"
       >
-        Ir al inicio
+        <VIcon
+          icon="tabler-refresh"
+          start
+        />
+        Revisar de nuevo
+      </VBtn>
+
+      <VBtn
+        v-if="phase !== 'confirming'"
+        :color="phase === 'confirmed' ? 'white' : undefined"
+        :variant="phase === 'confirmed' ? 'elevated' : 'outlined'"
+        size="large"
+        rounded="lg"
+        class="gracias-btn"
+        :class="{ 'gracias-btn--outlined': phase !== 'confirmed' }"
+        :to="nextLink.to"
+      >
+        {{ nextLink.label }}
         <VIcon
           icon="tabler-arrow-right"
           end
@@ -120,9 +203,11 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 24px;
   background: linear-gradient(160deg, rgb(var(--v-theme-primary)) 0%, rgb(var(--v-theme-primary-darken-1)) 100%);
-  block-size: 100vh;
-  inline-size: 100vw;
+  margin-block: 8px;
+  min-block-size: calc(100dvh - 200px);
+  padding-block: 40px;
 }
 
 .gracias-inner {
@@ -130,6 +215,7 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   animation: fade-up 0.5s ease both;
+  inline-size: 100%;
   max-inline-size: 360px;
   padding-inline: 24px;
   text-align: center;
@@ -150,7 +236,7 @@ onMounted(async () => {
 .gracias-title {
   animation: fade-up 0.5s ease 0.2s both;
   color: white;
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 800;
   letter-spacing: -0.5px;
   margin-block-end: 12px;
@@ -164,32 +250,20 @@ onMounted(async () => {
   margin-block-end: 28px;
 }
 
-.gracias-features {
-  display: flex;
-  flex-direction: column;
-  animation: fade-up 0.5s ease 0.4s both;
-  gap: 12px;
+.gracias-alert {
   inline-size: 100%;
-  margin-block-end: 36px;
-}
-
-.gracias-feature {
-  display: flex;
-  align-items: center;
-  background: rgb(255 255 255 / 15%);
-  border-radius: 10px;
-  color: white;
-  font-size: 0.9rem;
-  font-weight: 500;
-  gap: 10px;
-  padding-block: 10px;
-  padding-inline: 16px;
+  margin-block-end: 16px;
+  text-align: start;
 }
 
 .gracias-btn {
-  animation: fade-up 0.5s ease 0.5s both;
+  animation: fade-up 0.5s ease 0.4s both;
   color: rgb(var(--v-theme-primary));
   inline-size: 100%;
+
+  &--outlined {
+    color: white;
+  }
 }
 
 @keyframes pop-in {

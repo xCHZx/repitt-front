@@ -1,340 +1,384 @@
 <script setup lang="ts">
-import { getAllBusinessesMe } from '@/services/company/businesses'
-import { createCheckoutSession, createPortalSession, getSubscriptionStatus } from '@/services/subscription/subscription'
-import { useCompanyStore } from '@/stores/company'
+import { createCheckout, createPortal, getBilling } from '@/api/endpoints/billing'
+import type { Billing, EntitlementReason } from '@/api/types'
+import BillingStatusCard from '@/components/billing/BillingStatusCard.vue'
+import PlanFeaturesCard from '@/components/billing/PlanFeaturesCard.vue'
+import ApiErrorAlert from '@/components/common/ApiErrorAlert.vue'
+import { useApiError } from '@/composables/useApiError'
+import { useBusinessStore } from '@/stores/business'
 
-definePage({ meta: { layout: 'company' } })
+definePage({ meta: { layout: 'company', area: 'business', ownerOnly: true } })
+
+// Billing for owners (guide §4.A.10). The state and the paywall come from `entitlement`
+// (never from `subscription.status`). Checkout and portal URLs are opened right away, never stored.
+
+/** Backend rule: a trial with at least 49 h 10 min left keeps its remaining days after checkout. */
+const KEEP_TRIAL_MIN_MS = (49 * 60 + 10) * 60 * 1000
+
+const CHECKOUT_REASONS: EntitlementReason[] = ['pre_trial', 'trial', 'trial_expired', 'subscription_ended']
 
 const route = useRoute()
-const companyStore = useCompanyStore()
+const router = useRouter()
+const business = useBusinessStore()
 
-const isWelcome = computed(() => route.query.welcome === 'true')
+const isWelcome = route.query.welcome === 'true'
 
-const isLoadingCheckout = ref(false)
-const isLoadingPortal = ref(false)
-const isLoadingStatus = ref(false)
-const errorMsg = ref('')
+// Stripe sends the owner back to /empresa/planes?businessId=<id> both when the checkout is cancelled
+// and when leaving the portal, so a per-tab flag set before opening the checkout tells them apart.
+const returnBusinessId = typeof route.query.businessId === 'string' ? route.query.businessId : null
 
-const subscription = computed(() => companyStore.businessSubscription)
-const isActive = computed(() => companyStore.isSubscribed)
-const isPastDue = computed(() => companyStore.isPastDue)
+const CHECKOUT_FLAG_PREFIX = 'repitt:checkoutStarted:'
 
-const statusLabel = computed(() => {
-  if (subscription.value?.cancelAt) return 'Cancela al vencer'
-  switch (subscription.value?.status) {
-    case 'active': return 'Activo'
-    case 'trialing': return 'Período de prueba'
-    case 'past_due': return 'Pago pendiente'
-    case 'canceled': return 'Cancelado'
-    case 'paused': return 'Pausado'
-    case 'unpaid': return 'Sin pagar'
-    default: return '—'
+function setCheckoutFlag(businessId: string) {
+  try {
+    sessionStorage.setItem(CHECKOUT_FLAG_PREFIX + businessId, '1')
   }
-})
-
-const statusColor = computed(() => {
-  switch (subscription.value?.status) {
-    case 'active': return 'success'
-    case 'trialing': return 'info'
-    case 'past_due': return 'warning'
-    default: return 'error'
+  catch {
+    // Storage unavailable: the "payment not completed" note just won't show.
   }
-})
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-const periodEndFormatted = computed(() => {
-  if (!subscription.value?.currentPeriodEnd) return '—'
-  return formatDate(subscription.value.currentPeriodEnd)
-})
-
-const cancelAtFormatted = computed(() => {
-  if (!subscription.value?.cancelAt) return '—'
-  return formatDate(subscription.value.cancelAt)
-})
-
-const features = [
-  { icon: 'tabler-cards', text: 'Tarjetas de sellos ilimitadas' },
-  { icon: 'tabler-qrcode', text: 'Registro de visitas por QR o teléfono' },
-  { icon: 'tabler-users', text: 'Listado de clientes con historial' },
-  { icon: 'tabler-chart-bar', text: 'Métricas y reportes de visitas' },
-  { icon: 'tabler-gift', text: 'Gestión de recompensas' },
-  { icon: 'tabler-headset', text: 'Soporte prioritario' },
-]
-
-async function onSubscribe() {
-  isLoadingCheckout.value = true
-  errorMsg.value = ''
+/** Reads and clears the flag. */
+function takeCheckoutFlag(businessId: string): boolean {
   try {
-    const businessId = companyStore.selectedCompany?.id as number
-    const result = await createCheckoutSession(businessId, 'premium')
-    window.location.href = result.url
+    const key = CHECKOUT_FLAG_PREFIX + businessId
+    const wasSet = sessionStorage.getItem(key) !== null
+
+    sessionStorage.removeItem(key)
+
+    return wasSet
   }
-  catch (e: any) {
-    errorMsg.value = typeof e === 'string' ? e : 'No se pudo iniciar el pago. Intenta de nuevo.'
+  catch {
+    return false
+  }
+}
+
+/** True when the owner came back from a checkout they started (not from the portal) for the business on screen. */
+const cameBackFromCheckout = ref(false)
+
+const billing = ref<Billing | null>(null)
+const isLoading = ref(true)
+const isLoadingCheckout = ref(false)
+const isLoadingPortal = ref(false)
+
+/** Set after `409 SUBSCRIPTION_EXISTS` on checkout. */
+const offerPortal = ref(false)
+
+/** Set after `409 CONFLICT noBillingAccount` on the portal. */
+const offerCheckout = ref(false)
+
+const { error: loadError, capture: captureLoad, reset: resetLoad } = useApiError()
+const { error: actionError, capture: captureAction, reset: resetAction } = useApiError()
+
+const reason = computed(() => billing.value?.entitlement.reason ?? null)
+const isSuspended = computed(() => reason.value === 'suspended')
+
+const canCheckout = computed(() => {
+  if (!reason.value || isSuspended.value || offerPortal.value)
+    return false
+
+  return CHECKOUT_REASONS.includes(reason.value) || offerCheckout.value
+})
+
+const canPortal = computed(() => {
+  if (!reason.value || offerCheckout.value)
+    return false
+
+  return reason.value === 'subscribed' || reason.value === 'grace' || !!billing.value?.subscription || offerPortal.value
+})
+
+const checkoutIsPrimary = computed(() => reason.value !== 'pre_trial')
+const portalIsPrimary = computed(() => reason.value === 'grace' || offerPortal.value)
+
+const keepsTrialDays = computed(() => {
+  const until = billing.value?.entitlement.until
+  if (reason.value !== 'trial' || !until)
+    return false
+
+  return Date.parse(until) - Date.now() >= KEEP_TRIAL_MIN_MS
+})
+
+const showCheckoutNotCompleted = computed(() => cameBackFromCheckout.value && !!reason.value && reason.value !== 'subscribed')
+
+/**
+ * GET …/billing. `quiet` refreshes the status in place (no skeleton) and keeps the current data
+ * if it fails, e.g. after a checkout error that says the shown state is stale.
+ */
+async function loadBilling(options: { quiet?: boolean } = {}) {
+  const businessId = business.activeId
+  if (!businessId)
+    return
+
+  if (options.quiet) {
+    try {
+      billing.value = await getBilling(businessId)
+    }
+    catch {
+      // Keep the current state; the action error is already on screen.
+    }
+
+    return
+  }
+
+  isLoading.value = true
+  resetLoad()
+  try {
+    billing.value = await getBilling(businessId)
+  }
+  catch (e) {
+    captureLoad(e)
+  }
+  finally {
+    isLoading.value = false
+  }
+}
+
+/** The step-up dialog was cancelled: the page gets the original 403, nothing to show. */
+function isCancelledReauth(code: string) {
+  return code === 'REAUTH_REQUIRED' || code === 'PASSWORD_REQUIRED'
+}
+
+async function onCheckout() {
+  const businessId = business.activeId
+  if (!businessId)
+    return
+
+  isLoadingCheckout.value = true
+  resetAction()
+  try {
+    const { url } = await createCheckout(businessId)
+
+    setCheckoutFlag(businessId)
+    window.location.assign(url)
+  }
+  catch (e) {
+    const { error } = captureAction(e)
+
+    if (isCancelledReauth(error.code)) {
+      resetAction()
+    }
+    else if (error.code === 'SUBSCRIPTION_EXISTS') {
+      offerPortal.value = true
+      loadBilling({ quiet: true })
+    }
+    else if (error.code === 'CONFLICT' && error.detailCode === 'businessSuspended') {
+      loadBilling({ quiet: true })
+    }
     isLoadingCheckout.value = false
   }
 }
 
-async function onManage() {
+async function onPortal() {
+  const businessId = business.activeId
+  if (!businessId)
+    return
+
   isLoadingPortal.value = true
-  errorMsg.value = ''
+  resetAction()
   try {
-    const businessId = companyStore.selectedCompany?.id as number
-    const result = await createPortalSession(businessId)
-    window.location.href = result.url
+    const { url } = await createPortal(businessId)
+
+    // The portal returns to the same URL as a cancelled checkout: drop any pending checkout flag.
+    takeCheckoutFlag(businessId)
+    window.location.assign(url)
   }
-  catch (e: any) {
-    errorMsg.value = typeof e === 'string' ? e : 'No se pudo abrir el portal. Intenta de nuevo.'
+  catch (e) {
+    const { error } = captureAction(e)
+
+    if (isCancelledReauth(error.code))
+      resetAction()
+    else if (error.code === 'CONFLICT' && error.detailCode === 'noBillingAccount')
+      offerCheckout.value = true
     isLoadingPortal.value = false
   }
 }
 
-async function refreshStatus() {
-  isLoadingStatus.value = true
-  try {
-    const businessId = companyStore.selectedCompany?.id as number
-    const [subscriptionData, businesses] = await Promise.all([
-      getSubscriptionStatus(businessId),
-      getAllBusinessesMe(),
-    ])
-    companyStore.setBusinessSubscription(subscriptionData)
-    const business = businesses.find((b: any) => b.id === businessId) ?? businesses[0]
-    if (business)
-      companyStore.selectCompany(business)
-  }
-  catch {
-    // silencioso
-  }
-  finally {
-    isLoadingStatus.value = false
-  }
+/** Back from Stripe restored this page from the bfcache: unlock the buttons and refresh the state. */
+function onPageShow(event: PageTransitionEvent) {
+  if (!event.persisted)
+    return
+
+  isLoadingCheckout.value = false
+  isLoadingPortal.value = false
+  if (business.activeId)
+    takeCheckoutFlag(business.activeId)
+  loadBilling({ quiet: true })
 }
 
 onMounted(() => {
-  refreshStatus()
+  if (returnBusinessId) {
+    // The guard selects ?businessId only when the user is a member; ignore returns for another business.
+    cameBackFromCheckout.value = returnBusinessId === business.activeId && takeCheckoutFlag(returnBusinessId)
+
+    const { businessId: _, ...query } = route.query
+
+    router.replace({ path: route.path, query })
+  }
+  window.addEventListener('pageshow', onPageShow)
+  loadBilling()
 })
+
+onBeforeUnmount(() => window.removeEventListener('pageshow', onPageShow))
 </script>
 
 <template>
   <div class="planes-page">
-    <!-- ─── Vista: Sin suscripción ─────────────────────────── -->
-    <template v-if="!isActive">
-      <VAlert
-        v-if="isWelcome"
-        color="success"
-        variant="tonal"
-        rounded="lg"
-        icon="tabler-circle-check"
-        class="mb-5"
-        title="¡Cuenta creada con éxito!"
-        text="Para empezar a usar tu negocio, activa tu suscripción."
-      />
+    <VAlert
+      v-if="isWelcome"
+      color="success"
+      variant="tonal"
+      rounded="lg"
+      icon="tabler-circle-check"
+      class="mb-5"
+      title="¡Tu negocio está listo!"
+      text="Publica tu primera tarjeta para iniciar tu periodo de prueba."
+    />
 
-      <div class="planes-hero">
-        <div class="planes-hero-icon">
-          <VIcon
-            icon="tabler-crown"
-            size="40"
-            color="white"
-          />
-        </div>
-        <h1 class="planes-hero-title">
-          Plan Emprendedor
-        </h1>
-        <p class="planes-hero-subtitle">
-          Todo lo que necesitas para fidelizar a tus clientes, en un solo lugar.
-        </p>
-      </div>
-
-      <VAlert
-        v-if="errorMsg"
-        type="error"
-        variant="tonal"
-        class="mb-4"
-        :text="errorMsg"
-      />
-
-      <!-- Plan card -->
-      <VCard
-        class="planes-card mb-4"
-        rounded="xl"
-        elevation="0"
-      >
-        <VCardText class="pa-5">
-          <div class="d-flex align-center justify-space-between mb-4">
-            <div>
-              <div class="text-h6 font-weight-bold">
-                Plan Emprendedor
-              </div>
-              <div class="text-body-2 text-medium-emphasis">
-                Facturación mensual
-              </div>
-            </div>
-            <VChip
-              color="primary"
-              variant="tonal"
-              size="small"
-            >
-              Recomendado
-            </VChip>
-          </div>
-
-          <VDivider class="mb-4" />
-
-          <div class="features-list">
-            <div
-              v-for="feature in features"
-              :key="feature.text"
-              class="feature-item"
-            >
-              <VIcon
-                icon="tabler-check"
-                color="success"
-                size="18"
-                class="flex-shrink-0"
-              />
-              <span class="text-body-2">{{ feature.text }}</span>
-            </div>
-          </div>
-        </VCardText>
-      </VCard>
-
-      <VBtn
-        color="primary"
-        block
-        size="large"
-        rounded="lg"
-        :loading="isLoadingCheckout"
-        @click="onSubscribe"
-      >
+    <div class="planes-hero">
+      <div class="planes-hero-icon">
         <VIcon
-          icon="tabler-lock-open"
-          start
+          icon="tabler-crown"
+          size="40"
+          color="white"
         />
-        Comenzar ahora
-      </VBtn>
-
-      <p class="planes-legal">
-        Pago seguro con Stripe · Cancela cuando quieras
+      </div>
+      <h1 class="planes-hero-title">
+        Tu plan
+      </h1>
+      <p class="planes-hero-subtitle">
+        {{ business.active?.name }}
       </p>
+    </div>
+
+    <!-- Carga -->
+    <template v-if="isLoading">
+      <VSkeletonLoader
+        type="article"
+        class="mb-4"
+      />
+      <VSkeletonLoader type="list-item-three-line" />
     </template>
 
-    <!-- ─── Vista: Suscripción activa ─────────────────────── -->
-    <template v-else>
-      <div class="planes-hero planes-hero--active">
-        <div class="planes-hero-icon planes-hero-icon--active">
-          <VIcon
-            icon="tabler-crown"
-            size="40"
-            color="white"
-          />
-        </div>
-        <h1 class="planes-hero-title">
-          Plan {{ subscription?.planName || 'Emprendedor' }}
-        </h1>
-        <p class="planes-hero-subtitle">
-          Tu programa de fidelización está activo.
-        </p>
-      </div>
-
-      <VAlert
-        v-if="isPastDue"
-        type="warning"
-        variant="tonal"
+    <!-- Error de carga -->
+    <template v-else-if="loadError">
+      <ApiErrorAlert
+        :error="loadError"
         class="mb-4"
-        icon="tabler-alert-triangle"
-        title="Problema con tu pago"
-        text="Tu método de pago falló. Stripe reintentará el cobro automáticamente. Actualiza tu tarjeta para evitar interrupciones."
       />
-
-      <VAlert
-        v-if="subscription?.cancelAt"
-        type="info"
-        variant="tonal"
-        class="mb-4"
-        icon="tabler-calendar-x"
-        title="Cancelación programada"
-        :text="`Tu plan se cancelará el ${cancelAtFormatted}. Puedes reactivarlo desde el portal de Stripe.`"
-      />
-
-      <VAlert
-        v-if="errorMsg"
-        type="error"
-        variant="tonal"
-        class="mb-4"
-        :text="errorMsg"
-      />
-
-      <VCard
-        class="planes-card mb-4"
-        rounded="xl"
-        elevation="0"
-      >
-        <VCardText class="pa-5">
-          <div class="d-flex align-center justify-space-between mb-3">
-            <span class="text-h6 font-weight-bold">Plan {{ subscription?.planName || 'Emprendedor' }}</span>
-            <div class="d-flex flex-column align-end gap-1">
-              <VChip
-                :color="statusColor"
-                variant="tonal"
-                size="small"
-              >
-                {{ statusLabel }}
-              </VChip>
-              <VChip
-                v-if="subscription?.cancelAt"
-                color="warning"
-                variant="tonal"
-                size="x-small"
-                prepend-icon="tabler-calendar-x"
-              >
-                Se cancela el {{ cancelAtFormatted }}
-              </VChip>
-            </div>
-          </div>
-
-          <VDivider class="mb-3" />
-
-          <div class="d-flex flex-column gap-2">
-            <div class="d-flex justify-space-between">
-              <span class="text-body-2 text-medium-emphasis">
-                {{ subscription?.cancelAt ? 'Acceso hasta el' : 'Próximo cobro' }}
-              </span>
-              <span class="text-body-2 font-weight-medium">{{ periodEndFormatted }}</span>
-            </div>
-            <div
-              v-if="subscription?.createdAt"
-              class="d-flex justify-space-between"
-            >
-              <span class="text-body-2 text-medium-emphasis">Miembro desde</span>
-              <span class="text-body-2 font-weight-medium">{{ formatDate(subscription.createdAt) }}</span>
-            </div>
-          </div>
-        </VCardText>
-      </VCard>
-
       <VBtn
+        color="primary"
+        variant="tonal"
+        block
+        rounded="lg"
+        prepend-icon="tabler-refresh"
+        @click="loadBilling"
+      >
+        Reintentar
+      </VBtn>
+    </template>
+
+    <template v-else-if="billing">
+      <VAlert
+        v-if="showCheckoutNotCompleted"
+        color="secondary"
+        variant="tonal"
+        rounded="lg"
+        density="compact"
+        icon="tabler-info-circle"
+        class="mb-4"
+        text="No se completó el pago. Puedes intentarlo de nuevo cuando quieras."
+      />
+
+      <BillingStatusCard
+        :billing="billing"
+        :time-zone="business.timezone"
+        class="mb-4"
+      />
+
+      <ApiErrorAlert
+        :error="actionError"
+        class="mb-4"
+      />
+
+      <!-- Negocio suspendido: sin planes, solo soporte -->
+      <VBtn
+        v-if="isSuspended"
         color="primary"
         block
         size="large"
         rounded="lg"
-        variant="tonal"
-        :loading="isLoadingPortal"
-        @click="onManage"
+        prepend-icon="tabler-mail"
+        href="mailto:soporte@repitt.com"
+        class="mb-3"
       >
-        <VIcon
-          icon="tabler-settings"
-          start
-        />
-        Gestionar suscripción
+        Contactar a soporte
       </VBtn>
 
-      <p class="planes-legal">
-        Administra método de pago, facturas y cancelación en el portal de Stripe.
-      </p>
+      <!-- Prueba sin iniciar -->
+      <VBtn
+        v-if="reason === 'pre_trial'"
+        color="primary"
+        block
+        size="large"
+        rounded="lg"
+        prepend-icon="tabler-cards"
+        to="/empresa/tarjetas/crear"
+        class="mb-3"
+      >
+        Crear mi primera tarjeta
+      </VBtn>
+
+      <template v-if="canCheckout">
+        <PlanFeaturesCard class="mb-4" />
+
+        <VBtn
+          color="primary"
+          :variant="checkoutIsPrimary ? 'elevated' : 'tonal'"
+          block
+          size="large"
+          rounded="lg"
+          :loading="isLoadingCheckout"
+          :disabled="isLoadingPortal"
+          @click="onCheckout"
+        >
+          <VIcon
+            icon="tabler-lock-open"
+            start
+          />
+          Contratar
+        </VBtn>
+
+        <p class="planes-legal">
+          <template v-if="keepsTrialDays">
+            Si contratas ahora, conservas los días que te quedan de prueba.<br>
+          </template>
+          Pago seguro con Stripe · Cancela cuando quieras
+        </p>
+      </template>
+
+      <template v-if="canPortal">
+        <VBtn
+          color="primary"
+          :variant="portalIsPrimary ? 'elevated' : 'tonal'"
+          block
+          size="large"
+          rounded="lg"
+          :class="{ 'mt-4': canCheckout }"
+          :loading="isLoadingPortal"
+          :disabled="isLoadingCheckout"
+          @click="onPortal"
+        >
+          <VIcon
+            icon="tabler-credit-card"
+            start
+          />
+          Administrar pagos
+        </VBtn>
+
+        <p class="planes-legal">
+          Método de pago, facturas y cancelación en el portal seguro de Stripe. Es posible que te pidamos tu contraseña.
+        </p>
+      </template>
     </template>
   </div>
 </template>
@@ -363,11 +407,6 @@ onMounted(() => {
   box-shadow: 0 8px 24px rgba(var(--v-global-theme-primary), 0.4);
   inline-size: 72px;
   margin-block-end: 16px;
-
-  &--active {
-    background: linear-gradient(145deg, #f59e0b 0%, #d97706 100%);
-    box-shadow: 0 8px 24px rgb(245 158 11 / 35%);
-  }
 }
 
 .planes-hero-title {
@@ -381,22 +420,6 @@ onMounted(() => {
   color: rgba(var(--v-theme-on-surface), 0.6);
   font-size: 0.95rem;
   max-inline-size: 280px;
-}
-
-.planes-card {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-}
-
-.features-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .planes-legal {
