@@ -104,7 +104,7 @@ async function submit() {
   >
     <VCard rounded="xl">
       <VCardText class="pa-5">
-        <div class="text-center mb-4">
+        <div class="mb-4">
           <VAvatar
             color="error"
             variant="tonal"
@@ -168,8 +168,10 @@ async function submit() {
             >
               Cancelar
             </VBtn>
+            <!-- Destructivo (guía §15): botón de marco con texto en --error, sin relleno rojo -->
             <VBtn
               type="submit"
+              variant="outlined"
               color="error"
               rounded="xl"
               class="flex-1-1"

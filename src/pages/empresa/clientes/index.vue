@@ -100,11 +100,10 @@ onBeforeUnmount(() => clearTimeout(debounce))
       v-if="partialPhone"
       rounded="xl"
     >
-      <VCardText class="pa-8 text-center">
+      <VCardText class="pa-8">
         <VIcon
           icon="tabler-phone"
           size="48"
-          color="secondary"
           class="empty-icon mb-3"
         />
         <div class="text-body-1 font-weight-medium text-medium-emphasis">
@@ -143,11 +142,10 @@ onBeforeUnmount(() => clearTimeout(debounce))
         v-else-if="listEmpty && !error"
         rounded="xl"
       >
-        <VCardText class="pa-8 text-center">
+        <VCardText class="pa-8">
           <VIcon
             :icon="query ? 'tabler-search-off' : 'tabler-users'"
             size="48"
-            color="secondary"
             class="empty-icon mb-3"
           />
           <div class="text-body-1 font-weight-medium text-medium-emphasis">
@@ -177,7 +175,7 @@ onBeforeUnmount(() => clearTimeout(debounce))
         </div>
         <div
           v-if="hasMore"
-          class="d-flex justify-center mt-4"
+          class="d-flex mt-4"
         >
           <VBtn
             variant="tonal"
@@ -198,7 +196,7 @@ onBeforeUnmount(() => clearTimeout(debounce))
 .customer-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--s-3);
 }
 
 .empty-icon {

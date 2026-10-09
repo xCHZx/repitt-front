@@ -65,12 +65,9 @@ onMounted(load)
         >
       </div>
 
-      <VCard
-        rounded="xl"
-        elevation="2"
-      >
+      <VCard>
         <VCardText class="pa-6">
-          <h1 class="text-h5 font-weight-bold mb-1">
+          <h1 class="titulo-display mb-3">
             Aviso de privacidad
           </h1>
 
@@ -122,10 +119,10 @@ onMounted(load)
 
 <style scoped>
 .privacy-page {
-  background: rgb(var(--v-theme-background));
+  background: var(--fondo);
   min-block-size: 100dvh;
-  padding-block: 24px 48px;
-  padding-inline: 16px;
+  padding-block: var(--s-5) var(--s-7);
+  padding-inline: var(--s-4);
 }
 
 .privacy-page__inner {

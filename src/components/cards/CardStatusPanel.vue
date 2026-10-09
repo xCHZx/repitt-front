@@ -31,11 +31,11 @@ const STATUS_TEXT = {
 const primary = computed(() => {
   const { status, isExpired } = props.card
   if (status === 'draft')
-    return { action: 'publish' as const, label: 'Publicar', icon: 'tabler-rocket', color: 'success', disabled: !props.canPublish || isExpired }
+    return { action: 'publish' as const, label: 'Publicar', icon: 'tabler-rocket', disabled: !props.canPublish || isExpired }
   if (status === 'published')
-    return { action: 'pause' as const, label: 'Pausar', icon: 'tabler-player-pause', color: 'warning', disabled: false }
+    return { action: 'pause' as const, label: 'Pausar', icon: 'tabler-player-pause', disabled: false }
   if (status === 'paused')
-    return { action: 'resume' as const, label: 'Reanudar', icon: 'tabler-player-play', color: 'success', disabled: isExpired }
+    return { action: 'resume' as const, label: 'Reanudar', icon: 'tabler-player-play', disabled: isExpired }
 
   return null
 })
@@ -70,7 +70,8 @@ function archive() {
       >
         <VBtn
           v-if="primary"
-          :color="primary.color"
+          color="primary"
+          variant="flat"
           rounded="xl"
           :prepend-icon="primary.icon"
           :loading="props.busy === primary.action"
@@ -115,9 +116,10 @@ function archive() {
         >
           Cancelar
         </VBtn>
+        <!-- Destructivo (guía §15): botón de marco con texto en --error -->
         <VBtn
           color="error"
-          variant="flat"
+          variant="outlined"
           @click="archive"
         >
           Archivar

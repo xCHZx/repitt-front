@@ -82,10 +82,10 @@ async function onSubmit(event: SubmitEventPromise) {
         class="mb-3"
         @click:append-inner="isPasswordVisible = !isPasswordVisible"
       />
-      <div class="text-end mb-5">
+      <div class="mb-5">
         <RouterLink
           to="/auth/recuperar-contrasena"
-          class="text-primary text-body-2 font-weight-medium"
+          class="auth-link text-body-2 font-weight-medium"
         >
           ¿Olvidaste tu contraseña?
         </RouterLink>

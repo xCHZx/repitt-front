@@ -25,7 +25,7 @@ const color = computed(() => notice.value?.tone === 'error' ? 'error' : notice.v
         v-if="notice.showPlans || notice.showPortal"
         size="small"
         variant="flat"
-        :color="color"
+        color="primary"
         to="/empresa/planes"
       >
         {{ notice.showPortal ? 'Ver pagos' : 'Ver planes' }}

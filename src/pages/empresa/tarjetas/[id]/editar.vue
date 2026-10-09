@@ -249,7 +249,6 @@ onMounted(fetchCard)
         block
         size="large"
         :loading="isSubmitting"
-        :style="{ background: form.primaryColor }"
       >
         Guardar cambios
       </VBtn>

@@ -11,11 +11,7 @@ const features = [
 
 <!-- The single Repitt plan (v1 has no plan catalog: checkout takes no planId). Price and billing details are shown by the Stripe checkout page. -->
 <template>
-  <VCard
-    class="plan-features-card"
-    rounded="xl"
-    elevation="0"
-  >
+  <VCard rounded="xl">
     <VCardText class="pa-5">
       <div class="d-flex align-center justify-space-between mb-4">
         <div>
@@ -28,8 +24,8 @@ const features = [
         </div>
         <VIcon
           icon="tabler-crown"
-          color="primary"
           size="28"
+          class="plan-features-accent"
         />
       </div>
 
@@ -43,9 +39,8 @@ const features = [
         >
           <VIcon
             icon="tabler-check"
-            color="success"
             size="18"
-            class="flex-shrink-0"
+            class="plan-features-accent flex-shrink-0"
           />
           <span class="text-body-2">{{ feature.text }}</span>
         </div>
@@ -55,19 +50,20 @@ const features = [
 </template>
 
 <style lang="scss" scoped>
-.plan-features-card {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+// Checks y corona en --acento (guía §2: acentos solo en piezas pequeñas).
+.plan-features-accent {
+  color: var(--acento);
 }
 
 .plan-features-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--s-3);
 }
 
 .plan-feature-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--s-2);
 }
 </style>

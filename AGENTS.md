@@ -93,12 +93,18 @@ VITE_API_URL=http://localhost:3000/v1   # incluye el prefijo /v1
 
 ## Tema visual
 
-| Propiedad | Valor |
-|-----------|-------|
-| Color primario | `#6C3CE1` (primary-darken-1: `#5328B8`) |
-| Fuente | Plus Jakarta Sans (webfontloader, override global `* { font-family }`) |
-| Background light | `#F7F6FE` |
-| Accent de recompensas | `warning: #FF9F43` |
+Desde 2026-10-08 la app sigue la guía de estilo de la landing (`repitt-web/docs/diseno/guia-de-estilo.md`). Plan y decisiones: [`docs/superpowers/plans/2026-10-08-estilo-landing.md`](docs/superpowers/plans/2026-10-08-estilo-landing.md).
+
+| Qué | Dónde / regla |
+|-----|---------------|
+| Tokens | `src/styles/tokens.css`: copia literal de `repitt-web/src/styles/tokens.css`, sin editar a mano (si cambia, se copia de nuevo) |
+| Capa base | `src/styles/base.scss` (foco, utilidades, movimiento reducido) y `src/styles/vuetify.scss` (Vuetify/Vuexy llevado a la guía) |
+| Tema Vuetify | `src/plugins/vuetify/theme.ts` con los hex de la guía; `App.vue` sincroniza `html[data-theme]` con el tema de Vuexy |
+| Fuentes | Google Fonts en `index.html`: Anybody 800 al 72% (titulares, `.titulo-display`, `.cifra`) y Plus Jakarta Sans (todo lo demás) |
+| Utilidades | `.section-label`, `.panel`, `.titulo-display`, `.cifra`, `.chip-premio`, `.section--night`, `.section--tono`, `.dots`, `.lead`, `.note`, `.btn-inverso` |
+| Tarjeta de sellos | `src/components/stampCard/StampCard.vue` (la única pieza con sombra) y `stampCard.ts` (lógica pura, «N de M») |
+| Catálogo | `/estilo`, solo en desarrollo |
+| Prohibido | Sombras (salvo la tarjeta), `linear-gradient`, `uppercase`, `letter-spacing`, valores sueltos de color, tipo, radio o curva, y hover que mueva o escale |
 
 ## Convenciones de código
 

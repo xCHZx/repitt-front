@@ -55,15 +55,11 @@ async function onSubmit(event: SubmitEventPromise) {
 
 <template>
   <AuthShell>
-    <div
-      v-if="linkInvalid"
-      class="text-center"
-    >
+    <div v-if="linkInvalid">
       <div class="auth-status-icon auth-status-icon--warning mb-4">
         <VIcon
           icon="tabler-link-off"
-          size="40"
-          color="warning"
+          size="32"
         />
       </div>
       <div class="text-h6 font-weight-bold mb-2">
@@ -122,10 +118,10 @@ async function onSubmit(event: SubmitEventPromise) {
 
     <VDivider class="my-5" />
 
-    <div class="text-center text-body-2">
+    <div class="text-body-2">
       <RouterLink
         to="/auth/login"
-        class="text-primary font-weight-medium"
+        class="auth-link font-weight-medium"
       >
         ← Volver al inicio de sesión
       </RouterLink>

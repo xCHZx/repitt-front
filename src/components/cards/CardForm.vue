@@ -1,13 +1,14 @@
 <!-- Fields shared by the create and edit card pages (wrap it in a <VForm>). -->
 <script setup lang="ts">
 import CardAppearanceFields from './CardAppearanceFields.vue'
-import CardListItem from './CardListItem.vue'
 import CardRulesFields from './CardRulesFields.vue'
 import CardValidityFields from './CardValidityFields.vue'
-import { iconChoicePreview } from './cardIcons'
 import type { IconChoice } from './cardIcons'
 import { CARD_LIMITS } from './cardForm'
 import type { CardFormModel } from './cardForm'
+import StampCard from '@/components/stampCard/StampCard.vue'
+import { clampRequired, previewStamps } from '@/components/stampCard/stampCard'
+import type { StampIconMode } from '@/components/stampCard/stampCard'
 import { useBusinessStore } from '@/stores/business'
 import { formatInstant } from '@/utils/dates'
 
@@ -26,7 +27,19 @@ const business = useBusinessStore()
 
 const locked = computed(() => !!props.rulesLockedAt)
 
-const previewIcon = computed(() => iconChoicePreview(icon.value, form.value.primaryColor) ?? props.existingIconUrl ?? null)
+// Vista previa con el Ã­cono elegido (D4): preset como SVG; archivo nuevo como imagen
+// (un PNG propio ya se ve como silueta blanca, igual que despuÃ©s de guardarlo); si no, el guardado.
+const previewIconName = computed(() => icon.value?.kind === 'preset' ? icon.value.name : null)
+const previewIconUrl = computed(() => icon.value?.kind === 'file' ? icon.value.previewUrl : props.existingIconUrl ?? null)
+
+const previewIconMode = computed<StampIconMode | null>(() => {
+  if (icon.value?.kind !== 'file')
+    return null
+
+  return icon.value.file.type === 'image/png' ? 'blanco' : 'tonal'
+})
+
+const previewRequired = computed(() => clampRequired(Number(form.value.requiredStamps)))
 
 const required = (label: string) => (v: string) => !!v?.trim() || `Escribe ${label}`
 const maxLen = (n: number) => (v: string) => (v ?? '').trim().length <= n || `MÃ¡ximo ${n} caracteres`
@@ -35,29 +48,30 @@ const maxLen = (n: number) => (v: string) => (v ?? '').trim().length <= n || `MÃ
 <template>
   <div>
     <!-- Vista previa -->
-    <div class="card-form-label mb-3">
+    <div class="section-label mb-3">
       <VIcon
         icon="tabler-eye"
         size="15"
       />
       Vista previa
     </div>
-    <CardListItem
-      :name="form.name || 'Nombre de la tarjeta'"
+    <StampCard
+      :business-name="business.active?.name ?? ''"
+      :logo-url="business.active?.logoUrl"
+      :card-name="form.name || 'Nombre de la tarjeta'"
       :reward="form.reward || 'Tu recompensa aquÃ­'"
-      :required-stamps="form.requiredStamps"
-      :primary-color="form.primaryColor"
-      :icon-url="previewIcon"
-      :is-expired="false"
+      :required-stamps="previewRequired"
+      :stamps="previewStamps(previewRequired)"
+      :color="form.primaryColor"
+      :icon-name="previewIconName"
+      :icon-url="previewIconUrl"
+      :icon-mode="previewIconMode"
       class="mb-6"
     />
 
     <!-- Reglas congeladas -->
     <VAlert
       v-if="locked"
-      color="info"
-      variant="tonal"
-      rounded="xl"
       density="compact"
       icon="tabler-lock"
       class="mb-5"
@@ -68,7 +82,7 @@ const maxLen = (n: number) => (v: string) => (v ?? '').trim().length <= n || `MÃ
     </VAlert>
 
     <!-- BÃ¡sico -->
-    <div class="card-form-label mb-3">
+    <div class="section-label mb-3">
       <VIcon
         icon="tabler-forms"
         size="15"
@@ -117,7 +131,7 @@ const maxLen = (n: number) => (v: string) => (v ?? '').trim().length <= n || `MÃ
     </VCard>
 
     <!-- Reglas -->
-    <div class="card-form-label mb-3">
+    <div class="section-label mb-3">
       <VIcon
         icon="tabler-settings"
         size="15"
@@ -132,7 +146,7 @@ const maxLen = (n: number) => (v: string) => (v ?? '').trim().length <= n || `MÃ
     />
 
     <!-- Apariencia -->
-    <div class="card-form-label mb-3">
+    <div class="section-label mb-3">
       <VIcon
         icon="tabler-palette"
         size="15"
@@ -148,7 +162,7 @@ const maxLen = (n: number) => (v: string) => (v ?? '').trim().length <= n || `MÃ
     />
 
     <!-- Vigencia -->
-    <div class="card-form-label mb-3">
+    <div class="section-label mb-3">
       <VIcon
         icon="tabler-calendar"
         size="15"
@@ -165,16 +179,3 @@ const maxLen = (n: number) => (v: string) => (v ?? '').trim().length <= n || `MÃ
     />
   </div>
 </template>
-
-<style>
-.card-form-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 700;
-  gap: 5px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-</style>

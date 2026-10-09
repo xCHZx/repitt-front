@@ -6,6 +6,7 @@ import { formatInstant } from '@/utils/dates'
 
 // One pending redemption (§4.B.5): reward, card, customer and completion date. The body links to
 // the cycle detail; "Canjear" redeems from the list (no code).
+// Fila plana (plan 2026-10-08 §2B): el color de la tarjeta solo en el filete y la ficha del ícono.
 
 const props = defineProps<{
   item: PendingRedemption
@@ -27,10 +28,8 @@ const completed = computed(() => formatInstant(props.item.cycle.completedAt, pro
 <template>
   <VCard
     rounded="xl"
-    :style="{
-      borderInlineStart: `4px solid ${accentColor}`,
-      background: `linear-gradient(to right, ${accentColor}10, transparent 55%)`,
-    }"
+    class="fila-tarjeta"
+    :style="{ '--c': accentColor }"
   >
     <VCardText class="pa-4">
       <div class="d-flex align-center gap-3">
@@ -41,7 +40,7 @@ const completed = computed(() => formatInstant(props.item.cycle.completedAt, pro
           <VAvatar
             rounded="lg"
             size="44"
-            :style="{ background: `${accentColor}20` }"
+            class="fila-tarjeta__avatar"
           >
             <VImg
               v-if="props.iconUrl"
@@ -51,15 +50,12 @@ const completed = computed(() => formatInstant(props.item.cycle.completedAt, pro
               v-else
               icon="tabler-gift"
               size="22"
-              :style="{ color: accentColor }"
+              class="fila-tarjeta__icono"
             />
           </VAvatar>
 
           <div class="flex-grow-1 overflow-hidden">
-            <div
-              class="text-body-1 font-weight-bold text-truncate"
-              :style="{ color: accentColor }"
-            >
+            <div class="text-body-1 font-weight-bold text-truncate">
               {{ props.item.card.reward }}
             </div>
             <div class="text-caption text-medium-emphasis text-truncate mt-1">
@@ -83,8 +79,6 @@ const completed = computed(() => formatInstant(props.item.cycle.completedAt, pro
               <VChip
                 v-if="props.item.cycle.isTest"
                 size="x-small"
-                color="info"
-                variant="tonal"
               >
                 Prueba
               </VChip>
@@ -95,10 +89,8 @@ const completed = computed(() => formatInstant(props.item.cycle.completedAt, pro
         <VBtn
           size="small"
           variant="flat"
-          color="success"
-          rounded="xl"
           prepend-icon="tabler-gift"
-          class="font-weight-bold flex-shrink-0"
+          class="flex-shrink-0"
           @click="emit('redeem')"
         >
           Canjear
@@ -109,6 +101,20 @@ const completed = computed(() => formatInstant(props.item.cycle.completedAt, pro
 </template>
 
 <style scoped>
+/* Filete de 3px del color de la tarjeta en el lado inicial; el resto del borde es --linea */
+.v-card.fila-tarjeta {
+  border-inline-start: 3px solid var(--c);
+}
+
+.fila-tarjeta__avatar {
+  background-color: color-mix(in srgb, var(--c) 16%, transparent);
+}
+
+.fila-tarjeta__icono {
+  /* Mezclado con --texto para que se lea con colores claros (amarillo) y en oscuro */
+  color: color-mix(in srgb, var(--c) 50%, var(--texto));
+}
+
 .pending-item__link {
   color: inherit;
   text-decoration: none;

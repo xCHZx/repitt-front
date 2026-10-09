@@ -7,6 +7,12 @@ import { registerPlugins } from '@core/utils/plugins'
 import '@core/scss/template/index.scss'
 import '@styles/styles.scss'
 
+// Estilo de la landing (plan 2026-10-08): tokens → fuentes → base → capa sobre Vuetify/Vuexy
+import '@/styles/tokens.css'
+import '@/styles/fuentes.css'
+import '@/styles/base.scss'
+import '@/styles/vuetify.scss'
+
 // Create vue app
 const app = createApp(App)
 

@@ -35,7 +35,7 @@ function onVoided() {
 
 <template>
   <div v-if="visible.length">
-    <div class="counter-section-label mb-3">
+    <div class="section-label mb-3">
       <VIcon
         icon="tabler-history"
         size="15"
@@ -127,16 +127,5 @@ function onVoided() {
 <style scoped>
 .counter-recent--voided {
   opacity: 0.6;
-}
-
-.counter-section-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 700;
-  gap: 5px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
 }
 </style>

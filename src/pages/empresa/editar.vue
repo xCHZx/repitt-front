@@ -190,16 +190,3 @@ const onSubmit = async () => {
     </template>
   </div>
 </template>
-
-<style scoped>
-.section-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 700;
-  gap: 5px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-</style>

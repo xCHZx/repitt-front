@@ -64,7 +64,7 @@ function dismiss() {
         <VBtn
           size="small"
           variant="flat"
-          color="error"
+          color="primary"
           :loading="isUploading"
           @click="retry"
         >

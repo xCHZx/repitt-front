@@ -41,7 +41,7 @@ onMounted(async () => {
 
 <style scoped>
 .privacy-short {
-  overflow-y: auto;
   max-block-size: 220px;
+  overflow-y: auto;
 }
 </style>

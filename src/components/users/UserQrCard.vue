@@ -26,22 +26,23 @@ const fullName = computed(() => [props.firstName, props.lastName].filter(Boolean
     <div class="qr-pass__header">
       <VAvatar
         size="48"
-        color="white"
+        class="qr-pass__avatar"
+        rounded="lg"
       >
-        <span class="text-body-1 font-weight-bold text-primary">{{ initials }}</span>
+        <span class="qr-pass__initials">{{ initials }}</span>
       </VAvatar>
       <div>
-        <div class="text-subtitle-1 font-weight-bold text-white">
+        <div class="text-subtitle-1 font-weight-bold">
           {{ fullName }}
         </div>
-        <div class="text-caption text-white qr-pass__caption">
+        <div class="text-body-2">
           Mi código Repitt
         </div>
       </div>
     </div>
 
     <div class="qr-pass__body">
-      <p class="text-caption text-medium-emphasis text-center mb-4 mt-5">
+      <p class="note mb-0">
         Muéstrale este código al negocio para recibir tus sellos
       </p>
 
@@ -52,14 +53,16 @@ const fullName = computed(() => [props.firstName, props.lastName].filter(Boolean
         />
       </div>
 
-      <div class="text-caption text-medium-emphasis mt-5">
-        Si no pueden escanearlo, díctales este código
-      </div>
-      <div
-        class="qr-pass__code text-primary"
-        :aria-label="props.repittCode ?? undefined"
-      >
-        {{ formatRepittCode(props.repittCode) }}
+      <div>
+        <p class="note mb-1">
+          Si no pueden escanearlo, díctales este código
+        </p>
+        <div
+          class="qr-pass__code cifra"
+          :aria-label="props.repittCode ?? undefined"
+        >
+          {{ formatRepittCode(props.repittCode) }}
+        </div>
       </div>
     </div>
   </div>
@@ -68,50 +71,56 @@ const fullName = computed(() => [props.firstName, props.lastName].filter(Boolean
 <style scoped>
 .qr-pass {
   overflow: hidden;
-  border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(var(--v-global-theme-primary), 0.2);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-superficie);
+  background: var(--superficie);
 }
 
+/* Cabecera violeta plana con texto blanco (guía §2.6: #fff sobre --violeta) */
 .qr-pass__header {
   display: flex;
   align-items: center;
-  background: linear-gradient(145deg, rgb(var(--v-theme-primary)) 0%, rgb(var(--v-theme-primary-darken-1)) 100%);
-  gap: 14px;
-  padding-block: 20px 56px;
-  padding-inline: 24px;
+  background: var(--violeta);
+  color: var(--papel);
+  gap: var(--s-4);
+  padding-block: var(--s-5) var(--s-7);
+  padding-inline: var(--s-5);
 }
 
-.qr-pass__caption {
-  opacity: 0.75;
+.v-avatar.qr-pass__avatar {
+  background: var(--papel);
+}
+
+.qr-pass__initials {
+  color: var(--violeta-tinta);
+  font-size: var(--t-body);
+  font-weight: 800;
 }
 
 .qr-pass__body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-radius: 24px 24px 0 0;
-  background: rgb(var(--v-theme-surface));
-  margin-block-start: -28px;
-  padding-block-end: 32px;
-  padding-inline: 32px;
+  display: grid;
+  background: var(--superficie);
+  border-start-end-radius: var(--r-superficie);
+  border-start-start-radius: var(--r-superficie);
+  gap: var(--s-5);
+  justify-items: start;
+  margin-block-start: calc(var(--s-5) * -1);
+  padding-block: var(--s-5) var(--s-6);
+  padding-inline: var(--s-5);
 }
 
+/* El QR va siempre sobre papel blanco, también en oscuro */
 .qr-pass__qr-wrap {
-  border-radius: 16px;
-  background: white;
-  box-shadow: 0 2px 16px rgba(0 0 0 / 8%);
+  padding: var(--s-3);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-control);
+  background: var(--papel);
   inline-size: 100%;
   max-inline-size: 260px;
-  padding-block: 12px;
-  padding-inline: 12px;
 }
 
 .qr-pass__code {
-  font-family: ui-monospace, monospace !important;
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  margin-block-start: 4px;
+  color: var(--enlace);
   white-space: pre;
 }
 </style>

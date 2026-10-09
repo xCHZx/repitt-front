@@ -16,7 +16,6 @@ const props = defineProps<{
         <VIcon
           icon="tabler-crown"
           size="13"
-          color="primary"
         />
         Clientes más frecuentes
       </div>
@@ -41,12 +40,12 @@ const props = defineProps<{
 
     <VCardText
       v-else
-      class="text-center text-medium-emphasis py-8"
+      class="text-medium-emphasis py-8"
     >
       <VIcon
         icon="tabler-users-group"
         size="36"
-        class="empty-icon mb-2 d-block mx-auto"
+        class="empty-icon mb-2 d-block"
       />
       Sin datos para este periodo
     </VCardText>
@@ -54,17 +53,6 @@ const props = defineProps<{
 </template>
 
 <style scoped>
-.section-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 600;
-  gap: 5px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
 .empty-icon {
   opacity: 0.3;
 }

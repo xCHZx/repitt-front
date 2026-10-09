@@ -65,7 +65,7 @@ defineExpose({ activate, deactivate })
     class="overflow-hidden"
   >
     <template v-if="!cameraActive">
-      <VCardText class="pa-6 text-center">
+      <VCardText class="pa-6">
         <div
           class="counter-camera-placeholder mb-4"
           role="button"
@@ -76,7 +76,6 @@ defineExpose({ activate, deactivate })
           <VIcon
             icon="tabler-qrcode"
             size="56"
-            color="primary"
             class="counter-camera-placeholder__icon"
           />
           <div class="text-body-2 text-medium-emphasis mt-2">
@@ -109,10 +108,9 @@ defineExpose({ activate, deactivate })
           >
             <VProgressCircular
               indeterminate
-              color="white"
               size="40"
             />
-            <div class="text-white text-body-2 mt-2">
+            <div class="text-body-2 mt-2">
               Iniciando cámara…
             </div>
           </div>
@@ -124,7 +122,6 @@ defineExpose({ activate, deactivate })
             <VIcon
               icon="tabler-scan"
               size="56"
-              color="white"
             />
           </div>
 
@@ -170,20 +167,20 @@ defineExpose({ activate, deactivate })
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 2px dashed rgba(var(--v-theme-primary), 0.3);
-  border-radius: 12px;
-  background: rgba(var(--v-theme-primary), 0.04);
+  border: 2px dotted var(--borde-control);
+  border-radius: var(--r-control);
   block-size: 160px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: border-color 160ms var(--ease-out);
 
+  // Hover solo cambia el color del borde (guía §7)
   &:hover {
-    background: rgba(var(--v-theme-primary), 0.08);
+    border-color: var(--acento);
   }
 }
 
 .counter-camera-placeholder__icon {
-  opacity: 0.6;
+  color: var(--acento);
 }
 
 .counter-camera-wrap {
@@ -198,18 +195,15 @@ defineExpose({ activate, deactivate })
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 55%);
+  background: var(--velo);
+  color: var(--texto-noche);
   inset: 0;
-
-  &--paused {
-    background: rgba(0, 0, 0, 40%);
-  }
 }
 
 .counter-viewfinder {
   position: absolute;
-  border: 2px solid rgba(255, 255, 255, 80%);
-  border-radius: 12px;
+  border: 2px solid var(--papel);
+  border-radius: var(--r-control);
   block-size: 180px;
   inline-size: 180px;
   inset-block-start: 50%;

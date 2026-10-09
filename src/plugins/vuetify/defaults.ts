@@ -1,4 +1,10 @@
+// Defaults con la guía de la landing (plan 2026-10-08, §1.3). Lo visual que no sale de aquí ni de
+// las variables SCSS (src/assets/styles/variables/) vive en src/styles/vuetify.scss.
 export default {
+  // Sin ondas: hover y foco ya cambian color (guía §7.3)
+  global: {
+    ripple: false,
+  },
   IconBtn: {
     icon: true,
     color: 'default',
@@ -21,6 +27,15 @@ export default {
   VBtn: {
     // set v-btn default color to primary
     color: 'primary',
+
+    // Botón plano de 48px con radio --r-control
+    variant: 'flat',
+    rounded: 'lg',
+  },
+  VCard: {
+    // Superficie plana con borde --linea (vuetify.scss) y radio --r-superficie
+    variant: 'flat',
+    rounded: 'xl',
   },
   VChip: {
     label: true,
@@ -121,10 +136,10 @@ export default {
     color: 'warning',
   },
   VProgressLinear: {
-    height: 6,
+    // Barra de 8px (guía §8.9); pista --linea y relleno --acento en vuetify.scss
+    height: 8,
     roundedBar: true,
     rounded: true,
-    bgColor: 'rgba(var(--v-track-bg))',
   },
   VSlider: {
     // set v-range-slider default color to primary
@@ -133,7 +148,7 @@ export default {
     hideDetails: 'auto',
     thumbSize: 22,
     trackSize: 6,
-    elevation: 4,
+    elevation: 0,
   },
   VTextField: {
     variant: 'outlined',
@@ -175,9 +190,15 @@ export default {
     hideDetails: 'auto',
   },
   VSnackbar: {
+    // Aviso plano (D10): superficie y borde --linea en vuetify.scss
+    variant: 'flat',
     VBtn: {
       density: 'comfortable',
     },
+  },
+  VDialog: {
+    // Sin animación de entrada (guía §15, diálogos modales)
+    transition: 'none',
   },
   VSwitch: {
     // set v-switch default color to primary

@@ -130,7 +130,6 @@ onBeforeUnmount(() => {
         <VIcon
           icon="tabler-chart-bar"
           size="13"
-          color="primary"
         />
         Resumen
       </div>
@@ -267,22 +266,11 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .stats-grid {
   display: grid;
-  gap: 12px;
+  gap: var(--s-3);
   grid-template-columns: 1fr 1fr;
 }
 
 .period-caption {
   min-block-size: 1.25rem;
-}
-
-.section-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 600;
-  gap: 5px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 </style>

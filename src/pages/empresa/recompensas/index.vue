@@ -123,7 +123,7 @@ function openRedeem(item: PendingRedemption) {
     <!-- Empty -->
     <div
       v-else-if="listEmpty && !error"
-      class="d-flex flex-column align-center justify-center text-center pa-8"
+      class="d-flex flex-column align-start pa-8"
     >
       <VIcon
         icon="tabler-gift-off"
@@ -162,7 +162,7 @@ function openRedeem(item: PendingRedemption) {
 
       <div
         v-if="hasMore"
-        class="text-center mt-2"
+        class="mt-2"
       >
         <VBtn
           variant="tonal"
@@ -185,16 +185,3 @@ function openRedeem(item: PendingRedemption) {
     />
   </div>
 </template>
-
-<style scoped>
-.section-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 700;
-  gap: 5px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-</style>

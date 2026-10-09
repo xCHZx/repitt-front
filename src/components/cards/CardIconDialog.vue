@@ -75,9 +75,9 @@ function onFile(value: File | File[] | null | undefined) {
             class="pa-1"
           >
             <VCard
-              :variant="props.selected?.kind === 'preset' && props.selected.name === preset.name ? 'tonal' : 'outlined'"
-              :color="props.selected?.kind === 'preset' && props.selected.name === preset.name ? 'primary' : undefined"
-              class="d-flex flex-column align-center justify-center pa-2 cursor-pointer"
+              variant="outlined"
+              :class="{ 'icon-option--selected': props.selected?.kind === 'preset' && props.selected.name === preset.name }"
+              class="icon-option d-flex flex-column align-center justify-center pa-2 cursor-pointer"
               height="72"
               rounded="lg"
               @click="pickPreset(preset.name)"
@@ -109,3 +109,23 @@ function onFile(value: File | File[] | null | undefined) {
     </VCard>
   </VDialog>
 </template>
+
+<style lang="scss" scoped>
+// Opción de ícono: el hover solo cambia el color del borde (guía §7); la elegida va en lenguaje
+// tonal (guía §8.4): borde --enlace + fondo --violeta-suave. `.v-card` delante para ganar a
+// `:root body .v-card` de src/styles/vuetify.scss.
+.v-card.icon-option {
+  border: 1px solid var(--linea);
+  transition: border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+
+  &:hover {
+    border-color: var(--borde-control);
+  }
+
+  &.icon-option--selected,
+  &.icon-option--selected:hover {
+    border: 2px solid var(--enlace);
+    background-color: var(--violeta-suave);
+  }
+}
+</style>

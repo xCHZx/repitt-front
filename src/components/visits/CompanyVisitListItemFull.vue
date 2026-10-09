@@ -93,7 +93,7 @@ const openCycle = (event: LoyaltyEvent) => {
           </VListItemTitle>
 
           <VListItemSubtitle class="event-subtitle">
-            <span :class="`text-${EVENT_TYPES[event.type].color} font-weight-medium`">
+            <span class="font-weight-medium">
               {{ EVENT_TYPES[event.type].label }}
             </span>
             · {{ cardName(event) }}
@@ -109,7 +109,7 @@ const openCycle = (event: LoyaltyEvent) => {
 
           <div
             v-if="event.reason"
-            class="text-caption text-medium-emphasis font-italic mt-1"
+            class="text-caption text-medium-emphasis mt-1"
           >
             Motivo: {{ event.reason }}
           </div>
@@ -131,12 +131,18 @@ const openCycle = (event: LoyaltyEvent) => {
   </VCard>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+// Enlace dentro del texto (guía §8.1, discreto): subrayado de 1px en --enlace, 2px en hover.
 .customer-link {
   color: inherit;
-  text-decoration: underline;
-  text-decoration-color: rgba(var(--v-theme-primary), 0.4);
-  text-underline-offset: 3px;
+  text-decoration-color: var(--enlace);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
 }
 
 .event-subtitle {

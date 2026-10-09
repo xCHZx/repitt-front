@@ -192,7 +192,7 @@ watch(() => route.params.id, () => {
           v-if="shownPaywall.showPlans"
           size="small"
           variant="flat"
-          color="warning"
+          color="primary"
           class="mt-2"
           to="/empresa/planes"
         >

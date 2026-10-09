@@ -136,11 +136,10 @@ onMounted(getData)
       v-else-if="notFound"
       rounded="xl"
     >
-      <VCardText class="pa-8 text-center">
+      <VCardText class="pa-8">
         <VIcon
           icon="tabler-user-off"
           size="48"
-          color="secondary"
           class="muted-icon mb-3"
         />
         <div class="text-body-1 font-weight-medium mb-1">
@@ -228,8 +227,8 @@ onMounted(getData)
       <!-- Stats row -->
       <div class="stats-row mb-4">
         <VCard rounded="xl">
-          <VCardText class="pa-4 text-center">
-            <div class="text-h4 font-weight-black text-primary">
+          <VCardText class="pa-4">
+            <div class="cifra">
               {{ customer.totalStamps }}
             </div>
             <div class="text-caption text-medium-emphasis">
@@ -238,8 +237,8 @@ onMounted(getData)
           </VCardText>
         </VCard>
         <VCard rounded="xl">
-          <VCardText class="pa-4 text-center">
-            <div class="text-h4 font-weight-black text-success">
+          <VCardText class="pa-4">
+            <div class="cifra">
               {{ customer.totalRedemptions }}
             </div>
             <div class="text-caption text-medium-emphasis">
@@ -248,7 +247,7 @@ onMounted(getData)
           </VCardText>
         </VCard>
         <VCard rounded="xl">
-          <VCardText class="pa-4 text-center">
+          <VCardText class="pa-4">
             <div class="text-body-1 font-weight-bold">
               {{ customer.lastVisitAt ? timeAgo(customer.lastVisitAt) : '—' }}
             </div>
@@ -264,7 +263,6 @@ onMounted(getData)
         <VIcon
           icon="tabler-cards"
           size="13"
-          color="primary"
         />
         Tarjetas
       </div>
@@ -285,7 +283,7 @@ onMounted(getData)
         rounded="xl"
         class="mb-5"
       >
-        <VCardText class="pa-6 text-center text-body-2 text-medium-emphasis">
+        <VCardText class="pa-6 text-body-2 text-medium-emphasis">
           Sin tarjetas registradas
         </VCardText>
       </VCard>
@@ -295,7 +293,6 @@ onMounted(getData)
         <VIcon
           icon="tabler-history"
           size="13"
-          color="primary"
         />
         Movimientos recientes
       </div>
@@ -311,12 +308,12 @@ onMounted(getData)
         v-else
         rounded="xl"
       >
-        <VCardText class="pa-6 text-center text-body-2 text-medium-emphasis">
+        <VCardText class="pa-6 text-body-2 text-medium-emphasis">
           Sin movimientos registrados
         </VCardText>
       </VCard>
 
-      <div class="d-flex justify-center mt-4">
+      <div class="d-flex mt-4">
         <VBtn
           variant="tonal"
           color="primary"
@@ -350,19 +347,8 @@ onMounted(getData)
 <style lang="scss" scoped>
 .stats-row {
   display: grid;
-  gap: 12px;
+  gap: var(--s-3);
   grid-template-columns: repeat(3, 1fr);
-}
-
-.section-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 600;
-  gap: 5px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .muted-icon {

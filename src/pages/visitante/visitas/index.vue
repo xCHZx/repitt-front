@@ -21,7 +21,10 @@ const { items, loading, loaded, error, hasMore, isEmpty: noActivity, reload, loa
 const groups = computed(() => {
   const map = new Map<string, MeActivityEvent[]>()
   for (const event of items.value) {
-    const label = formatInstant(event.occurredAt, undefined, { month: 'long', year: 'numeric' })
+    const month = formatInstant(event.occurredAt, undefined, { month: 'long', year: 'numeric' })
+
+    // Sentence case («Octubre de 2026»): la etiqueta ya no va en mayúsculas forzadas
+    const label = month.charAt(0).toLocaleUpperCase('es-MX') + month.slice(1)
     const list = map.get(label)
     if (list)
       list.push(event)
@@ -63,13 +66,13 @@ onMounted(reload)
 
     <div
       v-else-if="noActivity"
-      class="text-center py-12"
+      class="py-12"
     >
       <VIcon
         icon="tabler-activity"
         size="56"
         color="medium-emphasis"
-        class="mb-4 empty-icon"
+        class="mb-4"
       />
       <div class="text-h6 font-weight-bold mb-1">
         Aún no tienes actividad
@@ -84,7 +87,7 @@ onMounted(reload)
         v-for="group in groups"
         :key="group.label"
       >
-        <div class="month-label">
+        <div class="section-label mb-3">
           {{ group.label }}
         </div>
         <div class="d-flex flex-column gap-2 mb-5">
@@ -113,18 +116,3 @@ onMounted(reload)
     </template>
   </div>
 </template>
-
-<style scoped>
-.month-label {
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  margin-block-end: 10px;
-  text-transform: uppercase;
-}
-
-.empty-icon {
-  opacity: 0.35;
-}
-</style>

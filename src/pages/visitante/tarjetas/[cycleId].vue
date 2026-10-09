@@ -62,13 +62,13 @@ watch(cycleId, load, { immediate: true })
 
     <div
       v-else-if="notFound"
-      class="text-center py-12"
+      class="py-12"
     >
       <VIcon
         icon="tabler-cards-off"
         size="56"
         color="medium-emphasis"
-        class="mb-4 empty-icon"
+        class="mb-4"
       />
       <div class="text-h6 font-weight-bold mb-1">
         Esta tarjeta no está disponible
@@ -107,9 +107,3 @@ watch(cycleId, load, { immediate: true })
     />
   </div>
 </template>
-
-<style scoped>
-.empty-icon {
-  opacity: 0.35;
-}
-</style>

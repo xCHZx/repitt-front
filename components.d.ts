@@ -114,6 +114,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     ScrollToTop: typeof import('./src/@core/components/ScrollToTop.vue')['default']
     Shortcuts: typeof import('./src/@core/components/Shortcuts.vue')['default']
+    StampCard: typeof import('./src/components/stampCard/StampCard.vue')['default']
     StampCardListItem: typeof import('./src/components/stampCards/StampCardListItem.vue')['default']
     StampProgress: typeof import('./src/components/visitor/StampProgress.vue')['default']
     TablePagination: typeof import('./src/@core/components/TablePagination.vue')['default']

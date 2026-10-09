@@ -9,17 +9,6 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-
-const rankColor = computed(() => {
-  if (props.rank === 1)
-    return 'warning'
-  if (props.rank === 2)
-    return 'secondary'
-  if (props.rank === 3)
-    return 'error'
-
-  return 'default'
-})
 </script>
 
 <template>
@@ -28,16 +17,11 @@ const rankColor = computed(() => {
     :to="props.to"
   >
     <template #prepend>
-      <div
-        class="rank-num text-caption font-weight-bold me-3"
-        :class="rankColor === 'default' ? 'text-medium-emphasis' : `text-${rankColor}`"
-      >
+      <div class="rank-num text-caption font-weight-bold text-medium-emphasis me-3">
         #{{ props.rank }}
       </div>
       <VAvatar
-        rounded="lg"
         size="36"
-        color="primary"
         variant="tonal"
       >
         <span class="text-caption font-weight-bold">
@@ -57,11 +41,7 @@ const rankColor = computed(() => {
     </VListItemSubtitle>
 
     <template #append>
-      <VChip
-        :color="rankColor"
-        size="x-small"
-        variant="tonal"
-      >
+      <VChip size="x-small">
         {{ props.count }} {{ props.countLabel }}
       </VChip>
     </template>
@@ -70,6 +50,7 @@ const rankColor = computed(() => {
 
 <style scoped>
 .rank-num {
+  font-variant-numeric: tabular-nums;
   inline-size: 24px;
   text-align: center;
 }

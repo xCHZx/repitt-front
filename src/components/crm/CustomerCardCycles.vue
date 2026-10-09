@@ -1,19 +1,28 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { CustomerDetail, Cycle } from '@/api/types'
+import { progressLabel, stampCount } from '@/components/stampCard/stampCard'
 import { formatInstant } from '@/utils/dates'
 
 // A card of a customer with its cycles (CustomerDetailDto.cards[], guide §4.A.7).
+// Fila plana (plan 2026-10-08 §2B): filete y progreso en el color de la tarjeta si se conoce
+// (CardRefDto no lo trae; la página puede pasarlo), si no en --acento. Premio pendiente con .chip-premio.
 
 const props = defineProps<{
   entry: CustomerDetail['cards'][number]
   timezone: string
+
+  /** Color de la tarjeta (StampCardDto.primaryColor), si la página lo tiene. */
+  primaryColor?: string | null
 }>()
 
-const STATUS: Record<Cycle['status'], { label: string; color: string; icon: string }> = {
-  open: { label: 'En curso', color: 'primary', icon: 'tabler-progress' },
-  completed: { label: 'Premio pendiente', color: 'warning', icon: 'tabler-clock' },
-  redeemed: { label: 'Canjeado', color: 'success', icon: 'tabler-gift' },
+const STATUS: Record<Cycle['status'], { label: string; icon: string }> = {
+  open: { label: 'En curso', icon: 'tabler-progress' },
+  completed: { label: 'Premio pendiente', icon: 'tabler-clock' },
+  redeemed: { label: 'Canjeado', icon: 'tabler-gift' },
 }
+
+const accent = computed(() => props.primaryColor || 'var(--acento)')
 
 const cycles = computed(() => [...props.entry.cycles].sort((a, b) => b.cycleNumber - a.cycleNumber))
 
@@ -29,13 +38,17 @@ const cycleDate = (cycle: Cycle) => {
 </script>
 
 <template>
-  <VCard rounded="xl">
+  <VCard
+    rounded="xl"
+    class="fila-tarjeta"
+    :style="{ '--c': accent }"
+  >
     <VCardText class="pa-4 pb-2">
       <div class="text-body-1 font-weight-bold">
         {{ props.entry.card.name }}
       </div>
       <div class="text-caption text-medium-emphasis">
-        {{ props.entry.card.reward }} · {{ props.entry.card.requiredStamps }} sellos
+        {{ props.entry.card.reward }} · {{ stampCount(props.entry.card.requiredStamps) }}
       </div>
     </VCardText>
 
@@ -53,7 +66,6 @@ const cycleDate = (cycle: Cycle) => {
         >
           <template #prepend>
             <VAvatar
-              :color="STATUS[cycle.status].color"
               variant="tonal"
               size="36"
               class="me-3"
@@ -69,25 +81,21 @@ const cycleDate = (cycle: Cycle) => {
             Ciclo {{ cycle.cycleNumber }}
           </VListItemTitle>
           <VListItemSubtitle class="text-caption">
-            {{ cycle.stampsCount }} / {{ cycle.requiredStamps }} sellos · {{ cycleDate(cycle) }}
+            {{ progressLabel(cycle.stampsCount, cycle.requiredStamps) }} sellos · {{ cycleDate(cycle) }}
           </VListItemSubtitle>
           <VProgressLinear
             v-if="cycle.status === 'open'"
             :model-value="(cycle.stampsCount / Math.max(cycle.requiredStamps, 1)) * 100"
-            color="primary"
-            bg-color="primary"
-            bg-opacity="0.12"
+            :color="accent"
             rounded
-            height="5"
             class="mt-2"
           />
 
           <template #append>
             <VChip
-              :color="STATUS[cycle.status].color"
               size="x-small"
-              variant="tonal"
               class="ms-2"
+              :class="{ 'chip-premio': cycle.status === 'completed' }"
             >
               {{ STATUS[cycle.status].label }}
             </VChip>
@@ -105,3 +113,10 @@ const cycleDate = (cycle: Cycle) => {
     </VCardText>
   </VCard>
 </template>
+
+<style scoped>
+/* Filete de 3px del color de la tarjeta (o --acento) en el lado inicial; el resto del borde es --linea */
+.v-card.fila-tarjeta {
+  border-inline-start: 3px solid var(--c);
+}
+</style>

@@ -1,3 +1,4 @@
+<!-- Error / empty page header (guide §15, 404 pattern): status as a label, H1 in Anybody --t-h2 and one sentence, aligned to the start. -->
 <script setup lang="ts">
 interface Props {
   statusCode?: string | number
@@ -9,23 +10,22 @@ const props = defineProps<Props>()
 </script>
 
 <template>
-  <div class="text-center">
-    <!-- 👉 Title and subtitle -->
-    <h1
+  <div class="error-header">
+    <p
       v-if="props.statusCode"
-      class="header-title font-weight-medium mb-2"
+      class="section-label mb-0"
     >
       {{ props.statusCode }}
-    </h1>
-    <h4
+    </p>
+    <h1
       v-if="props.title"
-      class="text-h4 font-weight-medium mb-2"
+      class="error-header__title"
     >
       {{ props.title }}
-    </h4>
+    </h1>
     <p
       v-if="props.description"
-      class="text-body-1 mb-6"
+      class="lead medida mb-0"
     >
       {{ props.description }}
     </p>
@@ -33,8 +33,18 @@ const props = defineProps<Props>()
 </template>
 
 <style lang="scss" scoped>
-.header-title {
-  font-size: clamp(3rem, 5vw, 6rem);
-  line-height: clamp(3rem, 5vw, 6rem);
+.error-header {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.error-header__title {
+  color: var(--texto);
+  font-family: var(--f-display);
+  font-size: var(--t-h2);
+  font-stretch: var(--display-ancho);
+  font-weight: 800;
+  line-height: var(--lh-h2);
+  text-wrap: balance;
 }
 </style>

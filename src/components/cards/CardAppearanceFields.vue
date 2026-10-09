@@ -4,6 +4,7 @@ import CardIconDialog from './CardIconDialog.vue'
 import { iconChoicePreview, presetLabel } from './cardIcons'
 import type { IconChoice } from './cardIcons'
 import { PRESET_COLORS, tint } from './cardMeta'
+import { stampInk } from '@/components/stampCard/stampCard'
 
 const props = defineProps<{
   existingIconUrl?: string | null
@@ -64,15 +65,27 @@ const iconLabel = computed(() => {
             :key="preset.hex"
             type="button"
             class="color-swatch"
+            :class="{ 'color-swatch--selected': color.toUpperCase() === preset.hex.toUpperCase() }"
             :aria-label="preset.label"
             :aria-pressed="color.toUpperCase() === preset.hex.toUpperCase()"
-            :style="{
-              background: preset.hex,
-              outline: color.toUpperCase() === preset.hex.toUpperCase() ? `3px solid ${preset.hex}` : '3px solid transparent',
-              outlineOffset: '2px',
-            }"
+            :style="{ '--c': preset.hex }"
             @click="color = preset.hex"
-          />
+          >
+            <svg
+              v-if="color.toUpperCase() === preset.hex.toUpperCase()"
+              class="color-swatch__check"
+              :class="`color-swatch__check--${stampInk(preset.hex)}`"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 12l5 5l10 -10" />
+            </svg>
+          </button>
         </div>
         <div
           v-if="props.colorError"
@@ -90,7 +103,8 @@ const iconLabel = computed(() => {
           <VAvatar
             rounded="lg"
             size="56"
-            :style="{ background: tint(color, '20') }"
+            class="icon-preview"
+            :style="{ '--c': tint(color, '') }"
           >
             <VImg
               v-if="previewSrc"
@@ -102,7 +116,6 @@ const iconLabel = computed(() => {
               v-else
               icon="tabler-sticker"
               size="28"
-              :style="{ color: tint(color, '') }"
             />
           </VAvatar>
           <div>
@@ -142,13 +155,51 @@ const iconLabel = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+// Muestra de color: el color de la tarjeta (--c) es dato, no decoración. La elegida lleva un anillo
+// de 3px de su color y un check; el foco de teclado lo pinta en --foco.
 .color-swatch {
+  display: grid;
   border: none;
   border-radius: 50%;
+  background: var(--c);
   block-size: 36px;
   cursor: pointer;
   inline-size: 36px;
-  transition: outline 0.15s ease;
+  outline: 3px solid transparent;
+  outline-offset: 2px;
+  place-items: center;
+  transition: outline-color 160ms var(--ease-out);
+
+  &--selected {
+    outline-color: var(--c);
+  }
+
+  &:focus-visible {
+    border-radius: 50%;
+    outline-color: var(--foco);
+  }
+}
+
+// El check es la señal de selección (guía §2.5): el outline del mismo color no llega a 3:1 con
+// todos los colores. Va en papel o tinta, la de más contraste con la muestra (stampInk).
+.color-swatch__check {
+  block-size: 20px;
+  inline-size: 20px;
+
+  &--papel {
+    color: var(--papel);
+  }
+
+  &--tinta {
+    color: var(--tinta);
+  }
+}
+
+// Vista previa del ícono: sello tonal del color de la tarjeta (guía §8.9, D4). El ícono se mezcla
+// con --texto para que se lea también con colores claros (amarillo) y en oscuro.
+.icon-preview {
+  background: color-mix(in srgb, var(--c) 16%, transparent);
+  color: color-mix(in srgb, var(--c) 50%, var(--texto));
 }
 </style>

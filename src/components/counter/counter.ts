@@ -18,6 +18,11 @@ export interface CounterSuccessInfo {
   stampsCount?: number
   requiredStamps?: number
   isTest?: boolean
+
+  /** Card look for the stamp card on the success screen (D5); without it, the default color. */
+  reward?: string | null
+  primaryColor?: string | null
+  iconUrl?: string | null
 }
 
 /** What the redeem dialog shows without loading the cycle (when the caller already knows it). */

@@ -48,19 +48,19 @@ onMounted(load)
     <VCard
       color="primary"
       rounded="xl"
-      class="mb-4"
+      class="mb-4 hero-violeta"
     >
-      <VCardText class="text-center pa-6">
-        <div class="text-white text-h5 font-weight-bold mb-1">
+      <VCardText class="pa-6">
+        <h1 class="titulo-display text-white mb-2">
           Hola, {{ session.me?.firstName || 'bienvenido' }}
-        </div>
-        <div class="text-white text-body-2 mb-5 hero-caption">
+        </h1>
+        <p class="text-white text-body-2 mb-5">
           Muéstrale tu código al negocio para recibir tus sellos
-        </div>
+        </p>
 
         <VCard
           rounded="lg"
-          class="mx-auto mb-4 qr-tap-card"
+          class="mb-4 qr-tap-card"
           to="/visitante/perfil/qr"
         >
           <VCardText class="pa-3">
@@ -71,17 +71,14 @@ onMounted(load)
           </VCardText>
         </VCard>
 
-        <VChip
-          color="white"
-          size="large"
+        <VBtn
+          size="small"
+          class="btn-inverso"
+          prepend-icon="tabler-barcode"
           to="/visitante/perfil/qr"
         >
-          <VIcon
-            start
-            icon="tabler-barcode"
-          />
-          {{ formatRepittCode(session.me?.repittCode) }}
-        </VChip>
+          <span class="hero-code">{{ formatRepittCode(session.me?.repittCode) }}</span>
+        </VBtn>
       </VCardText>
     </VCard>
 
@@ -109,7 +106,7 @@ onMounted(load)
     <template v-else>
       <!-- Rewards ready -->
       <template v-if="readyToRedeem.length">
-        <div class="section-label text-warning">
+        <div class="section-label mt-2 mb-3">
           <VIcon
             icon="tabler-gift"
             size="15"
@@ -127,7 +124,7 @@ onMounted(load)
 
       <!-- Nearest card -->
       <template v-if="nearest">
-        <div class="section-label text-primary">
+        <div class="section-label mt-2 mb-3">
           <VIcon
             icon="tabler-flame"
             size="15"
@@ -170,23 +167,20 @@ onMounted(load)
 </template>
 
 <style scoped>
-.hero-caption {
-  opacity: 0.8;
+/* Sobre --violeta el anillo de foco --violeta no se ve (1:1): pasa a papel (6.23:1, guía §9.3) */
+.hero-violeta {
+  --foco: var(--papel);
 }
 
+/* El QR va siempre sobre papel blanco, también en oscuro */
 .qr-tap-card {
+  background: var(--papel);
   cursor: pointer;
   max-inline-size: 220px;
 }
 
-.section-label {
-  display: flex;
-  align-items: center;
-  font-size: 0.78rem;
-  font-weight: 700;
-  gap: 5px;
-  letter-spacing: 0.04em;
-  margin-block: 8px 10px;
-  text-transform: uppercase;
+.hero-code {
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
 }
 </style>

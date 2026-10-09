@@ -20,7 +20,6 @@ const initials = (name: string) => name
 <template>
   <VCard
     rounded="xl"
-    class="customer-card"
     :to="`/empresa/clientes/${props.customer.id}`"
   >
     <VCardText class="pa-4">
@@ -54,8 +53,8 @@ const initials = (name: string) => name
           </div>
         </div>
 
-        <div class="text-right">
-          <div class="text-h6 font-weight-black text-primary">
+        <div class="text-end">
+          <div class="text-h6 font-weight-black">
             {{ props.customer.totalStamps }}
           </div>
           <div class="text-caption text-medium-emphasis">
@@ -69,7 +68,7 @@ const initials = (name: string) => name
           <VIcon
             icon="tabler-clock"
             size="13"
-            color="secondary"
+            class="text-medium-emphasis"
           />
           <span class="text-caption text-medium-emphasis">
             {{ props.customer.lastVisitAt ? timeAgo(props.customer.lastVisitAt) : 'Sin visitas registradas' }}
@@ -79,7 +78,7 @@ const initials = (name: string) => name
           <VIcon
             icon="tabler-gift"
             size="13"
-            color="success"
+            class="text-medium-emphasis"
           />
           <span class="text-caption text-medium-emphasis">
             {{ props.customer.totalRedemptions }} {{ props.customer.totalRedemptions === 1 ? 'canje' : 'canjes' }}
@@ -89,9 +88,3 @@ const initials = (name: string) => name
     </VCardText>
   </VCard>
 </template>
-
-<style scoped>
-.customer-card {
-  transition: box-shadow 0.2s ease;
-}
-</style>

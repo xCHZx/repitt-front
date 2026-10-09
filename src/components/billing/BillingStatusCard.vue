@@ -89,11 +89,7 @@ const rows = computed<Row[]>(() => {
 </script>
 
 <template>
-  <VCard
-    class="billing-status-card"
-    rounded="xl"
-    elevation="0"
-  >
+  <VCard rounded="xl">
     <VCardText class="pa-5">
       <div class="d-flex align-center gap-3 mb-3">
         <VAvatar
@@ -144,9 +140,3 @@ const rows = computed<Row[]>(() => {
     </VCardText>
   </VCard>
 </template>
-
-<style lang="scss" scoped>
-.billing-status-card {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-}
-</style>

@@ -177,7 +177,7 @@ function stampAgain() {
       <VCardText class="pa-5">
         <!-- Done -->
         <template v-if="result">
-          <div class="text-center">
+          <div>
             <VAvatar
               color="success"
               variant="tonal"
@@ -225,7 +225,7 @@ function stampAgain() {
 
         <!-- Confirm -->
         <template v-else>
-          <div class="text-center mb-4">
+          <div class="mb-4">
             <VAvatar
               color="warning"
               variant="tonal"
@@ -314,7 +314,7 @@ function stampAgain() {
             </VBtn>
             <VBtn
               v-if="canRedeem"
-              color="success"
+              color="primary"
               rounded="xl"
               class="flex-1-1"
               :prepend-icon="canRetry ? 'tabler-refresh' : 'tabler-gift'"
@@ -332,10 +332,9 @@ function stampAgain() {
 
 <style scoped>
 .counter-reward-box {
-  border: 1px solid rgba(var(--v-theme-warning), 0.35);
-  border-radius: 12px;
-  background: rgba(var(--v-theme-warning), 0.06);
-  padding-block: 12px;
-  padding-inline: 16px;
+  border: 1px solid var(--linea);
+  border-radius: var(--r-control);
+  padding-block: var(--s-3);
+  padding-inline: var(--s-4);
 }
 </style>

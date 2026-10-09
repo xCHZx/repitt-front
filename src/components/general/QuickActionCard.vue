@@ -14,17 +14,16 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <VCard
-    rounded="xl"
     :to="to"
+    class="quick-action"
   >
-    <VCardText class="text-center pa-4">
+    <VCardText class="pa-4">
       <VIcon
         :icon="icon"
         :size="iconSize"
-        color="primary"
-        class="mb-2"
+        class="quick-action__icon mb-2"
       />
-      <div class="text-body-2 font-weight-semibold">
+      <div class="text-body-2 font-weight-bold">
         {{ label }}
       </div>
       <div
@@ -36,3 +35,23 @@ withDefaults(defineProps<Props>(), {
     </VCardText>
   </VCard>
 </template>
+
+<style lang="scss" scoped>
+// Hover: solo cambia el color del borde (sin velo ni elevación)
+.quick-action {
+  transition: border-color 160ms var(--ease-out);
+
+  &:hover {
+    border-color: var(--enlace);
+  }
+
+  /* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+  :deep(.v-card__overlay) {
+    display: none;
+  }
+}
+
+.quick-action__icon {
+  color: var(--acento);
+}
+</style>

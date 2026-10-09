@@ -35,12 +35,26 @@ const html = computed(() => md.render(props.source ?? ''))
 
 <style lang="scss">
 .markdown-content {
-  line-height: 1.6;
+  line-height: var(--lh-body);
 
   h1,
   h2,
   h3 {
+    color: inherit;
+    font-family: var(--f-texto);
+    font-weight: 700;
     margin-block: 1em 0.5em;
+  }
+
+  h1,
+  h2 {
+    font-size: var(--t-h3);
+    line-height: var(--lh-h3);
+  }
+
+  h3 {
+    font-size: var(--t-body);
+    line-height: var(--lh-body);
   }
 
   p,

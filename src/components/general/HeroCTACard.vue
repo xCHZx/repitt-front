@@ -20,58 +20,68 @@ const handleClick = () => {
 </script>
 
 <template>
+  <!-- Main call to action: flat violet surface (--violeta + white), hover --violeta-tinta; disabled at 45% (guide §15) -->
   <VCard
-    :color="disabled ? 'secondary' : 'primary'"
-    rounded="xl"
+    class="hero-cta"
     :class="{ 'hero-cta--disabled': disabled }"
     @click="handleClick"
   >
     <VCardText class="d-flex align-center gap-4 pa-5">
-      <VAvatar
-        color="white"
-        size="56"
-        class="hero-avatar"
-      >
+      <span class="hero-cta__icon">
         <VIcon
           :icon="icon"
-          size="30"
-          color="primary"
+          size="28"
         />
-      </VAvatar>
+      </span>
       <div>
-        <div class="text-white text-h6 font-weight-bold">
+        <div class="text-h6 font-weight-bold">
           {{ title }}
         </div>
-        <div class="text-white text-body-2 hero-subtitle">
+        <div class="text-body-2">
           {{ subtitle }}
         </div>
       </div>
       <VSpacer />
       <VIcon
         icon="tabler-chevron-right"
-        color="white"
         size="24"
-        class="hero-chevron"
       />
     </VCardText>
   </VCard>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+// .v-card delante: gana a `:root body .v-card` (texto --texto y borde --linea) de src/styles/vuetify.scss
+.v-card.hero-cta {
+  border-color: transparent;
+  background-color: var(--violeta);
+  color: var(--papel);
+  transition: background-color 160ms var(--ease-out);
+
+  &:hover:not(.hero-cta--disabled) {
+    background-color: var(--violeta-tinta);
+  }
+
+  /* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+  :deep(.v-card__overlay) {
+    display: none;
+  }
+}
+
 .hero-cta--disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.45;
 }
 
-.hero-avatar {
-  opacity: 0.95;
-}
-
-.hero-subtitle {
-  opacity: 0.85;
-}
-
-.hero-chevron {
-  opacity: 0.7;
+.hero-cta__icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-control);
+  background-color: var(--papel);
+  block-size: var(--s-7);
+  color: var(--violeta);
+  inline-size: var(--s-7);
 }
 </style>

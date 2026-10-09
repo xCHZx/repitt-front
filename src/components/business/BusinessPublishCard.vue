@@ -47,7 +47,7 @@ async function confirm() {
       <div class="d-flex align-center gap-3">
         <VIcon
           :icon="isPublished ? 'tabler-world' : 'tabler-world-off'"
-          :color="isPublished ? 'success' : 'secondary'"
+          :class="isPublished ? 'publish-icon--on' : 'publish-icon--off'"
           size="24"
         />
         <div class="flex-grow-1">
@@ -62,7 +62,7 @@ async function confirm() {
         </div>
         <VSwitch
           :model-value="isPublished"
-          color="success"
+          color="primary"
           hide-details
           inset
           density="compact"
@@ -77,12 +77,11 @@ async function confirm() {
       max-width="360"
     >
       <VCard rounded="xl">
-        <VCardText class="pa-6 text-center">
+        <VCardText class="pa-6">
           <VIcon
             :icon="isPublished ? 'tabler-world-off' : 'tabler-world'"
-            :color="isPublished ? 'warning' : 'success'"
             size="48"
-            class="mb-3"
+            class="publish-icon--on mb-3"
           />
           <div class="text-h6 font-weight-bold mb-2">
             {{ isPublished ? '¿Pausar tu negocio?' : '¿Publicar tu negocio?' }}
@@ -94,7 +93,7 @@ async function confirm() {
           </div>
           <ApiErrorAlert
             :error="error"
-            class="mb-4 text-start"
+            class="mb-4"
           />
           <div class="d-flex gap-3">
             <VBtn
@@ -108,7 +107,6 @@ async function confirm() {
             </VBtn>
             <VBtn
               block
-              :color="isPublished ? 'warning' : 'success'"
               :loading="isSaving"
               @click="confirm"
             >
@@ -120,3 +118,14 @@ async function confirm() {
     </VDialog>
   </VCard>
 </template>
+
+<style lang="scss" scoped>
+// El estado lo dice el texto; el ícono solo acompaña: --acento publicado, --texto-2 en pausa.
+.publish-icon--on {
+  color: var(--acento);
+}
+
+.publish-icon--off {
+  color: var(--texto-2);
+}
+</style>

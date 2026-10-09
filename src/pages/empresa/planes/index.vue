@@ -225,11 +225,10 @@ onBeforeUnmount(() => window.removeEventListener('pageshow', onPageShow))
       <div class="planes-hero-icon">
         <VIcon
           icon="tabler-crown"
-          size="40"
-          color="white"
+          size="32"
         />
       </div>
-      <h1 class="planes-hero-title">
+      <h1 class="titulo-display">
         Tu plan
       </h1>
       <p class="planes-hero-subtitle">
@@ -253,7 +252,6 @@ onBeforeUnmount(() => window.removeEventListener('pageshow', onPageShow))
         class="mb-4"
       />
       <VBtn
-        color="primary"
         variant="tonal"
         block
         rounded="lg"
@@ -320,7 +318,7 @@ onBeforeUnmount(() => window.removeEventListener('pageshow', onPageShow))
 
         <VBtn
           color="primary"
-          :variant="checkoutIsPrimary ? 'elevated' : 'tonal'"
+          :variant="checkoutIsPrimary ? 'flat' : 'tonal'"
           block
           size="large"
           rounded="lg"
@@ -346,7 +344,7 @@ onBeforeUnmount(() => window.removeEventListener('pageshow', onPageShow))
       <template v-if="canPortal">
         <VBtn
           color="primary"
-          :variant="portalIsPrimary ? 'elevated' : 'tonal'"
+          :variant="portalIsPrimary ? 'flat' : 'tonal'"
           block
           size="large"
           rounded="lg"
@@ -372,47 +370,41 @@ onBeforeUnmount(() => window.removeEventListener('pageshow', onPageShow))
 
 <style lang="scss" scoped>
 .planes-page {
-  padding-block: 8px;
+  padding-block: var(--s-2);
 }
 
+// Cabecera alineada a la izquierda: ícono tonal plano (sin degradado ni sombra) y título display.
 .planes-hero {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-block-end: 28px;
-  padding-block: 24px 0;
-  text-align: center;
+  align-items: flex-start;
+  margin-block-end: var(--s-5);
+  padding-block: var(--s-5) 0;
 }
 
 .planes-hero-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: linear-gradient(145deg, rgb(var(--v-theme-primary)) 0%, rgb(var(--v-theme-primary-darken-1)) 100%);
-  block-size: 72px;
-  box-shadow: 0 8px 24px rgba(var(--v-global-theme-primary), 0.4);
-  inline-size: 72px;
-  margin-block-end: 16px;
-}
-
-.planes-hero-title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  margin-block-end: 8px;
+  border-radius: var(--r-control);
+  background: var(--violeta-suave);
+  block-size: 56px;
+  color: var(--enlace);
+  inline-size: 56px;
+  margin-block-end: var(--s-4);
 }
 
 .planes-hero-subtitle {
-  color: rgba(var(--v-theme-on-surface), 0.6);
-  font-size: 0.95rem;
-  max-inline-size: 280px;
+  color: var(--texto-2);
+  font-size: var(--t-body);
+  margin-block-start: var(--s-3);
+  max-inline-size: 32em;
 }
 
 .planes-legal {
-  color: rgba(var(--v-theme-on-surface), 0.4);
-  font-size: 0.78rem;
-  margin-block-start: 12px;
-  text-align: center;
+  color: var(--texto-2);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+  margin-block-start: var(--s-3);
 }
 </style>

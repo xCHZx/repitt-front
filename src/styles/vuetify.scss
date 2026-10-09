@@ -1,0 +1,659 @@
+// Capa que pone a Vuetify/Vuexy en la guía de la landing (plan 2026-10-08, §1.3).
+// Primero van las variables (src/assets/styles/variables/) y los defaults (src/plugins/vuetify/defaults.ts);
+// aquí solo lo que no alcanzan.
+// Cascada: el CSS de los componentes de Vuetify llega en los chunks de cada ruta, después de este
+// archivo. Para no depender del orden, todo va bajo `:root body` (+0,1,1 de especificidad) y repite
+// el selector de Vuetify/Vuexy al que gana. `!important` solo donde Vuetify o @core lo usan
+// (utilidades .bg-*, .text-*, .rounded-*, y las reglas !important de @core).
+
+:root body {
+  // ───────────────────────── Texto ─────────────────────────
+
+  // Vuexy pinta estas clases con on-background: aquí heredan, así funcionan en .section--night
+  // y en .section--tono sin reglas extra.
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .text-h1,
+  .text-h2,
+  .text-h3,
+  .text-h4,
+  .text-h5,
+  .text-h6,
+  .text-button,
+  .text-overline,
+  .text-body-1,
+  .text-body-2,
+  .text-subtitle-1,
+  .text-subtitle-2 {
+    color: inherit;
+  }
+
+  // Display (guía §3.1): Anybody al 72%. Tamaño, peso y familia salen de $typography.
+  .text-h1,
+  .text-h2,
+  .text-h3,
+  .text-h4 {
+    font-stretch: var(--display-ancho);
+    text-wrap: balance;
+  }
+
+  .text-caption {
+    color: var(--texto-2);
+  }
+
+  .text-medium-emphasis {
+    color: var(--texto-2) !important;
+  }
+
+  .text-high-emphasis {
+    color: var(--texto) !important;
+  }
+
+  .font-weight-black {
+    font-variant-numeric: tabular-nums;
+  }
+
+  // color="primary" como texto: #6C3CE1 no llega a 3:1 sobre la superficie oscura. Íconos en
+  // --acento y enlaces o botones de ícono en --enlace, que se adaptan al tema (en claro el ícono
+  // queda igual). Cualquier otro texto en primary (elemento de lista activo, opción elegida de un
+  // select, span) va en --enlace (guía §2.6, reglas 2 y 3). Las reglas de botones, chips, pestañas
+  // y avisos de más abajo son más específicas y ganan.
+  .text-primary {
+    color: var(--enlace) !important;
+  }
+
+  .v-icon.text-primary,
+  .v-progress-circular.text-primary {
+    color: var(--acento) !important;
+  }
+
+  a.text-primary,
+  .v-btn--icon.v-btn--variant-text.text-primary {
+    color: var(--enlace) !important;
+  }
+
+  // ───────────────────────── Botones (guía §8.1) ─────────────────────────
+
+  .v-btn {
+    box-shadow: none !important;
+    line-height: 1.2;
+    text-transform: none;
+    transition:
+      background-color 160ms var(--ease-out),
+      border-color 160ms var(--ease-out),
+      color 160ms var(--ease-out);
+
+    // Sin capa de tinte: el hover cambia el fondo o el subrayado, no un velo
+    > .v-btn__overlay,
+    > .v-btn__underlay {
+      display: none;
+    }
+
+    &:active {
+      transform: none;
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--foco);
+      outline-offset: 3px;
+    }
+
+    // Radio de control en todos los botones de texto, aunque la página pase rounded="xl"
+    &:not(.v-btn--icon) {
+      border-radius: var(--r-control) !important;
+    }
+
+    // 48px; compacto (small / x-small) 44px con --t-small
+    &:not(.v-btn--icon).v-btn--size-default,
+    &:not(.v-btn--icon).v-btn--size-large,
+    &:not(.v-btn--icon).v-btn--size-x-large {
+      --v-btn-height: 48px;
+      --v-btn-size: var(--t-body);
+
+      padding-block: 0;
+      padding-inline: var(--s-5);
+    }
+
+    &:not(.v-btn--icon).v-btn--size-small,
+    &:not(.v-btn--icon).v-btn--size-x-small {
+      --v-btn-height: var(--objetivo-tactil);
+      --v-btn-size: var(--t-small);
+
+      padding-block: 0;
+      padding-inline: var(--s-4);
+    }
+
+    // Botones de ícono: 44×44 (48 en large / x-large)
+    &.v-btn--icon.v-btn--density-default.v-btn--size-default,
+    &.v-btn--icon.v-btn--density-default.v-btn--size-small,
+    &.v-btn--icon.v-btn--density-default.v-btn--size-x-small {
+      --v-btn-height: var(--objetivo-tactil);
+    }
+
+    &.v-btn--icon.v-btn--density-default.v-btn--size-large,
+    &.v-btn--icon.v-btn--density-default.v-btn--size-x-large {
+      --v-btn-height: 48px;
+    }
+
+    // Primario y rellenos de color: fondo del color, hover a *-darken-1 (Vuexy; primary → --violeta-tinta)
+    &.v-btn--variant-flat,
+    &.v-btn--variant-elevated {
+      font-weight: 700;
+    }
+
+    // Botón de marco (guía §8.1): tonal y outlined
+    &.v-btn--variant-tonal,
+    &.v-btn--variant-outlined {
+      border: 1px solid var(--linea);
+      background-color: var(--superficie);
+      color: var(--texto) !important;
+      font-weight: 600;
+
+      &:hover {
+        border-color: var(--borde-control);
+      }
+
+      &.text-error {
+        color: var(--error) !important;
+      }
+    }
+
+    // Botón discreto (guía §8.1): text o plain sin ícono → enlace subrayado
+    &.v-btn--variant-text:not(.v-btn--icon, .v-tab),
+    &.v-btn--variant-plain:not(.v-btn--icon, .v-tab) {
+      --v-btn-height: var(--objetivo-tactil);
+
+      min-inline-size: var(--objetivo-tactil);
+      opacity: 1;
+      padding-inline: var(--s-1);
+      text-decoration-line: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.2em;
+
+      &:hover {
+        text-decoration-thickness: 2px;
+      }
+
+      &.text-primary,
+      &.text-secondary,
+      &.text-info {
+        color: var(--enlace) !important;
+      }
+
+      &.text-error {
+        color: var(--error) !important;
+      }
+    }
+
+    // Deshabilitado (guía §15): se ve igual, al 45%
+    &.v-btn--disabled {
+      opacity: 0.45;
+    }
+  }
+
+  // Botón inverso (guía §8.1): sobre .section--night o fondos violeta
+  // [class] sube la especificidad sobre el `:focus`/`:active` de @core (bg *-darken-1 !important),
+  // que dejaba el texto --violeta-tinta sobre --violeta-tinta después de un clic.
+  .v-btn.btn-inverso[class] {
+    &,
+    &:focus,
+    &:active {
+      background-color: var(--papel) !important;
+      color: var(--violeta-tinta) !important;
+    }
+
+    &:hover {
+      background-color: var(--texto-noche) !important;
+    }
+  }
+
+  // ───────────────────────── Superficies ─────────────────────────
+
+  .v-card {
+    border: 1px solid var(--linea);
+    box-shadow: none !important;
+    color: var(--texto);
+
+    &.v-card--variant-text,
+    &.v-card--variant-plain {
+      border: 0;
+    }
+  }
+
+  .v-card-title {
+    font-size: var(--t-body);
+    font-weight: 700;
+    line-height: var(--lh-h3);
+  }
+
+  .v-card-subtitle {
+    color: var(--texto-2);
+  }
+
+  .v-card-text {
+    font-size: var(--t-body);
+    line-height: var(--lh-body);
+  }
+
+  .v-sheet {
+    box-shadow: none;
+  }
+
+  .v-overlay__content {
+    box-shadow: none !important;
+  }
+
+  // Menús, select y autocomplete
+  .v-menu > .v-overlay__content {
+    border: 1px solid var(--linea);
+    border-radius: var(--r-control);
+    background: var(--superficie);
+
+    > .v-card {
+      border: 0;
+    }
+  }
+
+  // Diálogo (guía §15): superficie, borde --linea, radio --r-superficie, sin sombra; velo --velo (theme.ts)
+  .v-dialog:not(.v-dialog--fullscreen) > .v-overlay__content > .v-card,
+  .v-dialog:not(.v-dialog--fullscreen) > .v-overlay__content > .v-sheet {
+    border: 1px solid var(--linea);
+    border-radius: var(--r-superficie);
+
+    // Padding --s-6 (guía §15) alineado entre título, texto y acciones
+    > .v-card-title,
+    > .v-card-item,
+    > .v-card-text,
+    > .v-card-actions {
+      padding-inline: var(--s-6);
+    }
+
+    > .v-card-title:first-child,
+    > .v-card-item:first-child {
+      padding-block-start: var(--s-6);
+    }
+
+    > .v-card-actions:last-child {
+      padding-block-end: var(--s-6);
+    }
+  }
+
+  .v-list {
+    box-shadow: none;
+  }
+
+  .v-list-item {
+    &:focus-visible {
+      outline: 3px solid var(--foco);
+      outline-offset: -3px;
+    }
+  }
+
+  .v-list-item-subtitle {
+    color: var(--texto-2);
+  }
+
+  .v-expansion-panel-title:focus-visible {
+    outline: 3px solid var(--foco);
+    outline-offset: -3px;
+  }
+
+  // ───────────────────────── Campos (guía §8.3, D9: etiqueta flotante de Vuetify) ─────────────────────────
+
+  .v-field {
+    box-shadow: none !important;
+  }
+
+  .v-field.v-field--variant-outlined {
+    background: var(--superficie);
+    color: var(--texto);
+
+    .v-field__outline {
+      --v-field-border-width: 1px;
+      --v-field-border-opacity: 1;
+
+      box-shadow: none !important;
+      color: var(--borde-control) !important;
+    }
+
+    // Hover sin cambio (guía §8.3)
+    &:hover .v-field__outline {
+      --v-field-border-opacity: 1 !important;
+    }
+
+    &.v-field--error .v-field__outline {
+      --v-field-border-width: 1px;
+
+      color: var(--error) !important;
+    }
+  }
+
+  // Foco: anillo de 3px a 3px; el borde no se engrosa
+  .v-field.v-field--focused {
+    outline: 3px solid var(--foco);
+    outline-offset: 3px;
+  }
+
+  .v-input .v-field .v-field__input {
+    color: var(--texto);
+    font-size: var(--t-body);
+  }
+
+  .v-field__input input::placeholder,
+  input.v-field__input::placeholder,
+  textarea.v-field__input::placeholder {
+    color: var(--texto-2) !important;
+  }
+
+  .v-field .v-field-label,
+  .v-label:not(.v-field-label--floating) {
+    color: var(--texto-2) !important;
+  }
+
+  .v-field.v-field--error .v-field-label {
+    color: var(--error) !important;
+  }
+
+  .v-messages {
+    color: var(--texto-2);
+    font-size: var(--t-small);
+  }
+
+  // Vuetify fija 12px de interlineado: con --t-small las pistas de dos líneas se montan
+  // y .v-input__details (overflow: hidden) corta los descendentes.
+  .v-messages__message {
+    line-height: var(--lh-small);
+  }
+
+  .v-input.v-input--error .v-input__details .v-messages {
+    color: var(--error);
+  }
+
+  // Vuexy tiñe la pista con el color del campo enfocado: aquí se queda en --texto-2
+  .v-input:not(.v-input--error):has(.v-field.v-field--focused .v-field__outline[class]) .v-messages {
+    color: var(--texto-2);
+  }
+
+  // Casillas, radios y switch: color --acento, sin sombras
+  .v-selection-control .v-selection-control__wrapper.text-primary {
+    color: var(--acento) !important;
+  }
+
+  .v-selection-control.v-selection-control--focus-visible .v-selection-control__input {
+    border-radius: var(--r-control);
+    outline: 3px solid var(--foco);
+  }
+
+  .v-checkbox-btn .v-selection-control__input .v-icon {
+    filter: none !important;
+  }
+
+  .v-switch {
+    .v-switch__track,
+    .v-switch__thumb {
+      box-shadow: none !important;
+    }
+
+    .v-switch__track.bg-primary {
+      background-color: var(--acento) !important;
+    }
+  }
+
+  // ───────────────────────── Avisos (guía §15: sin rellenos de color) ─────────────────────────
+
+  .v-alert {
+    padding: var(--s-4);
+    border: 1px solid var(--linea);
+    border-radius: var(--r-control) !important;
+    background: var(--superficie) !important;
+    box-shadow: none !important;
+    color: var(--texto) !important;
+
+    > .v-alert__underlay {
+      display: none;
+    }
+
+    .v-alert-title {
+      font-size: var(--t-body);
+      font-weight: 700;
+    }
+
+    .v-alert__content {
+      line-height: var(--lh-body);
+    }
+  }
+
+  // El ícono va en --acento (error en --error), sin la caja de color de Vuexy
+  .v-alert:not(.v-alert--prominent)[class] .v-alert__prepend {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .v-alert:not(.v-alert--prominent)[class] .v-alert__prepend .v-icon {
+    color: var(--acento) !important;
+  }
+
+  .v-alert.text-error,
+  .v-alert.bg-error {
+    border-color: var(--error);
+  }
+
+  .v-alert.text-error:not(.v-alert--prominent)[class] .v-alert__prepend .v-icon,
+  .v-alert.bg-error:not(.v-alert--prominent)[class] .v-alert__prepend .v-icon {
+    color: var(--error) !important;
+  }
+
+  // Snackbar (D10): aviso plano, superficie y borde --linea; check en --acento cuando es éxito
+  .v-snackbar .v-snackbar__wrapper {
+    border: 1px solid var(--linea);
+    border-radius: var(--r-control);
+    background-color: var(--superficie) !important;
+    box-shadow: none !important;
+    color: var(--texto) !important;
+
+    &.bg-error {
+      border-color: var(--error);
+    }
+
+    > .v-snackbar__underlay {
+      display: none;
+    }
+  }
+
+  .v-snackbar .v-snackbar__content {
+    font-size: var(--t-body);
+    line-height: var(--lh-small);
+  }
+
+  .v-snackbar .v-snackbar__wrapper.bg-success .v-snackbar__content {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+
+    &::before {
+      flex: none;
+      background-color: var(--acento);
+      block-size: 20px;
+      content: "";
+      inline-size: 20px;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5l10 -10'/%3E%3C/svg%3E") center / contain no-repeat;
+    }
+  }
+
+  // ───────────────────────── Chips (guía §15: chip neutro; §8.8: .chip-premio) ─────────────────────────
+
+  .v-chip:is(.v-chip--size-x-small, .v-chip--size-small, .v-chip--size-default, .v-chip--size-large, .v-chip--size-x-large) {
+    border: 1px solid var(--linea);
+    border-radius: var(--r-control) !important;
+    background-color: transparent !important;
+    block-size: auto;
+    box-shadow: none;
+    color: var(--texto-2) !important;
+    font-size: var(--t-small);
+    font-weight: 700;
+    line-height: var(--lh-small);
+    padding-block: var(--s-1);
+    padding-inline: var(--s-3);
+    text-transform: none;
+
+    > .v-chip__underlay,
+    > .v-chip__overlay {
+      display: none;
+    }
+  }
+
+  .v-chip.chip-premio {
+    border-color: transparent;
+    background-color: var(--premio) !important;
+    color: var(--tinta) !important;
+  }
+
+  // ───────────────────────── Avatar tonal ─────────────────────────
+
+  .v-avatar.v-avatar--variant-tonal {
+    border-radius: var(--r-control) !important;
+    background-color: var(--violeta-suave);
+    color: var(--texto) !important;
+    font-weight: 800;
+
+    > .v-avatar__underlay {
+      display: none;
+    }
+  }
+
+  // ───────────────────────── Carga y progreso ─────────────────────────
+
+  // Esqueleto estático (guía §15): huesos en --linea, sin brillo
+  .v-skeleton-loader .v-skeleton-loader__bone::after {
+    display: none;
+  }
+
+  // Pista --linea, relleno --acento (o el color que pase la página)
+  .v-progress-linear .v-progress-linear__background {
+    background: var(--linea) !important;
+    opacity: 1 !important;
+  }
+
+  .v-progress-linear .v-progress-linear__determinate.bg-primary,
+  .v-progress-linear .v-progress-linear__indeterminate .bg-primary {
+    background-color: var(--acento) !important;
+  }
+
+  // Sin color: Vuetify usa currentColor (el texto); la guía pide --acento
+  .v-progress-linear .v-progress-linear__determinate:not([class*="bg-"], [style*="background"]),
+  .v-progress-linear .v-progress-linear__indeterminate > :not([class*="bg-"], [style*="background"]) {
+    background-color: var(--acento);
+  }
+
+  // Movimiento reducido (guía §7.3): la regla global corta las animaciones a 0.01ms y los
+  // indicadores indeterminados se quedaban en su primer cuadro (un punto, o nada). Aquí quedan
+  // como un indicador estático: un cuarto de anillo sobre la pista y un tramo de barra.
+  @media (prefers-reduced-motion: reduce) {
+    .v-progress-circular--indeterminate > svg,
+    .v-progress-circular--indeterminate .v-progress-circular__overlay {
+      animation: none !important;
+    }
+
+    .v-progress-circular--indeterminate .v-progress-circular__overlay {
+      stroke-dasharray: 25, 200;
+      stroke-dashoffset: 0;
+    }
+
+    .v-progress-circular--indeterminate .v-progress-circular__underlay {
+      stroke: var(--linea);
+    }
+
+    .v-progress-linear__indeterminate .long,
+    .v-progress-linear__indeterminate .short {
+      animation: none !important;
+    }
+
+    .v-progress-linear__indeterminate .long {
+      inset-inline: 0 60%;
+    }
+
+    .v-progress-linear__indeterminate .short {
+      display: none;
+    }
+  }
+
+  // ───────────────────────── Pestañas y toggle: control segmentado (guía §8.4) ─────────────────────────
+
+  .v-tabs:not(.v-tabs--vertical) {
+    --v-tabs-height: var(--objetivo-tactil);
+
+    padding: var(--s-1);
+    border: 1px solid var(--linea);
+    border-radius: var(--r-control);
+    background: var(--superficie);
+    block-size: auto;
+
+    .v-slide-group__content {
+      gap: var(--s-1);
+    }
+
+    .v-tab.v-btn {
+      border-radius: calc(var(--r-control) - var(--s-1)) !important;
+      block-size: var(--objetivo-tactil);
+      color: var(--texto-2) !important;
+      font-size: var(--t-body);
+      font-weight: 700;
+      padding-inline: var(--s-4);
+      text-decoration-line: none;
+
+      &:hover:not(.v-tab--selected) {
+        color: var(--texto) !important;
+      }
+
+      &.v-tab--selected {
+        background-color: var(--violeta);
+        color: var(--papel) !important;
+      }
+
+      .v-tab__slider {
+        display: none;
+      }
+    }
+  }
+
+  .v-btn-group.v-btn-toggle {
+    align-items: stretch;
+    padding: var(--s-1);
+    border: 1px solid var(--linea);
+    border-radius: var(--r-control) !important;
+    background: var(--superficie);
+    block-size: auto;
+    gap: var(--s-1);
+
+    .v-btn.v-btn {
+      border: 0;
+      border-radius: calc(var(--r-control) - var(--s-1)) !important;
+      background-color: transparent !important;
+      block-size: var(--objetivo-tactil) !important;
+      color: var(--texto-2) !important;
+      font-weight: 700;
+      inline-size: auto !important;
+      padding-inline: var(--s-4);
+      text-decoration-line: none;
+
+      &:hover:not(.v-btn--active) {
+        color: var(--texto) !important;
+      }
+
+      &.v-btn--active {
+        background-color: var(--violeta) !important;
+        color: var(--papel) !important;
+      }
+
+      // Vuexy pinta los íconos del toggle en on-surface; aquí siguen el color del botón
+      /* stylelint-disable-next-line no-descending-specificity */
+      .v-icon {
+        color: inherit !important;
+      }
+    }
+  }
+}

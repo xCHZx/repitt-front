@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { MeCard } from '@/api/types'
+import { progressLabel } from '@/components/stampCard/stampCard'
 import StampProgress from '@/components/visitor/StampProgress.vue'
 import { accentOf, initialOf, isRedeemable, requiredOf } from '@/components/visitor/wallet'
 
-// Wallet entry (MeCardDto, guide §4.C.2).
+// Wallet entry (MeCardDto, guide §4.C.2). Fila plana (plan 2026-10-08 §2B): el color de la tarjeta
+// solo en el filete, el avatar y los sellos; «premio listo» con .chip-premio.
 
 const props = withDefaults(defineProps<{
   item: MeCard
@@ -23,20 +26,16 @@ const required = computed(() => requiredOf(props.item))
   <VCard
     rounded="xl"
     :to="props.to"
-    :style="{
-      borderInlineStart: `4px solid ${accentColor}`,
-      background: `linear-gradient(to right, ${accentColor}10, transparent 55%)`,
-      opacity: props.dimmed ? 0.6 : 1,
-      ...(redeemable ? { boxShadow: '0 0 0 2px rgb(var(--v-theme-success)), 0 4px 24px rgba(var(--v-theme-success), 0.35)' } : {}),
-    }"
+    class="fila-tarjeta"
+    :class="{ 'fila-tarjeta--atenuada': props.dimmed }"
+    :style="{ '--c': accentColor }"
   >
     <VCardText class="pa-4">
       <div class="d-flex align-center gap-3 mb-4">
         <VAvatar
           rounded="lg"
           :size="48"
-          color="primary"
-          variant="tonal"
+          class="fila-tarjeta__avatar"
         >
           <VImg
             v-if="props.item.business.logoUrl"
@@ -61,18 +60,14 @@ const required = computed(() => requiredOf(props.item))
           <VChip
             v-if="redeemable"
             size="small"
-            variant="flat"
-            color="warning"
             prepend-icon="tabler-gift"
-            class="font-weight-bold"
+            class="chip-premio"
           >
             ¡A canjear!
           </VChip>
           <VChip
             v-else-if="props.item.cycle.status === 'redeemed'"
             size="small"
-            variant="tonal"
-            color="success"
             prepend-icon="tabler-check"
           >
             Canjeada
@@ -81,11 +76,8 @@ const required = computed(() => requiredOf(props.item))
             v-else
             class="text-end"
           >
-            <div
-              class="text-h6 font-weight-bold"
-              :style="{ color: accentColor }"
-            >
-              {{ props.item.cycle.stampsCount }}/{{ required }}
+            <div class="fila-tarjeta__cuenta text-h6 font-weight-bold text-no-wrap">
+              {{ progressLabel(props.item.cycle.stampsCount, required) }}
             </div>
             <div class="text-caption text-medium-emphasis">
               sellos
@@ -98,6 +90,7 @@ const required = computed(() => requiredOf(props.item))
         :count="props.item.cycle.stampsCount"
         :required="required"
         :color="accentColor"
+        :icon-url="props.item.card.iconUrl"
         class="mb-3"
       />
 
@@ -110,7 +103,6 @@ const required = computed(() => requiredOf(props.item))
         <VChip
           v-if="!props.item.card.isActive"
           size="x-small"
-          variant="tonal"
           class="ms-auto flex-shrink-0"
         >
           No disponible
@@ -119,3 +111,23 @@ const required = computed(() => requiredOf(props.item))
     </VCardText>
   </VCard>
 </template>
+
+<style scoped>
+/* Filete de 3px del color de la tarjeta en el lado inicial; el resto del borde es --linea */
+.v-card.fila-tarjeta {
+  border-inline-start: 3px solid var(--c);
+}
+
+.v-card.fila-tarjeta--atenuada {
+  opacity: 0.6;
+}
+
+.fila-tarjeta__avatar {
+  background-color: color-mix(in srgb, var(--c) 16%, transparent);
+  color: var(--texto);
+}
+
+.fila-tarjeta__cuenta {
+  font-variant-numeric: tabular-nums;
+}
+</style>

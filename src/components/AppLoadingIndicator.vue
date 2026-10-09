@@ -49,15 +49,23 @@ defineExpose({
   <!-- loading state via #fallback slot -->
   <div
     v-if="showProgress"
-    class="position-fixed"
-    style="z-index: 9999; inset-block-start: 0; inset-inline: 0 0;"
+    class="app-loading-indicator"
   >
     <VProgressLinear
       v-model="progressValue"
       :buffer-value="bufferValue"
       color="primary"
       height="2"
-      bg-color="background"
     />
   </div>
 </template>
+
+<style scoped>
+/* Barra de carga de ruta: pista --linea y relleno --acento (los pone la capa global de Vuetify) */
+.app-loading-indicator {
+  position: fixed;
+  z-index: 9999;
+  inset-block-start: 0;
+  inset-inline: 0;
+}
+</style>

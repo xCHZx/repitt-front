@@ -33,15 +33,11 @@ async function onSubmit(event: SubmitEventPromise) {
 </script>
 
 <template>
-  <div
-    v-if="sent"
-    class="text-center"
-  >
+  <div v-if="sent">
     <div class="auth-status-icon auth-status-icon--success mb-4">
       <VIcon
         icon="tabler-mail-check"
-        size="40"
-        color="success"
+        size="32"
       />
     </div>
     <div class="text-h6 font-weight-bold mb-2">

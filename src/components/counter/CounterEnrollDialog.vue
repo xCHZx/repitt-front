@@ -169,7 +169,7 @@ function redeemPending() {
   >
     <VCard rounded="xl">
       <VCardText class="pa-5">
-        <div class="text-center mb-5">
+        <div class="mb-5">
           <VAvatar
             color="primary"
             variant="tonal"
@@ -320,9 +320,9 @@ function redeemPending() {
 
 <style scoped>
 .counter-privacy {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  border-radius: 12px;
-  padding-block: 12px;
-  padding-inline: 14px;
+  border: 1px solid var(--linea);
+  border-radius: var(--r-control);
+  padding-block: var(--s-3);
+  padding-inline: var(--s-4);
 }
 </style>

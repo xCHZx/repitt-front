@@ -173,13 +173,12 @@ function back() {
 
       <div
         v-else
-        class="text-center py-4"
+        class="py-4"
       >
         <VIcon
           icon="tabler-circle-check"
           size="56"
-          color="success"
-          class="mb-3"
+          class="mb-3 icono-exito"
         />
         <div class="text-h6 font-weight-bold mb-1">
           Teléfono actualizado
@@ -198,3 +197,10 @@ function back() {
     </VCardText>
   </VCard>
 </template>
+
+<style scoped>
+/* Éxito (guía §15): check en --acento, nunca --canje */
+.icono-exito {
+  color: var(--acento);
+}
+</style>

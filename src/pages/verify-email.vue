@@ -98,15 +98,13 @@ onMounted(verify)
 
 <template>
   <AuthShell>
-    <div class="text-center">
+    <div>
       <template v-if="state === 'verifying'">
-        <VProgressCircular
-          indeterminate
-          color="primary"
-          size="48"
-          class="my-6"
-        />
-        <p class="text-body-1 mb-0">
+        <!-- Carga en texto, sin spinner en bucle (guía §15) -->
+        <p
+          class="text-body-1 mb-0"
+          role="status"
+        >
           Verificando tu correo…
         </p>
       </template>
@@ -115,8 +113,7 @@ onMounted(verify)
         <div class="auth-status-icon auth-status-icon--success mb-4">
           <VIcon
             icon="tabler-mail-check"
-            size="40"
-            color="success"
+            size="32"
           />
         </div>
         <div class="text-h6 font-weight-bold mb-2">
@@ -140,8 +137,7 @@ onMounted(verify)
         <div class="auth-status-icon auth-status-icon--warning mb-4">
           <VIcon
             icon="tabler-link-off"
-            size="40"
-            color="warning"
+            size="32"
           />
         </div>
         <div class="text-h6 font-weight-bold mb-2">
@@ -158,13 +154,13 @@ onMounted(verify)
             variant="tonal"
             rounded="lg"
             density="compact"
-            class="mb-4 text-start"
+            class="mb-4"
           >
             Te enviamos un enlace nuevo. Revisa tu correo.
           </VAlert>
           <ApiErrorAlert
             :error="resendError.error.value"
-            class="mb-4 text-start"
+            class="mb-4"
           />
           <VBtn
             block
@@ -198,8 +194,7 @@ onMounted(verify)
         <div class="auth-status-icon auth-status-icon--error mb-4">
           <VIcon
             icon="tabler-mail-x"
-            size="40"
-            color="error"
+            size="32"
           />
         </div>
         <div class="text-h6 font-weight-bold mb-2">
@@ -222,7 +217,7 @@ onMounted(verify)
       <template v-else>
         <ApiErrorAlert
           :error="error"
-          class="mb-4 text-start"
+          class="mb-4"
         />
         <VBtn
           block

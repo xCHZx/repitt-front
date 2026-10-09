@@ -1,0 +1,33 @@
+/*
+ * Familias de la guía (§3.1). Las fuentes reales llegan de Google Fonts por el <link> de
+ * index.html (decisión D7 del plan 2026-10-08). Mientras cargan, se usa un respaldo sobre
+ * Arial con métricas ajustadas para que el texto no salte (valores de repitt-web,
+ * docs/diseno/plan-webapp.md §18.2). tokens.css las consume en --f-display y --f-texto.
+ */
+
+:root {
+  --font-anybody: "Anybody", "Anybody fallback", arial, sans-serif;
+  --font-jakarta: "Plus Jakarta Sans", "Plus Jakarta Sans fallback", arial, sans-serif;
+}
+
+@font-face {
+  ascent-override: 85.5034%;
+  descent-override: 25.8123%;
+  font-display: swap;
+  font-family: "Anybody fallback";
+  font-weight: 100 900;
+  line-gap-override: 0%;
+  size-adjust: 92.9788%;
+  src: local("Arial");
+}
+
+@font-face {
+  ascent-override: 98.8763%;
+  descent-override: 21.147%;
+  font-display: swap;
+  font-family: "Plus Jakarta Sans fallback";
+  font-weight: 200 800;
+  line-gap-override: 0%;
+  size-adjust: 104.9796%;
+  src: local("Arial");
+}

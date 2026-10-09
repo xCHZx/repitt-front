@@ -77,6 +77,8 @@ const goBack = () => {
             v-if="showBackButton"
             icon
             variant="text"
+            color="default"
+            class="topbar-btn"
             size="small"
             aria-label="Regresar"
             @click="goBack"
@@ -107,6 +109,8 @@ const goBack = () => {
             v-if="session.hasMemberships"
             icon
             variant="text"
+            color="default"
+            class="topbar-btn"
             size="small"
             title="Ir a mi negocio"
             aria-label="Ir a mi negocio"
@@ -139,113 +143,109 @@ const goBack = () => {
       </RouterView>
     </main>
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Navigation: two halves around the FAB, so it stays centered while long labels take the room they need -->
     <nav class="visitor-bottom-nav">
       <div class="bottom-nav-inner">
-        <RouterLink
-          to="/visitante"
-          class="nav-tab"
-          :class="{ 'nav-tab--active': isTabActive('inicio') }"
-        >
-          <VIcon
-            :icon="isTabActive('inicio') ? 'tabler-home-filled' : 'tabler-home'"
-            size="22"
-          />
-          <span>Inicio</span>
-        </RouterLink>
+        <div class="nav-group">
+          <RouterLink
+            to="/visitante"
+            class="nav-tab"
+            :class="{ 'nav-tab--active': isTabActive('inicio') }"
+          >
+            <VIcon
+              :icon="isTabActive('inicio') ? 'tabler-home-filled' : 'tabler-home'"
+              size="22"
+            />
+            <span>Inicio</span>
+          </RouterLink>
 
-        <RouterLink
-          to="/visitante/tarjetas"
-          class="nav-tab"
-          :class="{ 'nav-tab--active': isTabActive('tarjetas') }"
-        >
-          <VIcon
-            icon="tabler-cards"
-            size="22"
-          />
-          <span>Tarjetas</span>
-        </RouterLink>
+          <RouterLink
+            to="/visitante/tarjetas"
+            class="nav-tab"
+            :class="{ 'nav-tab--active': isTabActive('tarjetas') }"
+          >
+            <VIcon
+              icon="tabler-cards"
+              size="22"
+            />
+            <span>Tarjetas</span>
+          </RouterLink>
+        </div>
 
         <!-- Center FAB: QR -->
         <RouterLink
           to="/visitante/perfil/qr"
           class="nav-fab"
+          :class="{ 'nav-fab--active': isTabActive('qr') }"
         >
-          <div
-            class="nav-fab-btn"
-            :class="{ 'nav-fab-btn--active': isTabActive('qr') }"
-          >
+          <span class="nav-fab-btn">
             <VIcon
               icon="tabler-qrcode"
-              color="white"
               size="26"
             />
-          </div>
-          <span class="nav-fab-label">Mi QR</span>
+          </span>
+          <span>Mi QR</span>
         </RouterLink>
 
-        <RouterLink
-          to="/visitante/visitas"
-          class="nav-tab"
-          :class="{ 'nav-tab--active': isTabActive('actividad') }"
-        >
-          <VIcon
-            icon="tabler-activity"
-            size="22"
-          />
-          <span>Actividad</span>
-        </RouterLink>
+        <div class="nav-group">
+          <RouterLink
+            to="/visitante/visitas"
+            class="nav-tab"
+            :class="{ 'nav-tab--active': isTabActive('actividad') }"
+          >
+            <VIcon
+              icon="tabler-activity"
+              size="22"
+            />
+            <span>Actividad</span>
+          </RouterLink>
 
-        <RouterLink
-          to="/visitante/perfil"
-          class="nav-tab"
-          :class="{ 'nav-tab--active': isTabActive('perfil') }"
-        >
-          <VIcon
-            icon="tabler-user"
-            size="22"
-          />
-          <span>Perfil</span>
-        </RouterLink>
+          <RouterLink
+            to="/visitante/perfil"
+            class="nav-tab"
+            :class="{ 'nav-tab--active': isTabActive('perfil') }"
+          >
+            <VIcon
+              icon="tabler-user"
+              size="22"
+            />
+            <span>Perfil</span>
+          </RouterLink>
+        </div>
       </div>
     </nav>
   </div>
 </template>
 
-<style lang="scss">
-// Global font override
-* {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
-}
-
+<style lang="scss" scoped>
 .visitor-layout {
+  background-color: var(--fondo);
   min-block-size: 100vh;
-  background-color: rgb(var(--v-theme-background));
 }
 
-// ─── Top Bar ────────────────────────────────────────────
+// ─── Top Bar (guía §8.11): --cabecera-fondo + desenfoque + borde --linea ───
 .visitor-topbar {
   position: fixed;
+  z-index: 200;
+  backdrop-filter: blur(12px);
+  background: var(--cabecera-fondo);
+  block-size: var(--cabecera-alto);
+  border-block-end: 1px solid var(--linea);
   inset-block-start: 0;
   inset-inline: 0;
-  block-size: 56px;
-  background: rgba(var(--v-theme-surface), 0.92);
-  border-block-end: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  backdrop-filter: blur(12px);
-  z-index: 200;
 }
 
 .visitor-topbar-inner {
   display: flex;
   align-items: center;
   block-size: 100%;
-  padding-inline: 8px;
-  max-inline-size: 600px;
   margin-inline: auto;
+  max-inline-size: 600px;
+  padding-inline: var(--s-2);
 }
 
 .topbar-left {
-  min-inline-size: 48px;
+  min-inline-size: var(--s-7);
 }
 
 .topbar-logo {
@@ -256,110 +256,122 @@ const goBack = () => {
 
 .topbar-title {
   flex: 1;
-  text-align: center;
+  color: var(--texto);
+  font-size: var(--t-body);
   font-weight: 700;
-  font-size: 1rem;
-  color: rgb(var(--v-theme-on-surface));
+  text-align: center;
 }
 
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 2px;
   margin-inline-start: auto;
+}
+
+// Botones de ícono de la barra: --texto, hover --enlace (sin velo)
+.topbar-btn {
+  transition: color 160ms var(--ease-out);
+
+  &:hover {
+    color: var(--enlace);
+  }
 }
 
 // ─── Main Content ────────────────────────────────────────
 .visitor-main {
-  padding-block-start: 72px;
-  padding-block-end: calc(80px + env(safe-area-inset-bottom, 0px));
-  padding-inline: 16px;
-  max-inline-size: 600px;
   margin-inline: auto;
+  max-inline-size: 600px;
+  padding-block: calc(var(--cabecera-alto) + var(--s-4)) calc(var(--s-8) + var(--s-4) + env(safe-area-inset-bottom, 0px));
+  padding-inline: var(--s-4);
 }
 
-// ─── Bottom Navigation ───────────────────────────────────
+// ─── Bottom Navigation: sin sombra, solo el borde --linea ───
 .visitor-bottom-nav {
   position: fixed;
-  inset-block-end: 0;
-  inset-inline: 0;
-  block-size: calc(64px + env(safe-area-inset-bottom, 0px));
-  padding-block-end: env(safe-area-inset-bottom, 0px);
-  background: rgba(var(--v-theme-surface), 0.96);
-  border-block-start: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.08);
   z-index: 200;
   backdrop-filter: blur(12px);
+  background: var(--cabecera-fondo);
+  block-size: calc(var(--s-8) + env(safe-area-inset-bottom, 0px));
+  border-block-start: 1px solid var(--linea);
+  inset-block-end: 0;
+  inset-inline: 0;
+  padding-block-end: env(safe-area-inset-bottom, 0);
 }
 
 .bottom-nav-inner {
   display: flex;
-  align-items: center;
-  justify-content: space-around;
-  block-size: 64px;
-  padding-inline: 4px;
-  max-inline-size: 600px;
+  align-items: stretch;
+  block-size: var(--s-8);
   margin-inline: auto;
+  max-inline-size: 600px;
+}
+
+// Dos mitades iguales alrededor del FAB: el FAB queda centrado y cada pestaña toma el ancho de su etiqueta
+.nav-group {
+  display: flex;
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+
+// Etiquetas en --t-small y sin letter-spacing: «Actividad» + «Perfil» caben en media barra a 320px.
+.nav-tab,
+.nav-fab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--texto-2);
+  font-size: var(--t-small);
+  font-weight: 600;
+  gap: var(--s-1);
+  line-height: var(--lh-small);
+  text-decoration: none;
+  transition: color 160ms var(--ease-out);
+  white-space: nowrap;
 }
 
 .nav-tab {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex: 1 1 auto;
   justify-content: center;
-  gap: 3px;
-  color: rgba(var(--v-theme-on-surface), 0.38);
-  text-decoration: none;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  transition: color 0.2s ease;
-  padding-block: 8px;
-
-  &--active {
-    color: rgb(var(--v-theme-primary));
-  }
+  padding-block: var(--s-2);
 }
 
+// FAB: violeta plano, hover --violeta-tinta. Sobresale de la barra por su tamaño (el contenido
+// va abajo y desborda hacia arriba), sin transform, sin sombra y sin animación.
 .nav-fab {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex: none;
   justify-content: flex-end;
-  gap: 3px;
-  text-decoration: none;
-  padding-block-end: 6px;
+  padding-block-end: var(--s-2);
+  padding-inline: var(--s-1);
+}
+
+.nav-tab:hover,
+.nav-fab:hover {
+  color: var(--texto);
+}
+
+.nav-tab--active,
+.nav-fab--active {
+  &,
+  &:hover {
+    color: var(--enlace);
+    font-weight: 700;
+  }
 }
 
 .nav-fab-btn {
-  inline-size: 54px;
-  block-size: 54px;
-  border-radius: 50%;
-  background: linear-gradient(
-    145deg,
-    rgb(var(--v-theme-primary)) 0%,
-    rgb(var(--v-theme-primary-darken-1)) 100%
-  );
   display: flex;
+  flex: none;
   align-items: center;
   justify-content: center;
-  transform: translateY(-14px);
-  box-shadow: 0 4px 18px rgba(var(--v-global-theme-primary), 0.45);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-  &--active {
-    transform: translateY(-18px);
-    box-shadow: 0 6px 24px rgba(var(--v-global-theme-primary), 0.6);
-  }
+  border-radius: 50%;
+  background-color: var(--violeta);
+  block-size: var(--s-7);
+  color: var(--papel);
+  inline-size: var(--s-7);
+  transition: background-color 160ms var(--ease-out);
 }
 
-.nav-fab-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  color: rgb(var(--v-theme-primary));
-  margin-block-start: -2px;
+.nav-fab:hover .nav-fab-btn {
+  background-color: var(--violeta-tinta);
 }
 </style>

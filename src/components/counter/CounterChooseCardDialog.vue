@@ -53,7 +53,7 @@ function cancel() {
   >
     <VCard rounded="xl">
       <VCardText class="pa-5">
-        <div class="text-center mb-5">
+        <div class="mb-5">
           <VAvatar
             color="primary"
             variant="tonal"

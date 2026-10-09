@@ -117,6 +117,13 @@ function openRedeem(opts: { cycleId: string; code: string | null; summary: Redee
   Object.assign(redeem, opts, { open: true })
 }
 
+// Reward from the stamp response; color and icon from the published cards already loaded.
+function cardLookOf(card: { id: string; reward: string }) {
+  const full = cards.value.find(c => c.id === card.id)
+
+  return { reward: card.reward, primaryColor: full?.primaryColor, iconUrl: full?.iconUrl }
+}
+
 function onStamped(res: StampResult, redeemCode: string | null) {
   if (business.activeId) {
     addCounterRecent({
@@ -148,6 +155,7 @@ function onStamped(res: StampResult, redeemCode: string | null) {
     stampsCount: res.cycle.stampsCount,
     requiredStamps: res.cycle.requiredStamps,
     isTest: res.cycle.isTest,
+    ...cardLookOf(res.card),
   }
 }
 
@@ -310,6 +318,7 @@ function onEnrolled(res: CounterEnrollResult) {
     stampsCount: s?.cycle.stampsCount,
     requiredStamps: s?.cycle.requiredStamps,
     isTest: res.customer.isTest,
+    ...(s ? cardLookOf(s.card) : {}),
   }
 }
 
@@ -449,10 +458,10 @@ function onEnrollRedeemPending(cycleId: string) {
       @submit="onManual"
     />
 
-    <div class="text-center mb-6">
+    <div class="mb-6">
       <VBtn
         size="small"
-        color="warning"
+        variant="tonal"
         rounded="xl"
         prepend-icon="tabler-user-plus"
         @click="openEnroll"

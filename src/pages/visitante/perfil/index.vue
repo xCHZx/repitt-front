@@ -51,18 +51,18 @@ async function logout(everywhere: boolean) {
 <template>
   <div v-if="me">
     <!-- Identity -->
-    <div class="text-center mb-6">
+    <div class="mb-6">
       <VAvatar
         size="88"
         color="primary"
         variant="tonal"
         class="mb-4"
       >
-        <span class="text-h3 font-weight-bold">{{ initials }}</span>
+        <span class="text-h3">{{ initials }}</span>
       </VAvatar>
-      <div class="text-h5 font-weight-bold mb-2">
+      <h1 class="titulo-display mb-3">
         {{ fullName }}
-      </div>
+      </h1>
       <VChip
         color="primary"
         variant="tonal"
@@ -74,12 +74,12 @@ async function logout(everywhere: boolean) {
           icon="tabler-barcode"
           size="14"
         />
-        {{ formatRepittCode(me.repittCode) }}
+        <span class="codigo">{{ formatRepittCode(me.repittCode) }}</span>
       </VChip>
     </div>
 
     <!-- Personal data -->
-    <div class="section-label">
+    <div class="section-label mb-3">
       Mis datos
     </div>
     <VCard
@@ -142,7 +142,7 @@ async function logout(everywhere: boolean) {
     </VCard>
 
     <!-- Shortcuts -->
-    <div class="section-label">
+    <div class="section-label mb-3">
       Más opciones
     </div>
     <VCard
@@ -263,12 +263,8 @@ async function logout(everywhere: boolean) {
 </template>
 
 <style scoped>
-.section-label {
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  margin-block-end: 10px;
-  text-transform: uppercase;
+.codigo {
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
 }
 </style>

@@ -13,6 +13,23 @@ initCore()
 initConfigStore()
 
 const configStore = useConfigStore()
+
+// Los tokens (src/styles/tokens.css) cambian con <html data-theme>: se alinea con el tema resuelto
+// de Vuetify (light/dark/system ya resuelto) y la barra del navegador toma el --fondo del tema.
+const THEME_COLOR = { light: '#f7f6fe', dark: '#25293c' } as const
+
+watch(
+  () => global.name.value,
+  name => {
+    const theme = name === 'dark' ? 'dark' : 'light'
+
+    document.documentElement.dataset.theme = theme
+    document.querySelectorAll('meta[name="theme-color"]').forEach(meta => {
+      meta.setAttribute('content', THEME_COLOR[theme])
+    })
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

@@ -15,7 +15,6 @@ const props = defineProps<{
         <VIcon
           icon="tabler-cards"
           size="13"
-          color="primary"
         />
         Por tarjeta
       </div>
@@ -63,22 +62,9 @@ const props = defineProps<{
 
     <VCardText
       v-else
-      class="text-center text-medium-emphasis py-6"
+      class="text-medium-emphasis py-6"
     >
       Sin movimientos en este periodo
     </VCardText>
   </VCard>
 </template>
-
-<style scoped>
-.section-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 600;
-  gap: 5px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-</style>

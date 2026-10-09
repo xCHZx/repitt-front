@@ -1,0 +1,169 @@
+// Base de la app con la guía de la landing (plan 2026-10-08, §1.1). Sale de repitt-web/src/styles/base.css
+// sin los selectores genéricos que chocarían con Vuexy (.container, .section, .button, p { max-inline-size }).
+// Todo valor sale de src/styles/tokens.css.
+
+// Documento: Jakarta a 17px/1.6 sobre --fondo. Gana al `body { font-size: 15px !important }`
+// de src/@core/scss/template/libs/vuetify/overrides.scss.
+html body {
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--f-texto);
+  font-size: var(--t-body) !important;
+  line-height: var(--lh-body);
+}
+
+// Foco visible global (guía §9.2). :where() deja la especificidad en 0; vuetify.scss lo repite
+// donde Vuetify pone `outline: none` (botones, elementos de lista, paneles).
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  border-radius: var(--r-control);
+  outline: 3px solid var(--foco);
+  outline-offset: 3px;
+}
+
+// ───────────────────────── Utilidades ─────────────────────────
+
+// Etiqueta de grupo (guía §3.3): reemplaza las copias locales de .section-label, sin mayúsculas ni tracking.
+.section-label {
+  display: flex;
+  align-items: center;
+  color: var(--texto-2);
+  font-size: var(--t-small);
+  font-weight: 700;
+  gap: var(--s-2);
+  line-height: var(--lh-small);
+}
+
+// Panel de superficie (guía §8.5) con la densidad «aplicación» (§15.1). Uno por bloque.
+.panel {
+  display: grid;
+  padding: var(--s-5);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-superficie);
+  background: var(--superficie);
+  color: var(--texto);
+  gap: var(--s-4);
+}
+
+// Título de pantalla (guía §15.1): Anybody 800 al 72%, tamaño --t-h2-compacto.
+.titulo-display {
+  color: var(--texto);
+  font-family: var(--f-display);
+  font-size: var(--t-h2-compacto);
+  font-stretch: var(--display-ancho);
+  font-weight: 800;
+  line-height: var(--lh-h2);
+  text-wrap: balance;
+}
+
+// Cifra protagonista: Anybody 800 al 72% con números tabulares. El tamaño se puede cambiar
+// con una clase text-h* (que también es display) o con font-size local desde un token.
+.cifra {
+  font-family: var(--f-display);
+  font-size: var(--t-h2-compacto);
+  font-stretch: var(--display-ancho);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: var(--lh-h2);
+}
+
+// Chip «Premio listo» / «A canjear» (guía §8.8). Existe solo para ese estado.
+.chip-premio {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--r-control);
+  background: var(--premio);
+  color: var(--tinta);
+  font-size: var(--t-small);
+  font-weight: 700;
+  gap: var(--s-1);
+  line-height: var(--lh-small);
+  padding-block: var(--s-1);
+  padding-inline: var(--s-3);
+  white-space: nowrap;
+}
+
+// Medida de párrafo (guía §3.4): ~72 caracteres por línea.
+.medida {
+  max-inline-size: 32em;
+}
+
+// Contexto noche (guía §2.4): oscuro en los dos temas, reasigna los roles de texto.
+.section--night {
+  --texto: var(--texto-noche);
+  --texto-2: var(--texto-noche-2);
+  --enlace: var(--enlace-noche);
+  --foco: var(--enlace-noche);
+
+  background-color: var(--noche);
+  background-image: radial-gradient(circle, var(--noche-punto) 1px, transparent 1.5px);
+  background-size: 22px 22px;
+  color: var(--texto-noche);
+}
+
+// Banda tonal (guía §2.4): el texto secundario y las líneas se ajustan a su fondo.
+.section--tono {
+  --texto-2: var(--banda-texto-2);
+  --linea: var(--banda-linea);
+
+  background-color: var(--banda);
+}
+
+// Tapete de puntos (guía §5.4): solo detrás de la pieza central.
+.dots {
+  background-image: radial-gradient(circle, var(--tapete-punto) 1px, transparent 1.5px);
+
+  // El reset de Vuetify pone background-repeat: no-repeat a todo; sin esto sale un solo punto.
+  background-repeat: repeat;
+  background-size: 22px 22px;
+}
+
+.lead {
+  font-size: var(--t-lead);
+  line-height: var(--lh-lead);
+}
+
+.note {
+  color: var(--texto-2);
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+}
+
+.sr-only {
+  position: absolute;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  margin: -1px;
+  block-size: 1px;
+  clip-path: inset(50%);
+  inline-size: 1px;
+  white-space: nowrap;
+}
+
+// Golpe de tinta del sello (guía §7.2): solo al sellar.
+@keyframes stamp-ink {
+  from {
+    filter: blur(1px);
+    opacity: 0;
+    transform: rotate(var(--angle, 0deg)) scale(1.35);
+  }
+
+  to {
+    filter: blur(0);
+    opacity: 1;
+    transform: rotate(var(--angle, 0deg)) scale(1);
+  }
+}
+
+// Movimiento reducido (guía §7.3): el estado final se ve directo.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-delay: 0s !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+  }
+}

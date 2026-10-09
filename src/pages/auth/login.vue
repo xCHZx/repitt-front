@@ -82,16 +82,18 @@ function onPhoneVerified(result: OtpSession) {
         class="mb-4"
       >
         No pudimos conectar con el servidor para recuperar tu sesión.
-        <template #append>
+        <!-- Acción debajo del texto (como en el registro): a 375px, en #append dejaba el texto en una columna de ~130px -->
+        <div>
           <VBtn
             size="small"
             variant="text"
+            class="mt-1"
             :loading="isRetryingBoot"
             @click="retryBoot"
           >
             Reintentar
           </VBtn>
-        </template>
+        </div>
       </VAlert>
 
       <div
@@ -101,7 +103,6 @@ function onPhoneVerified(result: OtpSession) {
         <VCard
           v-for="m in modes"
           :key="m.value"
-          rounded="xl"
           class="type-card"
           :class="{ 'type-card--active': mode === m.value }"
           role="button"
@@ -111,19 +112,14 @@ function onPhoneVerified(result: OtpSession) {
           <VIcon
             v-if="mode === m.value"
             icon="tabler-circle-check-filled"
-            color="primary"
-            size="28"
+            size="24"
             class="type-card__check"
           />
-          <VCardText class="pa-4 text-center">
-            <div
-              class="type-card__icon mb-3"
-              :class="{ 'type-card__icon--active': mode === m.value }"
-            >
+          <VCardText class="pa-4">
+            <div class="type-card__icon mb-3">
               <VIcon
                 :icon="m.icon"
-                size="28"
-                color="primary"
+                size="24"
               />
             </div>
             <div class="text-body-2 font-weight-bold mb-1">
@@ -161,11 +157,11 @@ function onPhoneVerified(result: OtpSession) {
       <template v-if="phoneStep === 'phone'">
         <VDivider class="my-5" />
 
-        <div class="text-center text-body-2">
+        <div class="text-body-2">
           ¿Tienes un negocio y aún no tienes cuenta?
           <RouterLink
             to="/auth/registro/negocio"
-            class="text-primary font-weight-bold ms-1"
+            class="auth-link font-weight-bold ms-1"
           >
             Regístralo
           </RouterLink>
@@ -178,26 +174,41 @@ function onPhoneVerified(result: OtpSession) {
 <style scoped lang="scss">
 .type-cards {
   display: grid;
-  gap: 12px;
+  gap: var(--s-3);
   grid-template-columns: 1fr 1fr;
 }
 
+// Opción de formulario en lenguaje tonal (guía §8.4): elegida = borde --enlace + fondo
+// --violeta-suave, texto en --texto e ícono en --enlace. Sin sombra ni anillo.
 .type-card {
   position: relative;
   overflow: visible;
-  border: 2px solid transparent;
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
 
-  &--active {
-    border-color: rgb(var(--v-theme-primary));
-    box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.15), 0 4px 20px rgba(var(--v-theme-primary), 0.25);
+  &:hover {
+    border-color: var(--borde-control);
+  }
+
+  // Doble clase: gana al borde --linea de `:root body .v-card` (src/styles/vuetify.scss)
+  &.type-card--active,
+  &.type-card--active:hover {
+    border-color: var(--enlace);
+    background-color: var(--violeta-suave);
+    color: var(--texto);
+  }
+
+  // Sin velo de hover de Vuetify: el hover cambia el borde
+  /* stylelint-disable-next-line selector-pseudo-class-no-unknown */
+  :deep(.v-card__overlay) {
+    display: none;
   }
 
   &__check {
     position: absolute;
-    inset-block-start: -10px;
-    inset-inline-end: -10px;
+    color: var(--enlace);
+    inset-block-start: var(--s-2);
+    inset-inline-end: var(--s-2);
   }
 }
 
@@ -205,14 +216,14 @@ function onPhoneVerified(result: OtpSession) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: rgba(var(--v-theme-primary), 0.08);
-  block-size: 56px;
-  inline-size: 56px;
-  transition: background 0.2s ease;
+  border-radius: var(--r-control);
+  background: var(--violeta-suave);
+  block-size: var(--s-7);
+  color: var(--enlace);
+  inline-size: var(--s-7);
+}
 
-  &--active {
-    background: rgba(var(--v-theme-primary), 0.15);
-  }
+.type-card--active .type-card__icon {
+  background: transparent;
 }
 </style>

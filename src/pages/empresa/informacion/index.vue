@@ -149,27 +149,14 @@ onMounted(() => {
       </VBtn>
       <div
         v-else
-        class="text-caption text-medium-emphasis text-center mb-4"
+        class="text-caption text-medium-emphasis mb-4"
       >
         Tu página pública no se muestra mientras el negocio esté en pausa.
       </div>
 
-      <div class="text-caption text-disabled text-center">
+      <div class="text-caption text-medium-emphasis">
         Para cerrar definitivamente tu negocio, escríbenos a soporte.
       </div>
     </template>
   </div>
 </template>
-
-<style scoped>
-.section-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 700;
-  gap: 5px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-</style>

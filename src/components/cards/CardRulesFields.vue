@@ -45,7 +45,7 @@ const intInRange = (min: number, max: number) => (v: unknown) => {
           v-for="i in form.requiredStamps"
           :key="i"
           class="dot-mini"
-          :style="{ background: tint(form.primaryColor, '25'), borderColor: tint(form.primaryColor, '') }"
+          :style="{ '--c': tint(form.primaryColor, '') }"
         />
       </div>
       <VSlider
@@ -129,16 +129,17 @@ const intInRange = (min: number, max: number) => (v: unknown) => {
   </VCard>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .dots-preview {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  margin-block-end: 4px;
+  gap: var(--s-1);
+  margin-block-end: var(--s-1);
 }
 
+// Sello vacío de la guía (§8.9): punteado del color de la tarjeta al 35%.
 .dot-mini {
-  border: 2px solid;
+  border: 2px dotted color-mix(in srgb, var(--c) 35%, transparent);
   border-radius: 50%;
   block-size: 20px;
   inline-size: 20px;

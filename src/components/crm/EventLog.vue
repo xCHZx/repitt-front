@@ -189,28 +189,27 @@ onMounted(() => {
       </VBtn>
     </div>
 
-    <VExpandTransition>
-      <VCard
-        v-show="showFilters"
-        rounded="xl"
-        class="mb-4"
-      >
-        <VCardText class="pa-4">
-          <EventFilters
-            v-model="filters"
-            :cards="cardOptions"
-            :cards-loading="cardsLoading"
-            :hide-card="!!fixedCardId"
-            :field-errors="fieldErrors"
-          />
-        </VCardText>
-      </VCard>
-    </VExpandTransition>
+    <!-- Sin animación de despliegue: el panel aparece en su estado final (guía §7) -->
+    <VCard
+      v-show="showFilters"
+      rounded="xl"
+      class="mb-4"
+    >
+      <VCardText class="pa-4">
+        <EventFilters
+          v-model="filters"
+          :cards="cardOptions"
+          :cards-loading="cardsLoading"
+          :hide-card="!!fixedCardId"
+          :field-errors="fieldErrors"
+        />
+      </VCardText>
+    </VCard>
 
     <!-- Invalid range: nothing is queried until it is fixed -->
     <div
       v-if="rangeInvalid"
-      class="d-flex flex-column align-center justify-center text-center pa-8"
+      class="d-flex flex-column align-start pa-8"
     >
       <VIcon
         icon="tabler-calendar-x"
@@ -251,7 +250,7 @@ onMounted(() => {
       <!-- Empty state -->
       <div
         v-else-if="listEmpty && !error"
-        class="d-flex flex-column align-center justify-center text-center pa-8"
+        class="d-flex flex-column align-start pa-8"
       >
         <VIcon
           icon="tabler-history-off"
@@ -284,7 +283,7 @@ onMounted(() => {
         />
         <div
           v-if="hasMore"
-          class="d-flex justify-center mt-4"
+          class="d-flex mt-4"
         >
           <VBtn
             variant="tonal"

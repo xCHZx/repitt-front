@@ -1,6 +1,12 @@
-@forward "@core/scss/template/variables";
-
-// ℹ️ Remove above import and uncomment below to override core variables.
-// @forward "@core/scss/template/variables" with (
-//   $<variable-name>: <variable-value>
-// )
+// Variables de Vuexy re-tematizadas con la guía de la landing (plan 2026-10-08, §1.3).
+// El mixin custom-elevation de @core (botones, foco de campos, switch, pestañas) pinta una sombra
+// de color: con opacidad 0 queda transparente. src/styles/vuetify.scss además pone box-shadow: none.
+@forward "@core/scss/template/variables" with (
+  $default-layout-with-vertical-nav-navbar-footer-roundness: 12px,
+  $vertical-nav-navbar-elevation: 0,
+  $shadow-opacity: (
+    "sm": 0,
+    "md": 0,
+    "lg": 0,
+  ),
+);

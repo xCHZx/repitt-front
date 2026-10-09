@@ -1,0 +1,36 @@
+// Piezas compartidas por las pantallas sin sesión. Global a propósito: lo cargan AuthShell.vue y
+// AuthHeroLayout.vue (<style src>), así llega a todas las páginas que los usan. Valores de src/styles/tokens.css.
+
+// Enlace de texto (guía §8.2): --enlace, subrayado de 1px a 0.2em que pasa a 2px en hover.
+// Reemplaza a .text-primary en enlaces: --violeta como texto no pasa AA en el tema oscuro (§9.3).
+.auth-link {
+  color: var(--enlace);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
+// Ícono de estado de las tarjetas de auth (enviado, verificado, enlace vencido…): ficha tonal
+// (§8.4) con el ícono en --enlace. El error lleva borde e ícono en --error. Sin rellenos de color
+// de éxito ni de aviso: --canje y --premio son solo para premios (§2.6, §15).
+.auth-status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--enlace);
+  border-radius: var(--r-control);
+  background: var(--violeta-suave);
+  block-size: var(--s-8);
+  color: var(--enlace);
+  inline-size: var(--s-8);
+}
+
+.auth-status-icon--error {
+  border-color: var(--error);
+  background: transparent;
+  color: var(--error);
+}

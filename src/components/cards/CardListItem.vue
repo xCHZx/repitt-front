@@ -1,8 +1,12 @@
 <!-- Row of a stamp card in the owner's list; also used as the live preview of the card form. -->
 <script setup lang="ts">
+import { computed } from 'vue'
 import CardStatusChip from './CardStatusChip.vue'
 import { tint } from './cardMeta'
 import type { StampCardStatus } from '@/api/types'
+import { stampCount } from '@/components/stampCard/stampCard'
+
+// Fila plana (plan 2026-10-08 §2B): el color de la tarjeta solo en el filete y la ficha del ícono.
 
 const props = defineProps<{
   name: string
@@ -23,17 +27,15 @@ const accent = computed(() => tint(props.primaryColor, ''))
   <VCard
     :to="props.to"
     rounded="xl"
-    :style="{
-      borderInlineStart: `4px solid ${accent}`,
-      background: 'rgb(var(--v-theme-surface))',
-    }"
+    class="fila-tarjeta"
+    :style="{ '--c': accent }"
   >
     <VCardText class="pa-4">
       <div class="d-flex align-center gap-3">
         <VAvatar
           rounded="lg"
           size="44"
-          :style="{ background: tint(props.primaryColor, '20') }"
+          class="fila-tarjeta__avatar"
         >
           <VImg
             v-if="props.iconUrl"
@@ -45,7 +47,7 @@ const accent = computed(() => tint(props.primaryColor, ''))
             v-else
             icon="tabler-cards"
             size="22"
-            :style="{ color: accent }"
+            class="fila-tarjeta__icono"
           />
         </VAvatar>
 
@@ -79,10 +81,26 @@ const accent = computed(() => tint(props.primaryColor, ''))
             :is-expired="props.isExpired"
           />
           <span class="text-caption text-medium-emphasis text-no-wrap">
-            {{ props.requiredStamps }} {{ props.requiredStamps === 1 ? 'sello' : 'sellos' }}
+            {{ stampCount(props.requiredStamps) }}
           </span>
         </div>
       </div>
     </VCardText>
   </VCard>
 </template>
+
+<style scoped>
+/* Filete de 3px del color de la tarjeta en el lado inicial; el resto del borde es --linea */
+.v-card.fila-tarjeta {
+  border-inline-start: 3px solid var(--c);
+}
+
+.fila-tarjeta__avatar {
+  background-color: color-mix(in srgb, var(--c) 16%, transparent);
+}
+
+.fila-tarjeta__icono {
+  /* Mezclado con --texto para que se lea con colores claros (amarillo) y en oscuro */
+  color: color-mix(in srgb, var(--c) 50%, var(--texto));
+}
+</style>

@@ -18,7 +18,6 @@ const initial = computed(() => String(props.business.name || 'N').charAt(0).toUp
     class="sel-card"
     :class="{ 'sel-card--selected': props.selected }"
     rounded="xl"
-    elevation="0"
   >
     <VCardText class="d-flex align-center gap-3 pa-4">
       <div class="sel-avatar">
@@ -74,19 +73,21 @@ const initial = computed(() => String(props.business.name || 'N').charAt(0).toUp
   </VCard>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+// Hover y selección solo cambian el color del borde (guía §7).
 .sel-card {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   cursor: pointer;
-  transition: box-shadow 0.15s ease;
+  transition: border-color 160ms var(--ease-out);
 }
 
 .sel-card:hover {
-  box-shadow: 0 4px 16px rgba(var(--v-theme-primary), 0.12);
+  border-color: var(--borde-control);
 }
 
-.sel-card--selected {
-  border-color: rgb(var(--v-theme-primary));
+// .v-card delante: gana al borde --linea de `:root body .v-card` (src/styles/vuetify.scss)
+.v-card.sel-card--selected,
+.v-card.sel-card--selected:hover {
+  border-color: var(--acento);
 }
 
 .sel-avatar {
@@ -94,22 +95,22 @@ const initial = computed(() => String(props.business.name || 'N').charAt(0).toUp
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  background: rgba(var(--v-theme-primary), 0.1);
+  border-radius: var(--r-control);
+  background: var(--violeta-suave);
   block-size: 44px;
   inline-size: 44px;
 }
 
 .sel-avatar__img {
-  border-radius: 10px;
+  border-radius: var(--r-control);
   block-size: 100%;
   inline-size: 100%;
   object-fit: cover;
 }
 
 .sel-avatar__initial {
-  color: rgb(var(--v-theme-primary));
-  font-size: 1.2rem;
-  font-weight: 700;
+  color: var(--texto);
+  font-size: var(--t-body);
+  font-weight: 800;
 }
 </style>

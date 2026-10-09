@@ -205,13 +205,13 @@ const atCardLimit = computed(() => (cards.value.current?.length ?? 0) >= MAX_NON
     <!-- Vacío -->
     <div
       v-else-if="tab === 'archived'"
-      class="text-center py-12 text-body-2 text-medium-emphasis"
+      class="py-12 text-body-2 text-medium-emphasis"
     >
       No tienes tarjetas archivadas.
     </div>
     <div
       v-else
-      class="text-center py-12"
+      class="py-12"
     >
       <VIcon
         icon="tabler-cards"
@@ -237,17 +237,6 @@ const atCardLimit = computed(() => (cards.value.current?.length ?? 0) >= MAX_NON
 </template>
 
 <style scoped>
-.section-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 700;
-  gap: 5px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
 .empty-icon {
   opacity: 0.3;
 }

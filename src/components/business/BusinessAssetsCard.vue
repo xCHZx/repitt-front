@@ -156,7 +156,7 @@ onBeforeUnmount(() => {
 
       <template v-else-if="assets">
         <!-- QR -->
-        <div class="d-flex flex-column align-center text-center mb-4">
+        <div class="d-flex flex-column align-start mb-4">
           <div class="assets-qr mb-2">
             <VImg
               v-if="assets.qrUrl"
@@ -239,7 +239,7 @@ onBeforeUnmount(() => {
           >
             Regenerar QR y flyer
           </VBtn>
-          <div class="text-caption text-medium-emphasis text-center">
+          <div class="text-caption text-medium-emphasis">
             Úsalo si cambiaste tu nombre o logo. Solo se puede regenerar una vez por hora.
           </div>
         </template>
@@ -282,12 +282,13 @@ onBeforeUnmount(() => {
   </VCard>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+// El QR va siempre sobre papel blanco, también en oscuro (se tiene que poder escanear).
 .assets-qr {
   overflow: hidden;
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  border-radius: 12px;
-  background: white;
+  border: 1px solid var(--linea);
+  border-radius: var(--r-control);
+  background: var(--papel);
   block-size: 180px;
   inline-size: 180px;
 }
@@ -296,10 +297,10 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-radius: 10px;
-  background: rgba(var(--v-theme-on-surface), 0.04);
-  gap: 8px;
-  padding-block: 4px;
-  padding-inline: 12px 4px;
+  border: 1px solid var(--linea);
+  border-radius: var(--r-control);
+  gap: var(--s-2);
+  padding-block: var(--s-1);
+  padding-inline: var(--s-3) var(--s-1);
 }
 </style>

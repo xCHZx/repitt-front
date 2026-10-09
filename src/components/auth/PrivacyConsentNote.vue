@@ -19,7 +19,7 @@ const open = ref(false)
     <span>{{ text }}</span>
     <a
       href="#"
-      class="text-primary font-weight-medium ms-1"
+      class="auth-link font-weight-medium ms-1"
       :aria-expanded="open"
       @click.prevent="open = !open"
     >
@@ -39,8 +39,8 @@ const open = ref(false)
 
 <style scoped>
 .privacy-consent-note__body {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  border-radius: 12px;
-  background: rgba(var(--v-theme-on-surface), 0.02);
+  border: 1px solid var(--linea);
+  border-radius: var(--r-control);
+  background: var(--superficie);
 }
 </style>

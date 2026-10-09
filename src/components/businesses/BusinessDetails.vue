@@ -21,7 +21,7 @@ const timezoneLabel = computed(() =>
     rounded="xl"
     class="mb-4"
   >
-    <VCardText class="pa-5 text-center">
+    <VCardText class="pa-5">
       <VAvatar
         rounded="lg"
         size="80"
@@ -44,7 +44,7 @@ const timezoneLabel = computed(() =>
         {{ props.business.name }}
       </div>
 
-      <div class="d-flex flex-wrap justify-center gap-2 mb-3">
+      <div class="d-flex flex-wrap gap-2 mb-3">
         <VChip
           v-if="props.categoryName"
           color="primary"
@@ -114,7 +114,7 @@ const timezoneLabel = computed(() =>
       />
       <div
         v-else
-        class="text-body-2 text-disabled"
+        class="text-body-2 text-medium-emphasis"
       >
         Sin horario registrado
       </div>

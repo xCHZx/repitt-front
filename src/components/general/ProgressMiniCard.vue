@@ -24,11 +24,10 @@ const growthText = computed(() => {
 </script>
 
 <template>
-  <VCard rounded="xl">
+  <VCard>
     <VCardText class="pa-4">
       <div class="d-flex align-center justify-space-between mb-3">
         <VAvatar
-          rounded="lg"
           size="36"
           :color="props.color"
           variant="tonal"
@@ -38,16 +37,15 @@ const growthText = computed(() => {
             size="20"
           />
         </VAvatar>
+        <!-- Neutral chip (guide §15): the sign in the text says whether it went up or down -->
         <VChip
           v-if="props.growth !== undefined"
-          :color="props.growth >= 0 ? 'success' : 'error'"
           size="x-small"
-          variant="tonal"
         >
           {{ growthText }}
         </VChip>
       </div>
-      <div class="text-h4 font-weight-bold mb-1">
+      <div class="cifra text-h4 mb-1">
         {{ props.mainNumber }}
       </div>
       <div class="text-caption text-medium-emphasis">
@@ -55,7 +53,7 @@ const growthText = computed(() => {
       </div>
       <div
         v-if="props.caption"
-        class="text-caption text-disabled"
+        class="text-caption text-medium-emphasis"
       >
         {{ props.caption }}
       </div>

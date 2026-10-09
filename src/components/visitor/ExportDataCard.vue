@@ -59,7 +59,7 @@ async function runExport() {
       <div class="d-flex align-center gap-3 mb-2">
         <VIcon
           icon="tabler-download"
-          color="primary"
+          class="icono-acento"
         />
         <div class="text-subtitle-1 font-weight-bold">
           Descargar mis datos
@@ -110,3 +110,10 @@ async function runExport() {
     </VCardText>
   </VCard>
 </template>
+
+<style scoped>
+/* Ícono de acento: --acento se adapta al tema (text-primary queda en #6C3CE1 también en oscuro) */
+.icono-acento {
+  color: var(--acento);
+}
+</style>

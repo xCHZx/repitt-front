@@ -45,47 +45,35 @@ async function onSubmit(event: SubmitEventPromise) {
     validate-on="submit lazy"
     @submit.prevent="onSubmit"
   >
-    <div class="text-overline text-medium-emphasis mb-3">
+    <div class="section-label mb-3">
       Tus datos
     </div>
 
     <div class="d-flex flex-column gap-4">
-      <VRow>
-        <VCol
-          cols="12"
-          md="6"
-          class="pb-0"
-        >
-          <VTextField
-            v-model="form.firstName"
-            placeholder="Juan"
-            label="Nombre(s) *"
-            autocomplete="given-name"
-            variant="outlined"
-            prepend-inner-icon="tabler-user"
-            hide-details="auto"
-            :rules="[requiredValidator]"
-            :error-messages="props.errors.firstName"
-            autofocus
-          />
-        </VCol>
-        <VCol
-          cols="12"
-          md="6"
-          class="pb-0"
-        >
-          <VTextField
-            v-model="form.lastName"
-            placeholder="Pérez"
-            label="Apellido(s)"
-            autocomplete="family-name"
-            variant="outlined"
-            prepend-inner-icon="tabler-user"
-            hide-details="auto"
-            :error-messages="props.errors.lastName"
-          />
-        </VCol>
-      </VRow>
+      <div class="name-grid">
+        <VTextField
+          v-model="form.firstName"
+          placeholder="Juan"
+          label="Nombre(s) *"
+          autocomplete="given-name"
+          variant="outlined"
+          prepend-inner-icon="tabler-user"
+          hide-details="auto"
+          :rules="[requiredValidator]"
+          :error-messages="props.errors.firstName"
+          autofocus
+        />
+        <VTextField
+          v-model="form.lastName"
+          placeholder="Pérez"
+          label="Apellido(s)"
+          autocomplete="family-name"
+          variant="outlined"
+          prepend-inner-icon="tabler-user"
+          hide-details="auto"
+          :error-messages="props.errors.lastName"
+        />
+      </div>
 
       <VTextField
         v-model="form.phone"
@@ -125,7 +113,7 @@ async function onSubmit(event: SubmitEventPromise) {
 
     <VDivider class="my-6" />
 
-    <div class="text-overline text-medium-emphasis mb-3">
+    <div class="section-label mb-3">
       Tu negocio
     </div>
 
@@ -191,3 +179,16 @@ async function onSubmit(event: SubmitEventPromise) {
     </VBtn>
   </VForm>
 </template>
+
+<style scoped>
+.name-grid {
+  display: grid;
+  gap: var(--s-4);
+}
+
+@media (min-width: 960px) {
+  .name-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+</style>

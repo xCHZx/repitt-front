@@ -1,4 +1,4 @@
-<!-- Hero + bottom-sheet form used by the registration screens. -->
+<!-- Registration screens: flat hero on the tonal band (guide §2.4) and the form below, both aligned to the start. -->
 <script setup lang="ts">
 const props = defineProps<{
   icon: string
@@ -9,160 +9,133 @@ const props = defineProps<{
 
 <template>
   <div class="ahl-page">
-    <div class="ahl-hero">
-      <div class="ahl-hero__content">
+    <div class="ahl-hero section--tono">
+      <div class="ahl-column ahl-hero__content">
         <div
-          class="ahl-hero__icons"
+          class="ahl-hero__badge"
           aria-hidden="true"
         >
           <VIcon
-            icon="tabler-star-filled"
-            size="18"
-            class="ahl-hero__star ahl-hero__star--1"
-          />
-          <div class="ahl-hero__badge">
-            <VIcon
-              :icon="props.icon"
-              size="48"
-            />
-          </div>
-          <VIcon
-            icon="tabler-star-filled"
-            size="14"
-            class="ahl-hero__star ahl-hero__star--2"
+            :icon="props.icon"
+            size="32"
           />
         </div>
 
-        <h1 class="ahl-hero__title">
+        <h1 class="titulo-display">
           <slot name="title" />
         </h1>
         <p class="ahl-hero__subtitle">
           {{ props.subtitle }}
         </p>
 
-        <div class="ahl-hero__benefits">
-          <div
+        <ul class="ahl-hero__benefits">
+          <li
             v-for="b in props.benefits"
             :key="b"
             class="ahl-benefit"
           >
             <VIcon
               icon="tabler-check"
-              size="13"
+              size="16"
             />
             {{ b }}
-          </div>
-        </div>
+          </li>
+        </ul>
       </div>
     </div>
 
     <div class="ahl-form-section">
-      <div class="ahl-form-inner">
+      <div class="ahl-column">
         <slot />
       </div>
     </div>
   </div>
 </template>
 
+<style lang="scss" src="./auth.scss"></style>
+
 <style lang="scss" scoped>
 .ahl-page {
   display: flex;
   flex-direction: column;
-  background: rgb(var(--v-theme-background));
+  background: var(--fondo);
   min-block-size: 100dvh;
+}
+
+.ahl-column {
+  margin-inline: auto;
+  max-inline-size: 480px;
 }
 
 .ahl-hero {
   flex-shrink: 0;
-  background: linear-gradient(150deg, rgb(var(--v-theme-primary)) 0%, rgb(var(--v-theme-primary-darken-1)) 100%);
-  padding-block: 48px 80px;
-  padding-inline: 24px;
-  text-align: center;
+  border-block-end: 1px solid var(--linea);
+  color: var(--texto);
+  padding-block: var(--s-6);
+  padding-inline: var(--s-4);
+
+  @media (min-width: 1024px) {
+    padding-block: var(--s-7);
+  }
 }
 
 .ahl-hero__content {
-  margin-inline: auto;
-  max-inline-size: 400px;
-}
-
-.ahl-hero__icons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-block-end: 20px;
+  display: grid;
+  gap: var(--s-3);
+  justify-items: start;
 }
 
 .ahl-hero__badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: rgba(255 255 255 / 20%);
-  block-size: 80px;
-  color: white;
-  inline-size: 80px;
-}
-
-.ahl-hero__star {
-  color: rgba(255 255 255 / 70%);
-
-  &--1 {
-    transform: translateY(-6px);
-  }
-
-  &--2 {
-    transform: translateY(6px);
-  }
-}
-
-.ahl-hero__title {
-  color: white;
-  font-size: 1.65rem;
-  font-weight: 800;
-  line-height: 1.25;
-  margin-block-end: 12px;
+  border-radius: var(--r-control);
+  background: var(--violeta-suave);
+  block-size: var(--s-8);
+  color: var(--enlace);
+  inline-size: var(--s-8);
+  margin-block-end: var(--s-2);
 }
 
 .ahl-hero__subtitle {
-  color: rgba(255 255 255 / 85%);
-  font-size: 0.95rem;
-  line-height: 1.5;
-  margin-block-end: 24px;
+  margin: 0;
+  color: var(--texto-2);
+  font-size: var(--t-lead);
+  line-height: var(--lh-lead);
 }
 
 .ahl-hero__benefits {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
+  padding: 0;
+  margin: 0;
+  gap: var(--s-2);
+  list-style: none;
+  margin-block-start: var(--s-2);
 }
 
+// Chip neutro (guía §15) con el check en --acento
 .ahl-benefit {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
-  background: rgba(255 255 255 / 18%);
-  color: white;
-  font-size: 0.8rem;
-  font-weight: 500;
-  gap: 4px;
-  padding-block: 4px;
-  padding-inline: 12px;
+  border: 1px solid var(--linea);
+  border-radius: var(--r-control);
+  color: var(--texto-2);
+  font-size: var(--t-small);
+  font-weight: 700;
+  gap: var(--s-1);
+  line-height: var(--lh-small);
+  padding-block: var(--s-1);
+  padding-inline: var(--s-3);
+
+  .v-icon {
+    color: var(--acento);
+  }
 }
 
 .ahl-form-section {
   flex: 1;
-  border-radius: 28px 28px 0 0;
-  background: rgb(var(--v-theme-surface));
-  margin-block-start: -32px;
-  padding-block: 8px 48px;
-  padding-inline: 16px;
-}
-
-.ahl-form-inner {
-  margin-inline: auto;
-  max-inline-size: 480px;
-  padding-block-start: 32px;
+  padding-block: var(--s-6) var(--s-7);
+  padding-inline: var(--s-4);
 }
 </style>

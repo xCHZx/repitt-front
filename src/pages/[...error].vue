@@ -1,11 +1,6 @@
+<!-- 404 (guide §15): H1, one sentence on what happened and what to do, one CTA, aligned to the start. -->
 <script setup lang="ts">
 import ErrorHeader from '@/components/ErrorHeader.vue'
-import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
-import misc404 from '@images/pages/404.png'
-import miscMaskDark from '@images/pages/misc-mask-dark.png'
-import miscMaskLight from '@images/pages/misc-mask-light.png'
-
-const authThemeMask = useGenerateImageVariant(miscMaskLight, miscMaskDark)
 
 definePage({
   alias: '/pages/misc/not-found/:error(.*)',
@@ -17,38 +12,41 @@ definePage({
 </script>
 
 <template>
-  <div class="misc-wrapper">
-    <ErrorHeader
-      status-code="404"
-      title="Página no encontrada"
-      description="No encontramos la página que buscas. Revisa el enlace o vuelve al inicio."
-    />
-
-    <VBtn
-      to="/"
-      class="mb-11"
-    >
-      Ir al inicio
-    </VBtn>
-
-    <div class="misc-avatar w-100 text-center">
-      <VImg
-        :src="misc404"
-        alt="Página no encontrada"
-        :max-height="$vuetify.display.smAndDown ? 350 : 500"
-        class="mx-auto"
+  <main class="not-found">
+    <div class="not-found__inner">
+      <ErrorHeader
+        status-code="404"
+        title="Página no encontrada"
+        description="No encontramos la página que buscas. Revisa el enlace o vuelve al inicio."
       />
-    </div>
 
-    <img
-      class="misc-footer-img d-none d-md-block"
-      :src="authThemeMask"
-      alt=""
-      height="320"
-    >
-  </div>
+      <VBtn to="/">
+        Ir al inicio
+      </VBtn>
+    </div>
+  </main>
 </template>
 
-<style lang="scss">
-@use "@core/scss/template/pages/misc.scss";
+<style lang="scss" scoped>
+.not-found {
+  display: grid;
+  align-content: center;
+  background: var(--fondo);
+  min-block-size: 100dvh;
+  padding-block: var(--s-6);
+  padding-inline: var(--s-4);
+
+  @media (min-width: 1024px) {
+    padding-block: var(--s-7);
+  }
+}
+
+.not-found__inner {
+  display: grid;
+  gap: var(--s-5);
+  inline-size: 100%;
+  justify-items: start;
+  margin-inline: auto;
+  max-inline-size: 600px;
+}
 </style>

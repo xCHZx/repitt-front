@@ -30,7 +30,7 @@ const showPlans = computed(() =>
         v-if="showPlans"
         size="small"
         variant="flat"
-        color="error"
+        color="primary"
         to="/empresa/planes"
       >
         Ver planes

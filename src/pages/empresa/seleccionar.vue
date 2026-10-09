@@ -64,15 +64,15 @@ onMounted(load)
         >
       </div>
 
-      <div
+      <h1
         v-if="session.me?.firstName"
-        class="sel-greeting"
+        class="titulo-display mb-3"
       >
-        Hola, <strong>{{ session.me.firstName }}</strong>
-      </div>
-      <div class="sel-subtitle">
+        Hola, {{ session.me.firstName }}
+      </h1>
+      <p class="lead text-medium-emphasis mb-5">
         ¿Con qué negocio quieres continuar?
-      </div>
+      </p>
 
       <ApiErrorAlert
         :error="error"
@@ -98,10 +98,10 @@ onMounted(load)
       </template>
 
       <template v-else-if="!error">
-        <div class="sel-section-label">
+        <div class="section-label mb-2">
           <VIcon
             icon="tabler-building-store"
-            size="14"
+            size="16"
           />
           Tus negocios
         </div>
@@ -163,10 +163,10 @@ onMounted(load)
 
 <style scoped>
 .sel-page {
-  background: linear-gradient(160deg, rgba(var(--v-theme-primary), 0.07) 0%, rgb(var(--v-theme-background)) 45%);
+  background: var(--fondo);
   min-block-size: 100vh;
-  padding-block: 40px 32px;
-  padding-inline: 16px;
+  padding-block: var(--s-6);
+  padding-inline: var(--s-4);
 }
 
 .sel-inner {
@@ -175,46 +175,23 @@ onMounted(load)
 }
 
 .sel-brand {
-  margin-block-end: 28px;
-  text-align: center;
+  margin-block-end: var(--s-5);
 }
 
 .brand-logo {
+  display: block;
   block-size: auto;
   inline-size: 140px;
 }
 
-.sel-greeting {
-  font-size: 1.2rem;
-  margin-block-end: 4px;
-}
-
-.sel-subtitle {
-  color: rgba(var(--v-theme-on-surface), 0.55);
-  font-size: 0.9rem;
-  margin-block-end: 24px;
-}
-
-.sel-section-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 700;
-  gap: 5px;
-  letter-spacing: 0.05em;
-  margin-block-end: 8px;
-  text-transform: uppercase;
-}
-
 .sel-skeleton {
-  border-radius: 12px;
-  margin-block-end: 10px;
+  border-radius: var(--r-control);
+  margin-block-end: var(--s-3);
 }
 
 .sel-actions {
   display: flex;
   justify-content: space-between;
-  margin-block-start: 24px;
+  margin-block-start: var(--s-5);
 }
 </style>

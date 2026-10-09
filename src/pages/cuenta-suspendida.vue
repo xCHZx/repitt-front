@@ -22,12 +22,11 @@ function goToLogin() {
 
 <template>
   <AuthShell>
-    <div class="text-center">
+    <div>
       <div class="auth-status-icon auth-status-icon--error mb-4">
         <VIcon
           icon="tabler-user-off"
-          size="40"
-          color="error"
+          size="32"
         />
       </div>
       <div class="text-h6 font-weight-bold mb-2">
@@ -43,8 +42,6 @@ function goToLogin() {
         block
         size="large"
         variant="tonal"
-        color="primary"
-        rounded="xl"
         @click="goToLogin"
       >
         Ir al inicio de sesión

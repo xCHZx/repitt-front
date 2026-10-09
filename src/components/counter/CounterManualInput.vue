@@ -117,7 +117,7 @@ defineExpose({ reset })
 
         <div
           v-if="props.needsCard"
-          class="text-caption text-warning mt-3"
+          class="text-caption mt-3"
         >
           Elige primero la tarjeta a sellar.
         </div>
@@ -139,10 +139,10 @@ defineExpose({ reset })
   </VCard>
 </template>
 
-<style>
+<style lang="scss">
+// Código del cliente: misma familia que el resto, cifras tabulares (sin monospace ni mayúsculas forzadas;
+// normalizeRepittCode ya lo pasa a mayúsculas al enviar). Sin scoped: el <input> es interno de VTextField.
 .counter-code-field input {
-  font-family: monospace;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
 }
 </style>

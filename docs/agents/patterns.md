@@ -2,6 +2,8 @@
 
 Patrones recurrentes en el proyecto que los agentes deben conocer y seguir.
 
+> **Estilo visual (2026-10-08):** la app sigue la guía de estilo de la landing (ver «Tema visual» en `AGENTS.md`). Los patrones visuales que aparecen abajo **ya no aplican**: degradados, sombras de color, pantallas de éxito con degradado, etiquetas en mayúsculas y `letter-spacing`. Usa los tokens de `src/styles/tokens.css` y las utilidades de `src/styles/base.scss`.
+
 ---
 
 <!-- Formato sugerido:

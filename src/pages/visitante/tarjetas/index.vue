@@ -35,9 +35,9 @@ const load = async () => {
 const groups = computed(() => walletGroups(items.value))
 
 const sections = computed(() => [
-  { key: 'redeemable', label: '¡Listas para canjear!', icon: 'tabler-gift', class: 'text-warning', items: groups.value.redeemable, dimmed: false },
-  { key: 'progress', label: 'En progreso', icon: 'tabler-rosette-discount', class: 'text-primary', items: groups.value.inProgress, dimmed: false },
-  { key: 'inactive', label: 'Inactivas o terminadas', icon: 'tabler-archive', class: 'text-medium-emphasis', items: groups.value.inactive, dimmed: true },
+  { key: 'redeemable', label: '¡Listas para canjear!', icon: 'tabler-gift', items: groups.value.redeemable, dimmed: false },
+  { key: 'progress', label: 'En progreso', icon: 'tabler-rosette-discount', items: groups.value.inProgress, dimmed: false },
+  { key: 'inactive', label: 'Inactivas o terminadas', icon: 'tabler-archive', items: groups.value.inactive, dimmed: true },
 ].filter(s => s.items.length))
 
 onMounted(load)
@@ -71,13 +71,13 @@ onMounted(load)
 
     <div
       v-else-if="items.length === 0"
-      class="text-center py-12"
+      class="py-12"
     >
       <VIcon
         icon="tabler-cards"
         size="56"
         color="medium-emphasis"
-        class="mb-4 empty-icon"
+        class="mb-4"
       />
       <div class="text-h6 font-weight-bold mb-1">
         Aún no tienes tarjetas
@@ -101,10 +101,7 @@ onMounted(load)
         :key="section.key"
         class="wallet-section"
       >
-        <div
-          class="section-label"
-          :class="section.class"
-        >
+        <div class="section-label mb-3">
           <VIcon
             :icon="section.icon"
             size="15"
@@ -125,22 +122,7 @@ onMounted(load)
 </template>
 
 <style scoped>
-.section-label {
-  display: flex;
-  align-items: center;
-  font-size: 0.78rem;
-  font-weight: 700;
-  gap: 5px;
-  letter-spacing: 0.04em;
-  margin-block-end: 10px;
-  text-transform: uppercase;
-}
-
 .wallet-section + .wallet-section {
-  margin-block-start: 24px;
-}
-
-.empty-icon {
-  opacity: 0.35;
+  margin-block-start: var(--s-5);
 }
 </style>

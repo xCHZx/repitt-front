@@ -40,8 +40,10 @@ watch(() => [props.value, props.size] as const, async ([value, size]) => {
 <style scoped>
 .app-qr {
   overflow: hidden;
-  border-radius: 12px;
-  background: #fff;
+  border-radius: var(--r-control);
+
+  /* El QR va siempre sobre papel blanco, también en oscuro */
+  background: var(--papel);
   inline-size: 100%;
   margin-inline: auto;
 }

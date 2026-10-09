@@ -1,10 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es-MX">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" href="./src/assets/images/favicon2.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    // Tema antes del primer pintado: la misma cookie que usa Vuexy (repitt-theme: light | dark | system).
+    // Sin cookie, 'light' (themeConfig.app.theme). App.vue la mantiene sincronizada después con el tema resuelto de Vuetify.
+    (function () {
+      var root = document.documentElement
+      try {
+        var match = document.cookie.match(/(?:^|;\s*)repitt-theme=([^;]*)/)
+        var theme = match ? decodeURIComponent(match[1]).replace(/"/g, '') : 'light'
+        if (theme !== 'light' && theme !== 'dark')
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        root.dataset.theme = theme
+      }
+      catch (e) {
+        // Sin cookies ni matchMedia: tokens.css sigue la preferencia del sistema.
+      }
+    })()
+  </script>
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#f7f6fe" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#25293c" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <title>Repitt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,100..900&family=Plus+Jakarta+Sans:wght@200..800&display=swap" />
   <link rel="stylesheet" type="text/css" href="/loader.css" />
 
 <!-- Hotjar Tracking Code for Repitt WebAPP -->
@@ -42,16 +65,18 @@
   </div>
   <script type="module" src="/src/main.ts"></script>
   <script>
-    const loaderColor = localStorage.getItem('vuexy-initial-loader-bg') || '#FFFFFF'
-    const primaryColor = localStorage.getItem('vuexy-initial-loader-color') || '#7367F0'
+    // Color del cargador inicial: lo guarda initCore (src/@core/initCore.ts) con esta clave.
+    // El fondo no se lee de ahí (initCore guarda --superficie, #fff): loader.css usa --fondo según
+    // html[data-theme], que ya fijó el script del <head>, y así no hay destello blanco → lavanda.
+    try {
+      var loaderColor = localStorage.getItem('repitt-initial-loader-color')
 
-    if (loaderColor)
-      document.documentElement.style.setProperty('--initial-loader-bg', loaderColor)
-    if (loaderColor)
-      document.documentElement.style.setProperty('--initial-loader-bg', loaderColor)
-
-    if (primaryColor)
-      document.documentElement.style.setProperty('--initial-loader-color', primaryColor)
-    </script>
+      if (loaderColor)
+        document.documentElement.style.setProperty('--initial-loader-color', loaderColor)
+    }
+    catch (e) {
+      // Sin almacenamiento: loader.css usa sus colores por defecto.
+    }
+  </script>
   </body>
 </html>

@@ -25,12 +25,6 @@ const data = ref<PublicBusiness | null>(null)
 const isLoading = ref(true)
 const notFound = ref(false)
 
-const heroColor = computed(() => data.value?.cards[0]?.primaryColor || '#6C3CE1')
-
-const heroStyle = computed(() => ({
-  background: `linear-gradient(145deg, ${heroColor.value}ee 0%, ${heroColor.value}99 100%)`,
-}))
-
 const phoneHref = computed(() => data.value?.publicPhone ? `tel:${data.value.publicPhone.replace(/\s+/g, '')}` : undefined)
 
 async function load() {
@@ -65,25 +59,21 @@ watch(() => route.params.businessRepittCode, load, { immediate: true })
   <div class="biz-page">
     <!-- Loading -->
     <template v-if="isLoading">
-      <VSkeletonLoader
-        type="image"
-        height="180"
-        class="rounded-0"
-      />
-      <div class="px-5">
-        <div class="d-flex flex-column align-center">
+      <div class="biz-hero section--tono">
+        <div class="biz-content">
           <VSkeletonLoader
             type="avatar"
-            class="mt-n10 mb-4"
+            class="mb-4"
             width="88"
             height="88"
           />
           <VSkeletonLoader
             type="heading"
-            width="180"
-            class="mb-5"
+            width="220"
           />
         </div>
+      </div>
+      <div class="biz-content pt-5">
         <VSkeletonLoader
           type="list-item-three-line"
           class="mb-4 rounded-xl"
@@ -99,13 +89,12 @@ watch(() => route.params.businessRepittCode, load, { immediate: true })
       <VIcon
         icon="tabler-building-store"
         size="56"
-        color="secondary"
-        class="mb-4"
+        color="medium-emphasis"
       />
-      <h1 class="text-h5 font-weight-bold mb-2">
+      <h1 class="titulo-display">
         Negocio no disponible
       </h1>
-      <p class="text-body-2 text-medium-emphasis mb-6">
+      <p class="text-body-2 text-medium-emphasis mb-0">
         Este negocio no está disponible por ahora o el código ya no es válido.
       </p>
       <VBtn
@@ -135,21 +124,13 @@ watch(() => route.params.businessRepittCode, load, { immediate: true })
 
     <!-- Content -->
     <template v-else-if="data">
-      <div
-        class="biz-hero"
-        :style="heroStyle"
-      >
-        <div class="biz-hero__dots" />
-      </div>
-
-      <div class="biz-content">
-        <!-- Identity -->
-        <div class="biz-identity px-1">
+      <!-- Identity: banda tonal con tapete de puntos -->
+      <div class="biz-hero section--tono dots">
+        <div class="biz-content">
           <VAvatar
             class="biz-avatar"
             size="88"
-            rounded="xl"
-            color="white"
+            rounded="lg"
           >
             <VImg
               v-if="data.logoUrl"
@@ -158,33 +139,29 @@ watch(() => route.params.businessRepittCode, load, { immediate: true })
             />
             <span
               v-else
-              class="text-h3 font-weight-bold"
-              :style="{ color: heroColor }"
+              class="cifra"
             >
               {{ String(data.name || 'R').charAt(0).toUpperCase() }}
             </span>
           </VAvatar>
 
-          <h1 class="text-h5 font-weight-bold mt-3 mb-2 text-center">
+          <h1 class="titulo-display mt-4 mb-3">
             {{ data.name }}
           </h1>
 
-          <VChip
-            size="small"
-            variant="flat"
-            class="mb-3"
-            :style="{ background: `${heroColor}20`, color: heroColor }"
-          >
+          <VChip size="small">
             {{ data.category.name }}
           </VChip>
-
-          <p
-            v-if="data.description"
-            class="text-body-2 text-medium-emphasis text-center mb-0"
-          >
-            {{ data.description }}
-          </p>
         </div>
+      </div>
+
+      <div class="biz-content">
+        <p
+          v-if="data.description"
+          class="text-body-1 medida mt-5 mb-0"
+        >
+          {{ data.description }}
+        </p>
 
         <!-- Contact -->
         <VCard
@@ -251,9 +228,6 @@ watch(() => route.params.businessRepittCode, load, { immediate: true })
           <VBtn
             block
             size="x-large"
-            rounded="xl"
-            class="text-white"
-            :style="{ background: heroColor }"
             :append-icon="session.isAuthenticated ? 'tabler-wallet' : 'tabler-award-filled'"
             :to="session.isAuthenticated ? '/visitante' : '/auth/login'"
           >
@@ -261,15 +235,15 @@ watch(() => route.params.businessRepittCode, load, { immediate: true })
           </VBtn>
           <p
             v-if="!session.isAuthenticated"
-            class="text-caption text-medium-emphasis text-center mt-2 mb-0"
+            class="note mt-2 mb-0"
           >
             Muestra tu QR en el mostrador para empezar a juntar sellos.
           </p>
         </div>
-      </div>
 
-      <div class="text-center pb-8 pt-2">
-        <span class="text-caption text-disabled">Con tecnología de Repitt</span>
+        <p class="note pb-8 pt-2 mb-0">
+          Con tecnología de Repitt
+        </p>
       </div>
     </template>
   </div>
@@ -277,62 +251,34 @@ watch(() => route.params.businessRepittCode, load, { immediate: true })
 
 <style scoped>
 .biz-page {
-  background: rgb(var(--v-theme-background));
+  background: var(--fondo);
   min-block-size: 100vh;
 }
 
 .biz-hero {
-  position: relative;
-  overflow: hidden;
-  block-size: 180px;
-}
-
-.biz-hero__dots {
-  position: absolute;
-  background-image: radial-gradient(circle, rgba(255 255 255 / 18%) 1px, transparent 1px);
-  background-size: 22px 22px;
-  inset: 0;
+  padding-block: var(--s-6);
 }
 
 .biz-content {
   margin-inline: auto;
   max-inline-size: 600px;
-  padding-inline: 16px;
-}
-
-.biz-identity {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-block-start: -44px;
+  padding-inline: var(--margen);
 }
 
 .biz-avatar {
-  box-shadow: 0 4px 24px rgba(0 0 0 / 18%);
+  border: 1px solid var(--linea);
+  background: var(--superficie);
+  color: var(--texto);
 }
 
 .biz-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  align-content: center;
+  gap: var(--s-5);
+  justify-items: start;
   margin-inline: auto;
-  max-inline-size: 420px;
+  max-inline-size: 600px;
   min-block-size: 100vh;
-  padding-inline: 24px;
-  text-align: center;
-}
-
-.section-label {
-  display: flex;
-  align-items: center;
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 700;
-  gap: 5px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  padding-inline: var(--margen);
 }
 </style>

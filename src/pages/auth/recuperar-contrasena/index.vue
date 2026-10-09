@@ -37,24 +37,31 @@ function onPhoneResetDone() {
       v-model="method"
       mandatory
       divided
-      color="primary"
-      variant="outlined"
-      rounded="xl"
       density="comfortable"
       class="d-flex mb-5"
     >
       <VBtn
         value="email"
-        class="flex-grow-1"
-        prepend-icon="tabler-mail"
+        class="recover-method"
+        size="small"
       >
+        <VIcon
+          icon="tabler-mail"
+          size="18"
+          class="recover-method__icon"
+        />
         Por correo
       </VBtn>
       <VBtn
         value="phone"
-        class="flex-grow-1"
-        prepend-icon="tabler-device-mobile"
+        class="recover-method"
+        size="small"
       >
+        <VIcon
+          icon="tabler-device-mobile"
+          size="18"
+          class="recover-method__icon"
+        />
         Por teléfono
       </VBtn>
     </VBtnToggle>
@@ -67,13 +74,30 @@ function onPhoneResetDone() {
 
     <VDivider class="my-5" />
 
-    <div class="text-center text-body-2">
+    <div class="text-body-2">
       <RouterLink
         to="/auth/login?modo=negocio"
-        class="text-primary font-weight-medium"
+        class="auth-link font-weight-medium"
       >
         ← Volver al inicio de sesión
       </RouterLink>
     </div>
   </AuthShell>
 </template>
+
+<style lang="scss" scoped>
+// Dos fichas iguales. Por debajo de 400px el ícono se oculta para que «Por teléfono» quepa en la tarjeta.
+.recover-method {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  padding-inline: var(--s-2) !important;
+}
+
+.recover-method__icon {
+  margin-inline-end: var(--s-2);
+
+  @media (max-width: 399.98px) {
+    display: none;
+  }
+}
+</style>

@@ -70,7 +70,7 @@ async function resend() {
     v-if="session.emailPendingVerification"
     color="warning"
     variant="tonal"
-    rounded="xl"
+    rounded="lg"
     density="compact"
     icon="tabler-mail-exclamation"
   >
@@ -91,7 +91,7 @@ async function resend() {
     <VBtn
       size="small"
       variant="text"
-      color="warning"
+      color="primary"
       class="mt-1 px-0"
       :loading="sending"
       :disabled="waitSeconds > 0"

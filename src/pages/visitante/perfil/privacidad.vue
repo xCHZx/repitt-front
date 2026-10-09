@@ -93,7 +93,7 @@ onMounted(load)
 <template>
   <div>
     <!-- Businesses with my data -->
-    <div class="section-label">
+    <div class="section-label mb-3">
       Negocios con mis datos
     </div>
     <p class="text-body-2 text-medium-emphasis mb-3">
@@ -177,7 +177,7 @@ onMounted(load)
 
     <!-- Cashier memberships not listed -->
     <template v-if="staffOnly.length">
-      <div class="section-label">
+      <div class="section-label mb-3">
         Negocios donde trabajo
       </div>
       <VCard
@@ -208,7 +208,7 @@ onMounted(load)
     </template>
 
     <!-- Export -->
-    <div class="section-label">
+    <div class="section-label mb-3">
       Mis datos
     </div>
     <ExportDataCard class="mb-4" />
@@ -224,7 +224,7 @@ onMounted(load)
     </VBtn>
 
     <!-- Delete account -->
-    <div class="section-label text-error">
+    <div class="section-label text-error mb-3">
       Zona de riesgo
     </div>
     <DeleteAccountCard />
@@ -248,19 +248,6 @@ onMounted(load)
 </template>
 
 <style scoped>
-.section-label {
-  color: rgb(var(--v-theme-primary));
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  margin-block-end: 10px;
-  text-transform: uppercase;
-}
-
-.section-label.text-error {
-  color: rgb(var(--v-theme-error));
-}
-
 .revoked-item {
   opacity: 0.6;
 }

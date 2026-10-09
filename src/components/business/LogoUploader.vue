@@ -167,7 +167,6 @@ onBeforeUnmount(clearPreview)
         v-if="file"
         block
         color="primary"
-        variant="tonal"
         class="mt-3"
         prepend-icon="tabler-upload"
         :loading="isUploading"

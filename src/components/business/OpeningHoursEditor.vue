@@ -156,10 +156,10 @@ const generalError = computed(() => {
 
 <style scoped>
 .ohe-day {
-  padding-block: 8px;
+  padding-block: var(--s-2);
 }
 
 .ohe-day + .ohe-day {
-  border-block-start: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-block-start: 1px solid var(--linea);
 }
 </style>

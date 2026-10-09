@@ -67,6 +67,7 @@ declare module 'vue-router/auto/routes' {
     'empresa-tarjetas-crear': RouteRecordInfo<'empresa-tarjetas-crear', '/empresa/tarjetas/crear', Record<never, never>, Record<never, never>>,
     'empresa-visitas': RouteRecordInfo<'empresa-visitas', '/empresa/visitas', Record<never, never>, Record<never, never>>,
     'empresa-visitas-registrar': RouteRecordInfo<'empresa-visitas-registrar', '/empresa/visitas/registrar', Record<never, never>, Record<never, never>>,
+    'estilo': RouteRecordInfo<'estilo', '/estilo', Record<never, never>, Record<never, never>>,
     'privacidad': RouteRecordInfo<'privacidad', '/privacidad', Record<never, never>, Record<never, never>>,
     'reset-password': RouteRecordInfo<'reset-password', '/reset-password', Record<never, never>, Record<never, never>>,
     'verify-email': RouteRecordInfo<'verify-email', '/verify-email', Record<never, never>, Record<never, never>>,

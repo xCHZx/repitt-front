@@ -84,6 +84,7 @@ const onSubmit = async () => {
         <VBtn
           icon
           variant="text"
+          color="default"
           size="small"
           aria-label="Regresar"
           @click="goBack"
@@ -93,7 +94,7 @@ const onSubmit = async () => {
             size="20"
           />
         </VBtn>
-        <h1 class="text-h6 font-weight-bold mb-0">
+        <h1 class="titulo-display mb-0">
           Nuevo negocio
         </h1>
       </div>
@@ -138,8 +139,6 @@ const onSubmit = async () => {
           type="submit"
           block
           size="large"
-          color="primary"
-          rounded="lg"
           :loading="isSubmitting"
           :disabled="!session.hasPassword"
         >
@@ -150,7 +149,7 @@ const onSubmit = async () => {
           />
         </VBtn>
 
-        <p class="legal-note">
+        <p class="note mt-3 mb-0">
           Podrás subir tu logo y crear tus tarjetas en el siguiente paso.
         </p>
       </VForm>
@@ -160,21 +159,14 @@ const onSubmit = async () => {
 
 <style scoped>
 .crear-page {
-  background: rgb(var(--v-theme-background));
+  background: var(--fondo);
   min-block-size: 100vh;
-  padding-block: 16px 32px;
-  padding-inline: 16px;
+  padding-block: var(--s-4) var(--s-6);
+  padding-inline: var(--s-4);
 }
 
 .crear-inner {
   margin-inline: auto;
   max-inline-size: 600px;
-}
-
-.legal-note {
-  color: rgba(var(--v-theme-on-surface), 0.5);
-  font-size: 0.78rem;
-  margin-block-start: 12px;
-  text-align: center;
 }
 </style>

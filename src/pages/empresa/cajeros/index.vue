@@ -208,7 +208,7 @@ onMounted(load)
 
       <div
         v-if="cashierCount === 0"
-        class="text-body-2 text-medium-emphasis text-center mt-4"
+        class="text-body-2 text-medium-emphasis mt-4"
       >
         Aún no tienes cajeros.
       </div>
@@ -226,7 +226,7 @@ onMounted(load)
       max-width="360"
     >
       <VCard rounded="xl">
-        <VCardText class="pa-6 text-center">
+        <VCardText class="pa-6">
           <VIcon
             icon="tabler-user-minus"
             color="error"
@@ -241,7 +241,7 @@ onMounted(load)
           </div>
           <ApiErrorAlert
             :error="revokeError"
-            class="mb-4 text-start"
+            class="mb-4"
           />
           <div class="d-flex gap-3">
             <VBtn
@@ -253,8 +253,10 @@ onMounted(load)
             >
               Cancelar
             </VBtn>
+            <!-- Destructivo (guía §15): botón de marco con texto en --error -->
             <VBtn
               block
+              variant="outlined"
               color="error"
               :loading="isRevoking"
               @click="confirmRevoke"

@@ -235,10 +235,10 @@ onMounted(loadCategories)
         @submit="onSubmitForm"
       />
 
-      <div class="text-center mt-6">
-        <span class="text-medium-emphasis text-body-2">¿Ya tienes una cuenta?</span>
+      <div class="mt-6 text-body-2">
+        <span class="text-medium-emphasis">¿Ya tienes una cuenta?</span>
         <RouterLink
-          class="text-primary ms-1 text-body-2 font-weight-medium"
+          class="auth-link ms-1 font-weight-medium"
           to="/auth/login?modo=negocio"
         >
           Inicia sesión
@@ -247,9 +247,9 @@ onMounted(loadCategories)
 
       <VDivider class="my-5" />
 
-      <div class="text-center">
+      <div>
         <RouterLink
-          class="text-medium-emphasis text-caption"
+          class="auth-link text-body-2"
           to="/auth/registro/visitante"
         >
           ¿Solo quieres acumular recompensas? Regístrate como cliente →

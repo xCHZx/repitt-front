@@ -103,7 +103,6 @@ async function submit() {
       block
       size="large"
       :loading="isSubmitting"
-      :style="{ background: form.primaryColor }"
     >
       Crear tarjeta
     </VBtn>

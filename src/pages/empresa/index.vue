@@ -131,7 +131,7 @@ onMounted(async () => {
         <VBtn
           size="small"
           variant="flat"
-          color="warning"
+          color="primary"
           to="/empresa/informacion"
         >
           Publicar
@@ -183,7 +183,7 @@ onMounted(async () => {
     </VCard>
 
     <!-- Footer -->
-    <div class="d-flex justify-center flex-wrap gap-4 mt-4">
+    <div class="d-flex flex-wrap gap-4 mt-4">
       <VBtn
         v-if="hasSeveralBusinesses"
         variant="text"

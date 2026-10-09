@@ -50,7 +50,7 @@ async function confirm() {
 <template>
   <VCard
     rounded="xl"
-    :style="{ borderInlineStart: '3px solid rgb(var(--v-theme-error))' }"
+    class="zona-riesgo"
   >
     <VCardText class="pa-4">
       <div class="d-flex align-center gap-3 mb-2">
@@ -90,7 +90,10 @@ async function confirm() {
             variant="tonal"
             size="44"
           >
-            <VIcon icon="tabler-alert-octagon" />
+            <VIcon
+              icon="tabler-alert-octagon"
+              color="error"
+            />
           </VAvatar>
           <div class="text-h6 font-weight-bold">
             ¿Eliminar tu cuenta?
@@ -152,10 +155,15 @@ async function confirm() {
 </template>
 
 <style scoped>
+/* Filete de 3px en --error: la tarjeta de la zona de riesgo (guía §5.3) */
+.v-card.zona-riesgo {
+  border-inline-start: 3px solid var(--error);
+}
+
 .loss-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding-inline-start: 20px;
+  gap: var(--s-2);
+  padding-inline-start: var(--s-5);
 }
 </style>

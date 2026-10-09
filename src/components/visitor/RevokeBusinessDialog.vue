@@ -101,7 +101,10 @@ async function confirm() {
             variant="tonal"
             size="44"
           >
-            <VIcon icon="tabler-alert-triangle" />
+            <VIcon
+              icon="tabler-alert-triangle"
+              color="error"
+            />
           </VAvatar>
           <div class="text-h6 font-weight-bold">
             {{ onlyStaff ? 'Salir de' : 'Darte de baja de' }} {{ props.target.name }}
@@ -162,7 +165,7 @@ async function confirm() {
 .loss-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-inline-start: 20px;
+  gap: var(--s-2);
+  padding-inline-start: var(--s-5);
 }
 </style>

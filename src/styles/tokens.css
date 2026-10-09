@@ -1,0 +1,168 @@
+/*
+ * ORIGEN: copia literal de repitt-web/src/styles/tokens.css
+ * (repitt-web HEAD 90884dc; el archivo no cambia desde 48b2611).
+ * No editar aquí: cualquier cambio se hace primero en la landing y se vuelve a copiar.
+ * Guía: repitt-web/docs/diseno/guia-de-estilo.md §13.1.
+ */
+
+/*
+ * Tokens de diseño de la landing: única fuente de colores, tipos, espacios,
+ * radios, sombras y movimiento (MEGAPROMPT §6 + addendum §6.1).
+ * Ninguna sección escribe colores, tamaños o sombras sueltos.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Marca */
+  --violeta: #6c3ce1;
+  --violeta-tinta: #5328b8;
+  --lavanda: #f7f6fe;
+  --lila: #e8e1fc;
+  --papel: #fff;
+  --tinta: #2f2b3d;
+  --tinta-suave: #6d6880;
+  --noche: #1d1733;
+  --texto-noche: #f1eeff;
+  --texto-noche-2: #aba7c2;
+  --enlace-noche: #a58bff;
+
+  /* Estados con significado: no usar como decoración */
+  --premio: #ff9f43;
+  --canje: #28c76f;
+  --error: #b42318;
+
+  /* Roles */
+  --fondo: var(--lavanda);
+  --superficie: var(--papel);
+  --texto: var(--tinta);
+  --texto-2: var(--tinta-suave);
+  --enlace: var(--violeta-tinta);
+  --foco: var(--violeta);
+  --acento: var(--violeta);
+  --linea: rgb(47 43 61 / 12%);
+  --borde-control: #858197;
+  --tapete-punto: color-mix(in oklab, var(--violeta) 22%, transparent);
+  --noche-punto: rgb(255 255 255 / 6%);
+  --cabecera-fondo: rgb(247 246 254 / 85%);
+  --velo: rgb(29 23 51 / 40%);
+  --violeta-suave: rgb(108 60 225 / 16%);
+
+  /* Banda tonal (.section--tono): un violeta suave entre --fondo y --noche */
+  --banda: var(--lila);
+  --banda-texto-2: #5f5a74;
+  --banda-linea: rgb(83 40 184 / 16%);
+  --sello-anillo: rgb(255 255 255 / 35%);
+  --telefono-marco: rgb(255 255 255 / 14%);
+  --telefono-fondo: #0d0a1a;
+
+  /* La única sombra de la página: la de la tarjeta de sellos, y su filo */
+  --tarjeta-sombra: 0 40px 80px -32px rgb(83 40 184 / 45%);
+  --tarjeta-brillo: inset 0 2px 0 rgb(255 255 255 / 60%);
+
+  /* Borde de tinta del sello: contorno irregular con 5 motas, determinista */
+  --tinta-mascara: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill-rule='evenodd' d='M98.4 50L97.8 54.2L97.2 58.3L96.8 62.6L95 66.4L92.7 69.9L91.1 73.7L89.2 77.4L86.8 80.9L84.3 84.3L80.8 86.7L76.7 88.1L73.1 90L69.5 91.8L65.6 92.9L61.8 94.2L58 95.1L54 95.3L50 96.4L45.8 97.6L41.7 97.1L37.7 95.9L33.8 94.6L30.2 92.5L26.5 90.8L22.4 89.4L19.1 86.8L16.2 83.8L13 81.1L10.2 77.9L7.8 74.3L5.6 70.7L4.8 66.4L5.1 62L4.5 58L4 54L4 50L3.8 46L4.3 41.9L5.7 38.1L6.3 34.1L7.1 30L9.3 26.5L11.8 23.3L14.5 20.2L17.6 17.6L20.1 14.4L22.5 10.7L25.9 8.2L29.6 6.3L33.3 4.2L37.4 3L41.6 2.1L45.7 1.3L50 2L54.1 3.5L58.1 4.1L62.1 4.8L66.1 5.9L70.1 6.9L73.7 9L76.6 12.1L79.8 14.5L83 17L85.3 20.4L87.5 23.7L89.6 27.1L91.1 30.8L93.5 34.2L96.3 37.6L97.5 41.6L98 45.8ZM87.1 64a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0 -2.8 0ZM58.7 85.7a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0ZM15.9 77.6a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0 -2.4 0ZM19.3 36.1a0.8 0.8 0 1 0 1.6 0a0.8 0.8 0 1 0 -1.6 0ZM40.8 6.7a1.6 1.6 0 1 0 3.2 0a1.6 1.6 0 1 0 -3.2 0Z'/%3E%3C/svg%3E");
+
+  /* Tipografía: Anybody solo para H1, H2 y el precio; Plus Jakarta Sans para todo lo demás */
+  --f-display: var(--font-anybody, Arial, sans-serif);
+  --f-texto: var(--font-jakarta, Arial, sans-serif);
+  --display-ancho: 72%;
+  --t-display: clamp(3.25rem, 9vw + 1rem, 7.5rem);
+  --t-h2: clamp(2.25rem, 4vw + 1rem, 4rem);
+  --t-h2-compacto: clamp(1.75rem, 2vw + 1rem, 2.5rem);
+  --t-h3: 1.5rem;
+  --t-lead: 1.3125rem;
+  --t-body: 1.0625rem;
+  --t-small: 0.875rem;
+  --lh-display: 0.92;
+  --lh-h2: 1;
+  --lh-h3: 1.25;
+  --lh-lead: 1.5;
+  --lh-body: 1.6;
+  --lh-small: 1.45;
+
+  /* Espacio */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+  --s-10: 128px;
+  --contenedor: 1200px;
+  --margen: 16px;
+  --cabecera-alto: 64px;
+  --objetivo-tactil: 44px;
+
+  /* Forma */
+  --r-control: 12px;
+  --r-superficie: 24px;
+  --r-tarjeta: 28px;
+
+  /* Movimiento */
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --margen: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --margen: 32px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --fondo: #25293c;
+    --superficie: #2f3349;
+    --texto: #e1def5;
+    --texto-2: #aba7c2;
+    --enlace: #a58bff;
+    --foco: #a58bff;
+    --acento: #a58bff;
+    --error: #ff8a80;
+    --noche: #171925;
+    --banda: #2c2650;
+    --banda-texto-2: #aba7c2;
+    --banda-linea: rgb(165 139 255 / 18%);
+    --linea: rgb(225 222 245 / 14%);
+    --borde-control: #85819c;
+    --tapete-punto: color-mix(in oklab, #e1def5 12%, transparent);
+    --cabecera-fondo: rgb(37 41 60 / 85%);
+    --tarjeta-sombra: 0 40px 80px -32px rgb(0 0 0 / 60%);
+    --tarjeta-brillo: inset 0 1px 0 rgb(255 255 255 / 6%);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --fondo: #25293c;
+  --superficie: #2f3349;
+  --texto: #e1def5;
+  --texto-2: #aba7c2;
+  --enlace: #a58bff;
+  --foco: #a58bff;
+  --acento: #a58bff;
+  --error: #ff8a80;
+  --noche: #171925;
+  --banda: #2c2650;
+  --banda-texto-2: #aba7c2;
+  --banda-linea: rgb(165 139 255 / 18%);
+  --linea: rgb(225 222 245 / 14%);
+  --borde-control: #85819c;
+  --tapete-punto: color-mix(in oklab, #e1def5 12%, transparent);
+  --cabecera-fondo: rgb(37 41 60 / 85%);
+  --tarjeta-sombra: 0 40px 80px -32px rgb(0 0 0 / 60%);
+  --tarjeta-brillo: inset 0 1px 0 rgb(255 255 255 / 6%);
+}

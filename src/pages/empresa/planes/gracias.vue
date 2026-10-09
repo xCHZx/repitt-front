@@ -131,24 +131,24 @@ const nextLink = computed(() => phase.value === 'pending'
 </script>
 
 <template>
-  <div class="gracias-page">
+  <!-- Banda tonal plana (guía §2.4), alineada a la izquierda y sin animación de entrada -->
+  <div class="gracias-page section--tono">
     <div class="gracias-inner">
       <div class="gracias-icon">
         <VProgressCircular
           v-if="phase === 'confirming'"
           indeterminate
-          color="white"
+          color="primary"
           size="48"
         />
         <VIcon
           v-else
           :icon="phase === 'confirmed' ? 'tabler-crown' : 'tabler-clock'"
           size="48"
-          color="white"
         />
       </div>
 
-      <h1 class="gracias-title">
+      <h1 class="titulo-display">
         {{ copy.title }}
       </h1>
       <p class="gracias-subtitle">
@@ -163,10 +163,7 @@ const nextLink = computed(() => phase.value === 'pending'
 
       <VBtn
         v-if="phase === 'pending'"
-        color="white"
-        variant="elevated"
         size="large"
-        rounded="lg"
         class="gracias-btn mb-3"
         :loading="isChecking"
         @click="checkAgain"
@@ -180,12 +177,9 @@ const nextLink = computed(() => phase.value === 'pending'
 
       <VBtn
         v-if="phase !== 'confirming'"
-        :color="phase === 'confirmed' ? 'white' : undefined"
-        :variant="phase === 'confirmed' ? 'elevated' : 'outlined'"
+        :variant="phase === 'confirmed' ? 'flat' : 'outlined'"
         size="large"
-        rounded="lg"
         class="gracias-btn"
-        :class="{ 'gracias-btn--outlined': phase !== 'confirmed' }"
         :to="nextLink.to"
       >
         {{ nextLink.label }}
@@ -202,91 +196,41 @@ const nextLink = computed(() => phase.value === 'pending'
 .gracias-page {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 24px;
-  background: linear-gradient(160deg, rgb(var(--v-theme-primary)) 0%, rgb(var(--v-theme-primary-darken-1)) 100%);
-  margin-block: 8px;
+  border-radius: var(--r-superficie);
+  margin-block: var(--s-2);
   min-block-size: calc(100dvh - 200px);
-  padding-block: 40px;
+  padding-block: var(--s-6);
 }
 
 .gracias-inner {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  animation: fade-up 0.5s ease both;
+  align-items: flex-start;
   inline-size: 100%;
-  max-inline-size: 360px;
-  padding-inline: 24px;
-  text-align: center;
+  max-inline-size: 32em;
+  padding-inline: var(--s-5);
 }
 
 .gracias-icon {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
-  background: rgb(255 255 255 / 20%);
-  block-size: 96px;
-  inline-size: 96px;
-  margin-block-end: 24px;
-}
-
-.gracias-title {
-  animation: fade-up 0.5s ease 0.2s both;
-  color: white;
-  font-size: 1.6rem;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  margin-block-end: 12px;
+  color: var(--acento);
+  margin-block-end: var(--s-5);
 }
 
 .gracias-subtitle {
-  animation: fade-up 0.5s ease 0.3s both;
-  color: rgb(255 255 255 / 80%);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin-block-end: 28px;
+  color: var(--texto);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  margin-block: var(--s-3) var(--s-5);
 }
 
 .gracias-alert {
   inline-size: 100%;
-  margin-block-end: 16px;
-  text-align: start;
+  margin-block-end: var(--s-4);
 }
 
 .gracias-btn {
-  animation: fade-up 0.5s ease 0.4s both;
-  color: rgb(var(--v-theme-primary));
   inline-size: 100%;
-
-  &--outlined {
-    color: white;
-  }
-}
-
-@keyframes pop-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes fade-up {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 </style>

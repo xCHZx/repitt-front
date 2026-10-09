@@ -119,8 +119,6 @@ async function onVerified(result: OtpSession) {
             type="submit"
             size="large"
             block
-            color="primary"
-            rounded="xl"
             class="mt-2"
           >
             Continuar
@@ -146,10 +144,10 @@ async function onVerified(result: OtpSession) {
         </VBtn>
       </template>
 
-      <div class="text-center mt-6">
-        <span class="text-medium-emphasis text-body-2">¿Ya tienes cuenta?</span>
+      <div class="mt-6 text-body-2">
+        <span class="text-medium-emphasis">¿Ya tienes cuenta?</span>
         <RouterLink
-          class="text-primary ms-1 text-body-2 font-weight-medium"
+          class="auth-link ms-1 font-weight-medium"
           to="/auth/login"
         >
           Inicia sesión
@@ -158,9 +156,9 @@ async function onVerified(result: OtpSession) {
 
       <VDivider class="my-5" />
 
-      <div class="text-center">
+      <div>
         <RouterLink
-          class="text-medium-emphasis text-caption"
+          class="auth-link text-body-2"
           to="/auth/registro/negocio"
         >
           ¿Eres dueño de un negocio? Regístrate aquí →

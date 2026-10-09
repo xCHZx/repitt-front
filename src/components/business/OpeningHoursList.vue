@@ -19,7 +19,7 @@ const props = defineProps<{
       <span class="text-medium-emphasis">{{ day.label }}</span>
       <span
         class="text-end"
-        :class="{ 'text-disabled': !props.hours?.[day.key]?.length }"
+        :class="{ 'text-medium-emphasis': !props.hours?.[day.key]?.length }"
       >
         {{ formatSlots(props.hours?.[day.key]) }}
       </span>
@@ -31,6 +31,6 @@ const props = defineProps<{
 .opening-hours-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--s-1);
 }
 </style>
